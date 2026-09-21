@@ -9,21 +9,11 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-  <svg style="position:absolute; width:0; height:0; overflow:hidden;">
-    <filter id="glass-distortion" x="-20%" y="-20%" width="140%" height="140%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012"
-        numOctaves="2" seed="7" result="noise"/>
-      <feGaussianBlur in="noise" stdDeviation="2" result="blurredNoise"/>
-      <feDisplacementMap in="SourceGraphic" in2="blurredNoise"
-        scale="68" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-  </svg>
 
   <!-- ============================================================
        HEADER
@@ -56,26 +46,19 @@
     </div>
   </header>
 
-  <!-- Clon del contenido de <main>, distorsionado, que se ve "a través"
-       del header — ver js/header-glass.js -->
-  <div class="header-glass-clone" aria-hidden="true"></div>
-
   <main class="site-main">
 
   <!-- ============================================================
        HERO
        ============================================================ -->
   <section class="hero">
-    <div class="hero-bg hero-tilt-wrap" aria-hidden="true">
-      <img src="assets/img/iphone18promax-plateado-back-side.jpg" alt="">
-    </div>
-
     <div class="container hero-inner">
       <span class="eyebrow reveal">Especialistas Apple en Mendoza</span>
-      <h1 class="h1 reveal">Todo el ecosistema<br>Apple en un solo lugar</h1>
-      <p class="hero-lead reveal">
-        iPhone, Mac y iPad — nuevos y usados con garantía. Service técnico
-        100% in-house, sin tercerizar, con menos del 1% de casos sin resolver.
+      <h1 class="h1 reveal">Todo el ecosistema Apple en un solo lugar</h1>
+      <p class="hero-lead body-lede center reveal">
+        iPhone, Mac y iPad — nuevos y usados <strong>con garantía</strong>.
+        Service técnico <strong>100% in-house</strong>, sin tercerizar, con
+        menos del 1% de casos sin resolver.
       </p>
       <div class="hero-actions reveal">
         <a href="https://wa.me/549XXXXXXXXX?text=Hola%2C%20quiero%20hacer%20una%20consulta"
@@ -113,33 +96,33 @@
   <!-- ============================================================
        POR QUÉ TECNOLAB
        ============================================================ -->
-  <section class="section section-black">
+  <section class="section section-black" id="why-tecnolab">
     <div class="container">
       <div class="section-head">
         <span class="eyebrow reveal">Por qué Tecnolab</span>
-        <h2 class="h2 reveal">6 años de trayectoria<br>respaldan cada garantía</h2>
+        <h2 class="h2 reveal">6 años de trayectoria respaldan cada garantía</h2>
       </div>
 
-      <div class="diff-grid">
-        <div class="diff-card reveal">
-          <span class="step-number">01</span>
-          <h3>Garantía real</h3>
-          <p>Menos del 1% de casos sin resolver. La garantía más amplia del mercado, sobre nuevos y usados.</p>
+      <div class="stat-row">
+        <div class="stat-block reveal">
+          <span class="stat-label">Garantía real</span>
+          <span class="stat-number">99%</span>
+          <p class="stat-caption">de los casos, resueltos. <strong>La garantía más amplia del mercado</strong>, sobre nuevos y usados.</p>
         </div>
-        <div class="diff-card reveal">
-          <span class="step-number">02</span>
-          <h3>Service 100% in-house</h3>
-          <p>No tercerizamos como otras marcas que en realidad te derivan el trabajo a nosotros. Todo se repara acá.</p>
+        <div class="stat-block reveal">
+          <span class="stat-label">Service in-house</span>
+          <span class="stat-number">100%</span>
+          <p class="stat-caption">reparado acá, <strong>sin tercerizar</strong> — nunca te derivamos a otro lado.</p>
         </div>
-        <div class="diff-card reveal">
-          <span class="step-number">03</span>
-          <h3>Amplitud de servicios</h3>
-          <p>iPhone, Mac y iPad — compra, reparación y toma de usados, todo en el mismo lugar.</p>
+        <div class="stat-block reveal">
+          <span class="stat-label">Amplitud de servicios</span>
+          <span class="stat-number">3</span>
+          <p class="stat-caption">líneas completas — iPhone, Mac y iPad, <strong>todo en el mismo lugar</strong>.</p>
         </div>
-        <div class="diff-card reveal">
-          <span class="step-number">04</span>
-          <h3>6 años en Mendoza</h3>
-          <p>Dos locales, miles de equipos entregados y una reputación construida a pulmón, boca a boca.</p>
+        <div class="stat-block reveal">
+          <span class="stat-label">Trayectoria en Mendoza</span>
+          <span class="stat-number">6 años</span>
+          <p class="stat-caption">dos locales, <strong>miles de equipos entregados</strong>, reputación boca a boca.</p>
         </div>
       </div>
     </div>
@@ -152,11 +135,12 @@
     <div class="container">
       <div class="canje-content reveal">
         <span class="eyebrow">Plan Canje</span>
-        <h2 class="h2">Te lo tomamos en cualquier<br>estado, a buen precio</h2>
-        <p>
-          Somos los únicos en el mercado que además dan garantía sobre
-          equipos usados. Tu iPhone, Mac o iPad actual vale como parte de
-          pago para el próximo — sin vueltas, con una tasación transparente.
+        <h2 class="h2">Te lo tomamos en cualquier estado, a buen precio</h2>
+        <p class="body-lede center">
+          Somos los <strong>únicos en el mercado</strong> que además
+          <strong>dan garantía sobre equipos usados</strong>. Tu iPhone,
+          Mac o iPad actual vale como parte de pago para el próximo —
+          sin vueltas, con una <strong>tasación transparente</strong>.
         </p>
 
         <div class="canje-steps">
@@ -198,21 +182,21 @@
             <span class="step-number">01</span>
             <div>
               <h3>Pantallas</h3>
-              <p>Cambio de pantalla original o compatible premium, en el día, para toda la línea iPhone.</p>
+              <p>Cambio de pantalla original o compatible premium, <strong>en el día</strong>, para toda la línea iPhone.</p>
             </div>
           </div>
           <div class="service-item">
             <span class="step-number">02</span>
             <div>
               <h3>Baterías</h3>
-              <p>Diagnóstico de salud de batería y reemplazo con repuestos de calidad certificada.</p>
+              <p>Diagnóstico de salud de batería y reemplazo con repuestos de <strong>calidad certificada</strong>.</p>
             </div>
           </div>
           <div class="service-item">
             <span class="step-number">03</span>
             <div>
               <h3>Placa y componentes</h3>
-              <p>Reparación a nivel de componente cuando otros ya dijeron "no tiene arreglo".</p>
+              <p><strong>Reparación a nivel de componente</strong> cuando otros ya dijeron "no tiene arreglo".</p>
             </div>
           </div>
         </div>
@@ -221,10 +205,11 @@
           <span class="eyebrow">Especialidad poco conocida</span>
           <h3>También reparamos Mac</h3>
           <p>
-            Es uno de nuestros servicios menos conocidos y uno de los que
-            mejor resolvemos: diagnóstico y reparación de MacBook, iMac y
-            Mac de escritorio, con el mismo estándar de garantía que
-            aplicamos en iPhone.
+            Es uno de nuestros servicios <strong>menos conocidos</strong> y
+            uno de los que mejor resolvemos: diagnóstico y reparación de
+            MacBook, iMac y Mac de escritorio, con el
+            <strong>mismo estándar de garantía</strong> que aplicamos en
+            iPhone.
           </p>
           <a href="service.html" class="btn btn-outline">Ver todos los servicios <span class="btn-arrow">→</span></a>
         </div>
@@ -270,7 +255,7 @@
        ============================================================ -->
   <section class="section final-cta">
     <div class="container">
-      <h2 class="h2 reveal">¿Tenés un equipo Apple<br>que necesita una mano?</h2>
+      <h2 class="h2 reveal">¿Tenés un equipo Apple que necesita una mano?</h2>
       <a href="https://wa.me/549XXXXXXXXX?text=Hola%2C%20quiero%20hacer%20una%20consulta"
          class="btn btn-primary reveal" target="_blank" rel="noopener">
         Consultar por WhatsApp <span class="btn-arrow">→</span>
@@ -322,6 +307,5 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="js/products-data.js"></script>
   <script src="js/main.js"></script>
-  <script src="js/header-glass.js"></script>
 </body>
 </html>

@@ -79,7 +79,15 @@ document.addEventListener("DOMContentLoaded", () => {
     ScrollTrigger.matchMedia({
       "(min-width: 900px)": function () {
         const getScrollDistance = () =>
-          catalogRow.scrollWidth - pinTrack.clientWidth + 80;
+          Math.max(0, catalogRow.scrollWidth - pinTrack.clientWidth + 80);
+
+        // Con pocas cards (o viewport muy ancho) la fila entra entera y
+        // no hay nada para desplazar: getScrollDistance() daba negativo,
+        // lo que rompía el rango del pin (quedaba en ~0.01px) y esa
+        // sección degenerada corría mal el cálculo de scroll-posición
+        // de TODOS los ScrollTrigger de .reveal de ahí en adelante —
+        // eso era lo que se veía como el título del catálogo "roto".
+        if (getScrollDistance() === 0) return;
 
         const horizontalTween = gsap.to(catalogRow, {
           x: () => -getScrollDistance(),
@@ -99,60 +107,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ============================================================
-     HERO — tilt 3D sutil (mouse desktop / giroscopio mobile)
-     ============================================================ */
-  const heroBgImg = document.querySelector(".hero-bg img");
-  const MAX_TILT = 6;
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  if (heroBgImg && !prefersReducedMotion) {
-    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      window.addEventListener("mousemove", (e) => {
-        const x = e.clientX / window.innerWidth - 0.5;
-        const y = e.clientY / window.innerHeight - 0.5;
-        gsap.to(heroBgImg, {
-          rotateY: x * MAX_TILT,
-          rotateX: -y * MAX_TILT,
-          scale: 1.04,
-          duration: 0.6,
-          ease: "power2.out",
-          transformPerspective: 1400,
-        });
-      });
-    } else if (window.DeviceOrientationEvent) {
-      const applyTilt = (beta, gamma) => {
-        const x = Math.max(-1, Math.min(1, gamma / 30));
-        const y = Math.max(-1, Math.min(1, (beta - 40) / 30));
-        gsap.to(heroBgImg, {
-          rotateY: x * MAX_TILT,
-          rotateX: -y * MAX_TILT,
-          scale: 1.04,
-          duration: 0.6,
-          ease: "power2.out",
-          transformPerspective: 1400,
-        });
-      };
-
-      const startOrientation = () => {
-        window.addEventListener("deviceorientation", (e) => {
-          if (e.beta !== null && e.gamma !== null) applyTilt(e.beta, e.gamma);
-        });
-      };
-
-      if (typeof DeviceOrientationEvent.requestPermission === "function") {
-        document.body.addEventListener(
-          "touchstart",
-          () => {
-            DeviceOrientationEvent.requestPermission()
-              .then((state) => state === "granted" && startOrientation())
-              .catch(() => {});
-          },
-          { once: true }
-        );
-      } else {
-        startOrientation();
-      }
-    }
-  }
+  // El pin de arriba inserta un spacer y corre el layout DESPUÉS de que
+  // los ScrollTrigger de .reveal ya calcularon su punto de disparo — sin
+  // este refresh, los .reveal que caen dentro/después de la sección
+  // pineada (el eyebrow y el h2 de "Catálogo destacado") quedan con un
+  // trigger desincronizado y nunca llegan a dispararse en desktop.
+  ScrollTrigger.refresh();
 });

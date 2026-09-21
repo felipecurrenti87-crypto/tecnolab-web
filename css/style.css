@@ -63,9 +63,63 @@ h1, h2, h3, h4 {
   line-height: 1.1;
 }
 
-.h1 { font-size: clamp(32px, 7vw, 50px); letter-spacing: -0.01em; }
-.h2 { font-size: clamp(28px, 5vw, 44px); letter-spacing: -0.01em; }
+/* Headlines "a lo Apple": muy grandes, formato oración (no mayúscula:
+   la marca vive en el logo, no en cada titular), Bold explícito porque
+   ya no tienen el peso visual que daba la caja alta, y tracking
+   levemente negativo. .h1 (hero) un escalón por encima de .h2 (headline
+   de sección) para mantener jerarquía dentro del mismo rango. Tamaños
+   ya son un 5% menores que la primera pasada de esta escala. Line-height
+   un poco más suelto que 1.05: en mayúscula casi no hay descendentes
+   (g/j/p/q/y), en formato oración sí, y a este tamaño 1.05 los recorta. */
+.h1 {
+  font-size: clamp(87px, 6.1vw, 99px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-transform: none;
+  text-align: center;
+  text-wrap: balance;
+  margin-left: auto;
+  margin-right: auto;
+}
+.h2 {
+  font-size: clamp(84px, 5.7vw, 91px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-transform: none;
+  text-align: center;
+  text-wrap: balance;
+  margin-left: auto;
+  margin-right: auto;
+}
 .h3 { font-size: clamp(20px, 3vw, 26px); }
+
+/* max-width en ch por titular: cada uno calculado y medido (offsetHeight
+   ≈ 2 × line-height) contra su propio texto y su propio font-size, para
+   forzar el quiebre en exactamente 2 líneas balanceadas. Un mismo valor
+   en ch ya escala con el font-size del breakpoint (ch es relativo a la
+   fuente activa), así que solo se overridea por breakpoint donde la
+   medición real lo pidió — no en todos por sistema. */
+.hero-inner .h1 { max-width: 25ch; }
+#why-tecnolab .h2 { max-width: 27ch; }
+#catalogo-destacado .h2 { max-width: 13ch; }
+/* 48 caracteres: medido en los 3 breakpoints, el propio container ya
+   es más angosto que este valor y queda como tope real — con ese ancho
+   el texto no entra en 2 líneas a este font-size (da 3). Es el único
+   titular del sitio donde ch no alcanza; ver nota al final del bloque. */
+.canje-content .h2 { max-width: 29ch; }
+#service .h2 { max-width: 13ch; }
+#sucursales .h2 { max-width: 12ch; }
+.final-cta .h2 { max-width: 28ch; }
+
+@media (max-width: 900px) {
+  .h1 { font-size: clamp(55px, 7.1vw, 61px); }
+  .h2 { font-size: clamp(53px, 6.6vw, 59px); }
+}
+@media (max-width: 700px) {
+  .h1, .h2 { font-size: clamp(32px, 8.5vw, 38px); }
+}
 
 .subtitle {
   font-family: var(--font-family);
@@ -84,11 +138,37 @@ p, .body-text {
   margin: 0;
 }
 
-.eyebrow {
+/* Párrafo descriptivo inmediato debajo de un headline principal.
+   max-width fijo siempre; el centrado (.center) es opcional y solo se
+   usa en secciones de tipo "centrada" (Hero, Plan Canje). Los márgenes
+   ya fijan el ritmo vertical del punto 5 (64px arriba, 80px abajo). */
+.body-lede {
+  max-width: 640px;
+  margin-top: 64px;
+  margin-bottom: 80px;
+  font-size: clamp(19px, 1.4vw, 21px);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.62);
+}
+.body-lede.center {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+/* Frases clave dentro de un body-lede o párrafo de sección: mismo peso
+   que un headline (600) y color sólido, contra el resto del párrafo
+   que queda en la opacidad reducida de arriba. */
+strong, .text-emphasis {
   font-weight: 600;
-  font-size: 12px;
+  color: var(--color-white);
+}
+
+.eyebrow {
+  font-weight: 700;
+  font-size: calc(12px * 0.95);
   letter-spacing: 0.14em;
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--color-blue);
 }
 
@@ -142,69 +222,44 @@ p, .body-text {
   top: 0; left: 0; right: 0;
   z-index: 1000;
   padding: 18px 0;
-  transition: background 400ms, backdrop-filter 400ms, padding 300ms;
+  transition: background 400ms, backdrop-filter 400ms, padding 300ms, box-shadow 400ms;
 }
 
-/* El "vidrio" real ahora lo hace .header-glass-clone (filter con SVG,
-   soportado en Chromium) — el header solo pone un tinte y un borde
-   de luz por encima, ya no carga backdrop-filter. */
+/* Vidrio simulado con capas de sombra/gradiente, sin DOM clone ni filtro
+   SVG — blur()+saturate() en backdrop-filter son funciones nativas,
+   100% soportadas en cualquier navegador (a diferencia de url(#filtro),
+   que Chromium no aplica de forma confiable dentro de backdrop-filter). */
 .site-header.is-scrolled {
-  background: rgba(0, 0, 0, 0.12);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: rgba(20, 20, 24, 0.55);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
   padding: 12px 0;
-  border-top: 0.8px solid rgba(255, 255, 255, 0.15);
-  border-bottom: 1px solid var(--color-white-08);
+  border-radius: 0 0 20px 20px;
+  border: none;
+  box-shadow:
+    /* filo de luz superior-izquierdo: el "canto" del vidrio */
+    inset 1.5px 1.5px 1px rgba(255, 255, 255, 0.35),
+    /* profundidad sutil en la esquina opuesta */
+    inset -1px -1px 1px rgba(255, 255, 255, 0.06),
+    /* oscurecimiento hacia el borde inferior, luz no pareja */
+    inset 0 -12px 20px -12px rgba(0, 0, 0, 0.4),
+    /* separa el header del contenido, le da grosor físico */
+    0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
-/* ---- Clon distorsionado del contenido — simula el "vidrio" ----
-   filter (no backdrop-filter) SÍ soporta SVG por referencia en
-   Chromium, por eso el efecto se aplica acá y no en el header real. */
-.header-glass-clone {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 84px;
-  overflow: hidden;
-  z-index: 998;
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 300ms;
-}
-.header-glass-clone.is-active {
-  opacity: 1;
-  visibility: visible;
-}
-.header-glass-clone > * {
-  filter: blur(4px) url(#glass-distortion) saturate(1.6) brightness(0.85);
-}
-
-/* Separación cromática sutil — gradiente normal, sin depender de
-   backdrop-filter con SVG (no soportado de forma confiable en Chromium). */
+/* Brillo especular concentrado arriba a la izquierda, como el destello
+   de luz de la referencia — gradiente normal + blend, nada de SVG. */
 .site-header.is-scrolled::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    120deg,
-    rgba(255, 0, 60, 0.10) 0%,
-    rgba(0, 180, 255, 0.12) 50%,
-    rgba(120, 0, 255, 0.10) 100%
+  border-radius: inherit;
+  background: radial-gradient(
+    120% 100% at 15% 0%,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.05) 25%,
+    transparent 55%
   );
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-/* Grano fino para romper la uniformidad del blur y acercarse a un
-   vidrio esmerilado real en vez de un blur liso. */
-.site-header.is-scrolled::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  opacity: 0.025;
   mix-blend-mode: overlay;
   pointer-events: none;
 }
@@ -296,73 +351,57 @@ p, .body-text {
    HERO
    ========================================================================== */
 
+/* Header fijo mide 75px (medido) sin scrollear; 90px de aire arriba de
+   eso es el mínimo que separa el eyebrow del header. Todo el bloque
+   (eyebrow+título+bajada+botones) se centra como grupo en el espacio
+   que queda, así los botones quedan visibles sin scroll en pantallas
+   de 700px de alto o más. */
 .hero {
   position: relative;
+  background: var(--color-black);
   min-height: 100svh;
   display: flex;
-  align-items: flex-start;
-  padding-top: 200px;
-  padding-bottom: 64px;
-  overflow: hidden;
-}
-
-.hero-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
-.hero-bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: right center;
-  will-change: transform;
-}
-
-.hero-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* viñeteado leve, solo lo necesario para que el texto sea legible */
-  background: linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 38%, transparent 60%);
+  align-items: center;
+  justify-content: center;
+  padding-top: 165px;
+  padding-bottom: 48px;
 }
 
 .hero-inner {
   position: relative;
   z-index: 1;
-  max-width: 640px;
-  min-height: 70vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
-@media (max-width: 700px) {
-  .hero { padding-top: 140px; }
+.hero-inner .eyebrow {
+  margin-bottom: 28px;
+  display: block;
+  font-size: 17px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
 }
 
-.hero-inner .eyebrow { margin-bottom: 18px; display: block; }
-
-.hero-title {
-  margin-bottom: 22px;
-}
-
+/* Párrafo descriptivo: mismo patrón que .body-lede.center, pero con
+   un max-width propio (~600px) y un ritmo vertical más corto (24px
+   arriba, 36px abajo) — el genérico (64px/80px) es para secciones con
+   mucho más aire alrededor, acá achicaría demasiado el hero. */
 .hero-lead {
+  max-width: 600px;
+  margin-top: 24px;
   margin-bottom: 36px;
-  max-width: 460px;
-  font-size: clamp(15px, 1.8vw, 17px);
 }
 
 .hero-actions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 20px;
   flex-wrap: wrap;
-}
-
-.hero-tilt-wrap {
-  perspective: 1400px;
 }
 
 /* ==========================================================================
@@ -376,7 +415,6 @@ p, .body-text {
 
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; }
-  .hero-bg img, .tilt-inner { transition: none !important; }
 }
 
 /* ==========================================================================
@@ -392,7 +430,6 @@ p, .body-text {
    quedan en --color-blue por herencia, sin tocarlos acá. */
 .section-offwhite h1, .section-offwhite h2, .section-offwhite h3, .section-offwhite h4, .section-offwhite .subtitle,
 .canje-section h1, .canje-section h2, .canje-section h3, .canje-section h4, .canje-section .subtitle,
-.diff-card h1, .diff-card h2, .diff-card h3, .diff-card h4, .diff-card .subtitle,
 .branch-lite-card h1, .branch-lite-card h2, .branch-lite-card h3, .branch-lite-card h4, .branch-lite-card .subtitle,
 .final-cta h1, .final-cta h2, .final-cta h3, .final-cta h4, .final-cta .subtitle {
   color: var(--color-text-dark);
@@ -400,10 +437,18 @@ p, .body-text {
 
 .section-offwhite p, .section-offwhite .body-text,
 .canje-section p, .canje-section .body-text,
-.diff-card p, .diff-card .body-text,
 .branch-lite-card p, .branch-lite-card .body-text,
 .final-cta p, .final-cta .body-text {
   color: var(--color-text-dark-secondary);
+}
+
+/* Frases clave (strong / .text-emphasis) sobre superficies claras:
+   mismo criterio que headings/párrafos de este bloque. */
+.section-offwhite strong, .section-offwhite .text-emphasis,
+.canje-section strong, .canje-section .text-emphasis,
+.branch-lite-card strong, .branch-lite-card .text-emphasis,
+.final-cta strong, .final-cta .text-emphasis {
+  color: var(--color-text-dark);
 }
 
 /* CTAs en texto plano (no pill sólido) sobre superficies claras:
@@ -424,7 +469,6 @@ p, .body-text {
 }
 
 .section-head {
-  max-width: 620px;
   margin-bottom: 64px;
 }
 .section-head .eyebrow { display: block; margin-bottom: 14px; }
@@ -451,6 +495,12 @@ p, .body-text {
 .catalog-header {
   padding: 0 var(--gutter);
   margin-bottom: 48px;
+}
+/* Sin esto el eyebrow (span inline) queda pegado contra el h2 de abajo:
+   un margin-bottom en un inline no separa nada, hace falta el block. */
+.catalog-header .eyebrow {
+  display: block;
+  margin-bottom: 20px;
 }
 
 .catalog-cards-row {
@@ -571,34 +621,62 @@ p, .body-text {
 }
 
 /* ==========================================================================
-   POR QUÉ TECNOLAB
+   POR QUÉ TECNOLAB — stat-block (label + número gigante + caption)
    ========================================================================== */
 
-.diff-grid {
+.stat-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1px;
-  background: var(--color-black);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  gap: 40px 0;
 }
 
 @media (min-width: 900px) {
-  .diff-grid { grid-template-columns: repeat(4, 1fr); }
+  .stat-row { grid-template-columns: repeat(4, 1fr); }
 }
 
-.diff-card {
-  background: var(--color-offwhite);
-  padding: 40px 28px;
-  transition: background 400ms;
+.stat-block {
+  text-align: center;
+  padding: 0 24px;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
 }
-.diff-card:hover { background: #E5E5EA; }
+/* Separador entre stats de una fila, nunca un box completo: en mobile
+   (2 columnas) se saca en la 2da col, en desktop (4 columnas) en la 4ta. */
+.stat-block:nth-child(2n) { border-right: 0; }
+@media (min-width: 900px) {
+  .stat-block:nth-child(2n) { border-right: 1px solid rgba(255, 255, 255, 0.12); }
+  .stat-block:nth-child(4n) { border-right: 0; }
+}
 
-.diff-card h3 { margin-bottom: 12px; text-transform: none; font-size: 18px; }
-.diff-card p { font-size: 13px; }
+.stat-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-white-60);
+  margin-bottom: 16px;
+}
 
-/* Número grande flotando sobre el fondo — sin caja ni borde detrás.
-   Reutilizado en "Por qué Tecnolab", "Service Técnico" y "Plan Canje". */
+.stat-number {
+  display: block;
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: clamp(56px, 6vw, 72px);
+  line-height: 1;
+  color: var(--color-blue);
+  margin-bottom: 16px;
+}
+
+.stat-caption {
+  max-width: 220px;
+  margin: 0 auto;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-white-60);
+}
+
+/* Número chico flotando sobre el fondo — sin caja ni borde detrás.
+   Reutilizado en "Plan Canje" y "Service Técnico". */
 .step-number {
   display: block;
   font-weight: 300;
@@ -630,15 +708,10 @@ p, .body-text {
 .canje-content .eyebrow { display: block; margin-bottom: 20px; }
 
 .canje-content .h2 {
-  max-width: 780px;
   margin: 0 auto 20px;
 }
 
-.canje-content p {
-  max-width: 560px;
-  margin: 0 auto 40px;
-  font-size: 16px;
-}
+/* tamaño/línea/color/max-width y márgenes verticales vienen de .body-lede */
 
 .canje-steps {
   display: flex;
@@ -740,7 +813,7 @@ p, .body-text {
   text-align: center;
 }
 
-.final-cta .h2 { max-width: 700px; margin: 0 auto 36px; }
+.final-cta .h2 { margin: 0 auto 36px; }
 
 /* ==========================================================================
    FOOTER
