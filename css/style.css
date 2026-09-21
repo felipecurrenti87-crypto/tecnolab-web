@@ -1,0 +1,692 @@
+/* ==========================================================================
+   TECNOLAB — Sistema de diseño
+   ========================================================================== */
+
+:root {
+  --color-black: #000000;
+  --color-navy: #170D3E;
+  --color-blue: #04A5FF;
+  --color-white: #FFFFFF;
+  --color-white-60: rgba(255, 255, 255, 0.6);
+  --color-white-15: rgba(255, 255, 255, 0.15);
+  --color-white-08: rgba(255, 255, 255, 0.08);
+  --color-blue-rgb: 4, 165, 255;
+
+  --font-family: 'Montserrat', sans-serif;
+
+  --container-max: 1280px;
+  --gutter: 24px;
+
+  --radius-pill: 999px;
+  --radius-lg: 28px;
+  --radius-md: 18px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 768px) {
+  :root { --gutter: 40px; }
+}
+
+/* ---- Reset base ---- */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--color-black);
+  color: var(--color-white);
+  font-family: var(--font-family);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img { max-width: 100%; display: block; }
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; margin: 0; padding: 0; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+.container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* ---- Tipografía ---- */
+h1, h2, h3, h4 {
+  font-family: var(--font-family);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.h1 { font-size: clamp(32px, 7vw, 50px); letter-spacing: -0.01em; }
+.h2 { font-size: clamp(28px, 5vw, 44px); letter-spacing: -0.01em; }
+.h3 { font-size: clamp(20px, 3vw, 26px); }
+
+.subtitle {
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: clamp(18px, 2.2vw, 22px);
+  text-transform: none;
+  margin: 0;
+}
+
+p, .body-text {
+  font-family: var(--font-family);
+  font-weight: 300;
+  font-size: clamp(14px, 1.6vw, 16px);
+  line-height: 1.7;
+  color: var(--color-white-60);
+  margin: 0;
+}
+
+.eyebrow {
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-blue);
+}
+
+/* ---- Botones ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 32px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transition: transform 300ms var(--ease-out-expo), box-shadow 300ms var(--ease-out-expo), background 300ms;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--color-blue);
+  color: var(--color-black);
+  box-shadow: 0 10px 32px -8px rgba(var(--color-blue-rgb), 0.5);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px -8px rgba(var(--color-blue-rgb), 0.7);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-white-15);
+  color: var(--color-white);
+}
+.btn-outline:hover {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+  transform: translateY(-2px);
+}
+
+.btn-sm { padding: 12px 24px; font-size: 12px; }
+
+.btn-arrow { transition: transform 200ms; }
+.btn:hover .btn-arrow { transform: translateX(4px); }
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.site-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 18px 0;
+  transition: background 400ms, backdrop-filter 400ms, padding 300ms;
+}
+
+.site-header.is-scrolled {
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-white-08);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.logo img { height: 28px; width: auto; }
+
+.main-nav ul {
+  display: flex;
+  gap: 36px;
+}
+
+.nav-link {
+  position: relative;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-white-60);
+  transition: color 300ms;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -6px;
+  width: 0; height: 1px;
+  background: var(--color-blue);
+  transition: width 300ms var(--ease-out-expo);
+}
+.nav-link:hover,
+.nav-link.is-active { color: var(--color-white); }
+.nav-link:hover::after,
+.nav-link.is-active::after { width: 100%; }
+
+.nav-link.is-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: default;
+}
+.nav-soon {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-white-60);
+  margin-top: 2px;
+}
+
+.header-cta { display: flex; align-items: center; gap: 20px; }
+
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px;
+}
+.nav-toggle span {
+  width: 22px; height: 2px;
+  background: var(--color-white);
+  transition: transform 300ms, opacity 300ms;
+}
+
+@media (max-width: 900px) {
+  .main-nav {
+    position: fixed;
+    top: 0; right: 0;
+    height: 100vh;
+    width: min(320px, 80vw);
+    background: var(--color-navy);
+    padding: 100px 32px 32px;
+    transform: translateX(100%);
+    transition: transform 400ms var(--ease-out-expo);
+  }
+  .main-nav.is-open { transform: translateX(0); }
+  .main-nav ul { flex-direction: column; gap: 28px; }
+  .nav-toggle { display: flex; }
+}
+
+/* ==========================================================================
+   HERO
+   ========================================================================== */
+
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 200px;
+  padding-bottom: 64px;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  will-change: transform;
+}
+
+.hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* viñeteado leve, solo lo necesario para que el texto sea legible */
+  background: linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 38%, transparent 60%);
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (max-width: 700px) {
+  .hero { padding-top: 140px; }
+}
+
+.hero-inner .eyebrow { margin-bottom: 18px; display: block; }
+
+.hero-title {
+  margin-bottom: 22px;
+}
+
+.hero-lead {
+  margin-bottom: 36px;
+  max-width: 460px;
+  font-size: clamp(15px, 1.8vw, 17px);
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.hero-tilt-wrap {
+  perspective: 1400px;
+}
+
+/* ==========================================================================
+   SCROLL REVEALS
+   ========================================================================== */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(36px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
+  .hero-bg img, .tilt-inner { transition: none !important; }
+}
+
+/* ==========================================================================
+   SECCIÓN — utilidades de fondo
+   ========================================================================== */
+
+.section { padding: 140px 0; position: relative; }
+.section-navy { background: var(--color-navy); }
+.section-black { background: var(--color-black); }
+
+@media (max-width: 700px) {
+  .section { padding: 64px 0; }
+}
+
+.section-head {
+  max-width: 620px;
+  margin-bottom: 64px;
+}
+.section-head .eyebrow { display: block; margin-bottom: 14px; }
+.section-head .h2 { margin-bottom: 18px; }
+
+.section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+
+/* ==========================================================================
+   CATÁLOGO DESTACADO — scroll horizontal pineado
+   ========================================================================== */
+
+.catalog-pin-section {
+  background: var(--color-black);
+  position: relative;
+}
+
+.catalog-pin-track {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.catalog-header {
+  padding: 0 var(--gutter);
+  margin-bottom: 48px;
+}
+
+.catalog-cards-row {
+  display: flex;
+  gap: 32px;
+  padding: 0 var(--gutter);
+  will-change: transform;
+}
+
+.product-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(420px, 82vw);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+  padding: 32px;
+  transition: background 500ms;
+  overflow: hidden;
+}
+
+.product-card:hover {
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.015));
+}
+
+.product-card .glow {
+  position: absolute;
+  inset: -30%;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--color-blue-rgb), 0.16) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 500ms;
+}
+.product-card:hover .glow { opacity: 1; }
+
+.product-card-media {
+  position: relative;
+  z-index: 1;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 24px;
+  /* "escenario" oscuro radial: el fondo blanco de la foto de producto
+     se funde acá en vez de quedar como un rectángulo blanco */
+  background: radial-gradient(ellipse at center, #1c1c22 0%, #08080a 60%, #000000 100%);
+}
+.product-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6%;
+  mix-blend-mode: multiply;
+  filter: brightness(1.18) contrast(1.05);
+  /* recorta a un óvalo con fade a transparente: mata las esquinas
+     blancas de la foto original sin tocar el archivo fuente */
+  mask-image: radial-gradient(ellipse 76% 76% at center, #000 50%, transparent 96%);
+  -webkit-mask-image: radial-gradient(ellipse 76% 76% at center, #000 50%, transparent 96%);
+}
+
+.product-card-body { position: relative; z-index: 1; }
+
+.product-card-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-blue);
+  margin-bottom: 10px;
+}
+
+.product-card-name {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.product-card-spec {
+  font-size: 13px;
+  color: var(--color-white-60);
+  margin-bottom: 18px;
+}
+
+.product-card-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-white-08);
+}
+
+.product-card-price {
+  font-size: 12px;
+  color: var(--color-white-60);
+}
+.product-card-price strong {
+  display: block;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.catalog-scroll-hint {
+  padding: 0 var(--gutter);
+  margin-top: 28px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-white-60);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.catalog-scroll-hint .line {
+  width: 40px; height: 1px;
+  background: var(--color-white-15);
+}
+
+/* ==========================================================================
+   POR QUÉ TECNOLAB
+   ========================================================================== */
+
+.diff-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--color-black);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+@media (min-width: 900px) {
+  .diff-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.diff-card {
+  background: var(--color-navy);
+  padding: 40px 28px;
+  transition: background 400ms;
+}
+.diff-card:hover { background: #1e1252; }
+
+.diff-card h3 { margin-bottom: 12px; text-transform: none; font-size: 18px; }
+.diff-card p { font-size: 13px; }
+
+/* Número grande flotando sobre el fondo — sin caja ni borde detrás.
+   Reutilizado en "Por qué Tecnolab", "Service Técnico" y "Plan Canje". */
+.step-number {
+  display: block;
+  font-weight: 300;
+  font-size: clamp(32px, 4vw, 40px);
+  line-height: 1;
+  color: var(--color-blue);
+  margin-bottom: 24px;
+}
+
+/* ==========================================================================
+   PLAN CANJE
+   ========================================================================== */
+
+.canje-section {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  background:
+    radial-gradient(circle at 18% 25%, rgba(var(--color-blue-rgb), 0.22), transparent 55%),
+    var(--color-navy);
+}
+
+.canje-content {
+  position: relative;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.canje-content .eyebrow { display: block; margin-bottom: 20px; }
+
+.canje-content .h2 {
+  max-width: 780px;
+  margin: 0 auto 20px;
+}
+
+.canje-content p {
+  max-width: 560px;
+  margin: 0 auto 40px;
+  font-size: 16px;
+}
+
+.canje-steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 40px;
+  margin: 48px 0 44px;
+  text-align: left;
+}
+
+.canje-step {
+  max-width: 220px;
+}
+.canje-step .step-number { margin-bottom: 14px; }
+.canje-step h4 { font-size: 15px; text-transform: none; margin-bottom: 8px; }
+.canje-step p { font-size: 13px; }
+
+/* ==========================================================================
+   SERVICE TÉCNICO
+   ========================================================================== */
+
+.service-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 56px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .service-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.service-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-item {
+  display: flex;
+  gap: 20px;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--color-white-08);
+}
+.service-item:first-child { padding-top: 0; }
+
+.service-item .step-number {
+  flex: 0 0 auto;
+  width: 56px;
+  margin-bottom: 0;
+}
+
+.service-item h3 { font-size: 16px; text-transform: none; margin-bottom: 6px; }
+.service-item p { font-size: 13px; }
+
+.service-mac-card {
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, rgba(var(--color-blue-rgb), 0.10), rgba(255,255,255,0.02));
+  padding: 40px;
+}
+
+.service-mac-card .eyebrow { display: block; margin-bottom: 16px; }
+.service-mac-card h3 { font-size: 22px; text-transform: none; margin-bottom: 14px; }
+.service-mac-card p { margin-bottom: 28px; }
+
+/* ==========================================================================
+   SUCURSALES (versión liviana en Home)
+   ========================================================================== */
+
+.branches-lite {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 700px) {
+  .branches-lite { grid-template-columns: 1fr 1fr; }
+}
+
+.branch-lite-card {
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: background 400ms;
+}
+.branch-lite-card:hover { background: rgba(255, 255, 255, 0.06); }
+
+.branch-lite-name { font-size: 12px; color: var(--color-blue); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.branch-lite-address { font-size: 18px; font-weight: 600; text-transform: none; color: var(--color-white); }
+
+/* ==========================================================================
+   CTA FINAL
+   ========================================================================== */
+
+.final-cta {
+  background: var(--color-navy);
+  text-align: center;
+}
+
+.final-cta .h2 { max-width: 700px; margin: 0 auto 36px; }
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+
+.site-footer {
+  background: var(--color-black);
+  padding: 72px 0 32px;
+  border-top: 1px solid var(--color-white-08);
+}
+
+.footer-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 48px;
+  margin-bottom: 56px;
+}
+
+.footer-logo img { height: 46px; width: auto; margin-bottom: 18px; }
+.footer-logo p { max-width: 260px; font-size: 13px; }
+
+.footer-col h4 {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--color-white-60);
+  margin-bottom: 18px;
+}
+.footer-col ul { display: flex; flex-direction: column; gap: 12px; }
+.footer-col a { font-size: 14px; font-weight: 300; color: var(--color-white); transition: color 300ms; }
+.footer-col a:hover { color: var(--color-blue); }
+
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 28px;
+  border-top: 1px solid var(--color-white-08);
+  font-size: 12px;
+  color: var(--color-white-60);
+}
