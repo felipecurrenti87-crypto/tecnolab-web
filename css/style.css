@@ -101,7 +101,6 @@ h1, h2, h3, h4 {
    en ch ya escala con el font-size del breakpoint (ch es relativo a la
    fuente activa), así que solo se overridea por breakpoint donde la
    medición real lo pidió — no en todos por sistema. */
-.hero-inner .h1 { max-width: 25ch; }
 #why-tecnolab .h2 { max-width: 27ch; }
 #catalogo-destacado .h2 { max-width: 13ch; }
 /* 48 caracteres: medido en los 3 breakpoints, el propio container ya
@@ -222,18 +221,21 @@ strong, .text-emphasis {
   top: 0; left: 0; right: 0;
   z-index: 1000;
   padding: 18px 0;
-  transition: background 400ms, backdrop-filter 400ms, padding 300ms, box-shadow 400ms;
+  transition: padding 300ms;
 }
 
 /* Vidrio simulado con capas de sombra/gradiente, sin DOM clone ni filtro
    SVG — blur()+saturate() en backdrop-filter son funciones nativas,
    100% soportadas en cualquier navegador (a diferencia de url(#filtro),
-   que Chromium no aplica de forma confiable dentro de backdrop-filter). */
-.site-header.is-scrolled {
+   que Chromium no aplica de forma confiable dentro de backdrop-filter).
+   Antes solo aplicaba desde is-scrolled (scrollY > 40); ahora el header
+   nace "vidrio" desde el primer frame porque siempre está sobre el
+   canvas del iPhone o el fondo negro del home-cinematic, nunca sobre
+   una superficie que necesite el contraste extra recién al scrollear. */
+.site-header {
   background: rgba(20, 20, 24, 0.55);
   backdrop-filter: blur(24px) saturate(1.5);
   -webkit-backdrop-filter: blur(24px) saturate(1.5);
-  padding: 12px 0;
   border-radius: 0 0 20px 20px;
   border: none;
   box-shadow:
@@ -249,7 +251,7 @@ strong, .text-emphasis {
 
 /* Brillo especular concentrado arriba a la izquierda, como el destello
    de luz de la referencia — gradiente normal + blend, nada de SVG. */
-.site-header.is-scrolled::before {
+.site-header::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -262,6 +264,11 @@ strong, .text-emphasis {
   );
   mix-blend-mode: overlay;
   pointer-events: none;
+}
+
+/* El scroll ahora solo achica el padding — el vidrio ya está siempre puesto. */
+.site-header.is-compact {
+  padding: 12px 0;
 }
 
 .header-inner {
@@ -348,42 +355,84 @@ strong, .text-emphasis {
 }
 
 /* ==========================================================================
-   HERO
+   HOME CINEMATIC — hero + catálogo fusionados en un solo pin de scroll
    ========================================================================== */
+
+/* .home-cinematic recibe la altura real del recorrido de scroll (varios vh,
+   reservados por JS según el ancho del catálogo — mismo patrón que antes
+   tenía .catalog-pin-section). .cinematic-pin es lo que GSAP pinea con
+   ScrollTrigger, siempre a 100vh/100svh y con overflow:hidden en desktop. */
+.home-cinematic {
+  position: relative;
+  background: var(--color-black);
+}
+
+.cinematic-pin {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+}
 
 /* Header fijo mide 75px (medido) sin scrollear; 90px de aire arriba de
    eso es el mínimo que separa el eyebrow del header. Todo el bloque
    (eyebrow+título+bajada+botones) se centra como grupo en el espacio
    que queda, así los botones quedan visibles sin scroll en pantallas
-   de 700px de alto o más. */
-.hero {
-  position: relative;
-  background: var(--color-black);
-  min-height: 100svh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-top: 165px;
-  padding-bottom: 48px;
-}
-
-.hero-inner {
-  position: relative;
-  z-index: 1;
+   de 700px de alto o más. z-index más alto que el canvas y el catálogo:
+   siempre queda arriba en el recorrido (el iPhone pasa "por detrás"). */
+.cinematic-hero-text {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
+  padding: 165px var(--gutter) 48px;
+  pointer-events: none;
 }
+.cinematic-hero-text .hero-actions { pointer-events: auto; }
 
-.hero-inner .eyebrow {
+.cinematic-hero-text .eyebrow {
   margin-bottom: 28px;
   display: block;
   font-size: 17px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   text-align: center;
+}
+
+.cinematic-hero-text .h1 { max-width: 25ch; }
+
+/* Canvas del frame-sequence del iPhone: fondo transparente, centrado,
+   z-index entre el texto (arriba) y el catálogo (que entra después).
+   opacity:0 por default: mientras precargan los 60 frames y la timeline
+   todavía no corrió, no hay nada que dibujar — evita un flash del canvas
+   vacío. GSAP toma el control (fromTo) apenas termina de armar la timeline. */
+.cinematic-phone-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* El catálogo entra por la derecha ocupando todo el pin; arranca oculto
+   fuera de pantalla por CSS (mismo estado inicial que el fromTo de GSAP)
+   para que no haya flash del catálogo completo tapando el hero antes de
+   que la timeline tome el control. */
+.cinematic-catalog {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  transform: translateX(100%);
 }
 
 /* Párrafo descriptivo: mismo patrón que .body-lede.center, pero con
@@ -408,9 +457,17 @@ strong, .text-emphasis {
    SCROLL REVEALS
    ========================================================================== */
 
+/* backface-visibility:hidden evita algunos glitches de repintado en
+   Chrome independientemente de la animación. La capa de composición
+   propia y estable ("translateZ(0) permanente") NO se fija acá: GSAP
+   reescribe la propiedad transform entera en cada tween y descarta
+   cualquier Z que no sea parte de lo que él mismo está animando —
+   se logra con force3D:true en el gsap.to() (ver js/main.js), que sí
+   sobrevive al tween y queda aplicado después de que termina. */
 .reveal {
   opacity: 0;
   transform: translateY(36px);
+  backface-visibility: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -477,20 +534,8 @@ strong, .text-emphasis {
 .section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
 
 /* ==========================================================================
-   CATÁLOGO DESTACADO — scroll horizontal pineado
+   CATÁLOGO DESTACADO — dentro del home-cinematic
    ========================================================================== */
-
-.catalog-pin-section {
-  background: var(--color-black);
-  position: relative;
-}
-
-.catalog-pin-track {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
 
 .catalog-header {
   padding: 0 var(--gutter);
@@ -618,6 +663,70 @@ strong, .text-emphasis {
 .catalog-scroll-hint .line {
   width: 40px; height: 1px;
   background: var(--color-white-15);
+}
+
+/* Mobile: el pin de GSAP está gateado a min-width:900px (ScrollTrigger.matchMedia
+   en js/main.js), así que acá abajo .cinematic-pin nunca se pinea ni tiene
+   overflow:hidden reteniendo contenido — bug real que tenía la versión vieja
+   (.catalog-pin-track con overflow:hidden en mobile dejaba la fila de cards
+   después de la primera totalmente inaccesible, sin scroll horizontal posible).
+   Layout normal en flujo, con scroll-snap horizontal para llegar a las
+   cards siguientes con el dedo. */
+@media (max-width: 899px) {
+  .cinematic-pin {
+    height: auto;
+    overflow: visible;
+    position: static;
+  }
+  .cinematic-phone-canvas { display: none; }
+  .cinematic-hero-text {
+    position: static;
+    opacity: 1;
+    padding: 165px var(--gutter) 48px;
+  }
+  .cinematic-catalog {
+    position: static;
+    opacity: 1;
+    transform: none;
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+  .catalog-cards-row {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .product-card { scroll-snap-align: start; }
+}
+
+/* prefers-reduced-motion: mismo fallback que mobile (sin pin, sin canvas,
+   sin scroll horizontal forzado), pero en cualquier ancho de pantalla —
+   js/main.js ya chequea este media query y no arma la timeline. */
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-pin {
+    height: auto;
+    overflow: visible;
+    position: static;
+  }
+  .cinematic-phone-canvas { display: none; }
+  .cinematic-hero-text {
+    position: static;
+    opacity: 1;
+    padding: 165px var(--gutter) 48px;
+  }
+  .cinematic-catalog {
+    position: static;
+    opacity: 1;
+    transform: none;
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+  .catalog-cards-row {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .product-card { scroll-snap-align: start; }
 }
 
 /* ==========================================================================

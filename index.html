@@ -49,47 +49,44 @@
   <main class="site-main">
 
   <!-- ============================================================
-       HERO
+       HOME CINEMATIC — hero + catálogo, un solo pin de scroll
        ============================================================ -->
-  <section class="hero">
-    <div class="container hero-inner">
-      <span class="eyebrow reveal">Especialistas Apple en Mendoza</span>
-      <h1 class="h1 reveal">Todo el ecosistema Apple en un solo lugar</h1>
-      <p class="hero-lead body-lede center reveal">
-        iPhone, Mac y iPad — nuevos y usados <strong>con garantía</strong>.
-        Service técnico <strong>100% in-house</strong>, sin tercerizar, con
-        menos del 1% de casos sin resolver.
-      </p>
-      <div class="hero-actions reveal">
-        <a href="https://wa.me/549XXXXXXXXX?text=Hola%2C%20quiero%20hacer%20una%20consulta"
-           class="btn btn-primary" target="_blank" rel="noopener">
-          Consultar por WhatsApp <span class="btn-arrow">→</span>
-        </a>
-        <a href="catalogo.html" class="btn btn-outline">Ver catálogo</a>
-      </div>
-    </div>
-  </section>
+  <section class="home-cinematic" id="home-cinematic">
+    <div class="cinematic-pin">
 
-  <!-- ============================================================
-       CATÁLOGO DESTACADO — scroll horizontal pineado
-       ============================================================ -->
-  <section class="catalog-pin-section" id="catalogo-destacado">
-    <div class="catalog-pin-track">
-      <div>
-        <div class="container catalog-header">
-          <span class="eyebrow reveal">Catálogo destacado</span>
-          <h2 class="h2 reveal">La familia iPhone 18</h2>
+      <div class="cinematic-hero-text">
+        <span class="eyebrow">Especialistas Apple en Mendoza</span>
+        <h1 class="h1">Todo el ecosistema Apple en un solo lugar</h1>
+        <p class="hero-lead body-lede center">
+          iPhone, Mac y iPad — nuevos y usados <strong>con garantía</strong>.
+          Service técnico <strong>100% in-house</strong>, sin tercerizar, con
+          menos del 1% de casos sin resolver.
+        </p>
+        <div class="hero-actions">
+          <a href="https://wa.me/549XXXXXXXXX?text=Hola%2C%20quiero%20hacer%20una%20consulta"
+             class="btn btn-primary" target="_blank" rel="noopener">
+            Consultar por WhatsApp <span class="btn-arrow">→</span>
+          </a>
+          <a href="catalogo.html" class="btn btn-outline">Ver catálogo</a>
         </div>
+      </div>
 
+      <canvas class="cinematic-phone-canvas" id="phoneCanvas" aria-hidden="true"></canvas>
+
+      <div class="cinematic-catalog" id="catalogo-destacado">
+        <div class="container catalog-header">
+          <span class="eyebrow">Catálogo destacado</span>
+          <h2 class="h2">La familia iPhone 18</h2>
+        </div>
         <div class="catalog-cards-row">
           <!-- Cards renderizadas por JS desde js/products-data.js -->
         </div>
-
         <div class="catalog-scroll-hint">
           <span class="line"></span>
           Scrolleá para ver más modelos
         </div>
       </div>
+
     </div>
   </section>
 
