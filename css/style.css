@@ -563,7 +563,7 @@ strong, .text-emphasis {
 .product-card {
   position: relative;
   flex: 0 0 auto;
-  width: min(420px, 82vw);
+  width: clamp(240px, 24vw, 320px);
   border-radius: var(--radius-lg);
   background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
   padding: 32px;
