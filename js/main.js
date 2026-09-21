@@ -2,6 +2,23 @@ document.addEventListener("DOMContentLoaded", () => {
   gsap.registerPlugin(ScrollTrigger);
 
   /* ============================================================
+     SMOOTH SCROLL — Lenis con inercia. Se sincroniza a mano con
+     ScrollTrigger (lenis.on("scroll") + gsap.ticker en vez de un rAF
+     propio) porque el home-cinematic más abajo pinea con scrub: sin
+     este enganche, el scroll virtual de Lenis y el scroll real que
+     ScrollTrigger mide para el pin quedan desfasados.
+     ============================================================ */
+  const lenis = new Lenis({
+    duration: 1.8,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    smoothWheel: true,
+    wheelMultiplier: 0.7,
+  });
+  lenis.on("scroll", ScrollTrigger.update);
+  gsap.ticker.add((time) => lenis.raf(time * 1000));
+  gsap.ticker.lagSmoothing(0);
+
+  /* ============================================================
      HEADER — vidrio permanente desde el primer frame; el scroll
      ya solo achica el padding (is-compact), no trae el fondo/blur.
      ============================================================ */
@@ -36,7 +53,16 @@ document.addEventListener("DOMContentLoaded", () => {
       <article class="product-card reveal">
         <div class="glow" aria-hidden="true"></div>
         <div class="product-card-media">
-          <img src="${p.imagen}" alt="${p.nombre} ${p.variante}" loading="lazy">
+          ${p.imagen
+            ? `<img src="${p.imagen}" alt="${p.nombre} ${p.variante}" loading="lazy">`
+            : `<div class="product-card-media-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+                <rect x="7" y="2" width="10" height="20" rx="2.2"></rect>
+                <line x1="11" y1="18" x2="13" y2="18"></line>
+              </svg>
+              <span>Foto próximamente</span>
+            </div>`
+          }
         </div>
         <div class="product-card-body">
           <span class="product-card-tag">${p.categoria}</span>
@@ -77,6 +103,35 @@ document.addEventListener("DOMContentLoaded", () => {
         // fuerza un reflow para que Chrome descarte cualquier capa de
         // raster obsoleta en casos límite (lectura descartada a propósito)
         void el.offsetHeight;
+      },
+      scrollTrigger: {
+        trigger: el,
+        start: "top 85%",
+        once: true,
+      },
+    });
+  });
+
+  /* ============================================================
+     STAT NUMBERS — contador ascendente al entrar en viewport
+     ============================================================ */
+  const statsReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  gsap.utils.toArray(".stat-number").forEach((el) => {
+    const match = el.textContent.match(/^(\d+)(.*)$/);
+    if (!match) return;
+    const value = parseInt(match[1], 10);
+    const suffix = match[2];
+    if (statsReducedMotion) {
+      el.textContent = value + suffix;
+      return;
+    }
+    const counter = { n: 0 };
+    gsap.to(counter, {
+      n: value,
+      duration: 1.4,
+      ease: "power2.out",
+      onUpdate: () => {
+        el.textContent = Math.round(counter.n) + suffix;
       },
       scrollTrigger: {
         trigger: el,
@@ -159,45 +214,49 @@ document.addEventListener("DOMContentLoaded", () => {
         scrollTrigger: {
           trigger: section,
           start: "top top",
-          end: () => `+=${window.innerHeight * 3 + getCatalogDistance()}`,
+          end: () => `+=${window.innerHeight * 1.8 + getCatalogDistance()}`,
           pin: pin,
-          scrub: 1,
+          scrub: 2,
           invalidateOnRefresh: true,
         },
       });
 
       // Duraciones explícitas para que la timeline dure exactamente 1 —
-      // así los labels de fase (0.15, 0.55, ...) son directamente % de
-      // scroll, no un time offset arbitrario de GSAP.
+      // así los labels de fase (0.05, 0.45, ...) son directamente % de
+      // scroll, no un time offset arbitrario de GSAP. Arrancan a los 0.10
+      // de corrimiento respecto a la versión anterior (el iPhone reacciona
+      // casi de inmediato al primer scroll, sin tramo "en vacío"); el
+      // último tramo absorbe ese corrimiento en su duración para que la
+      // timeline siga cerrando justo en 1.00.
 
-      // Fase 1 (15% → 55%): el iPhone sube desde abajo del viewport y rota.
+      // Fase 1 (5% → 45%): el iPhone sube desde abajo del viewport y rota.
       tl.fromTo(canvas,
         { yPercent: 130, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 0.4, ease: "none" }, 0.15)
+        { yPercent: 0, opacity: 1, duration: 0.4, ease: "none" }, 0.05)
         .to(frameState, {
           f: FRAME_COUNT - 1,
           duration: 0.4,
           ease: "none",
           onUpdate: () => drawFrame(Math.round(frameState.f)),
-        }, 0.15)
+        }, 0.05)
         // el texto cede protagonismo a medida que el iPhone toma el centro
-        .to(heroText, { opacity: 0, y: -24, duration: 0.2, ease: "none" }, 0.35)
+        .to(heroText, { opacity: 0, y: -24, duration: 0.2, ease: "none" }, 0.25)
 
-        // Fase 2 (55% → 72%): el iPhone sale por la izquierda + fade.
-        .to(canvas, { xPercent: -140, opacity: 0, duration: 0.17, ease: "none" }, 0.55)
+        // Fase 2 (45% → 62%): el iPhone sale por la izquierda + fade.
+        .to(canvas, { xPercent: -140, opacity: 0, duration: 0.17, ease: "none" }, 0.45)
 
-        // Fase 3 (60% → 100%): el catálogo entra por la derecha y después
+        // Fase 3 (50% → 100%): el catálogo entra por la derecha y después
         // se desplaza horizontalmente para mostrar el resto de las cards.
         // Arranca antes de que el iPhone termine de salir, para que se
         // crucen en vez de dejar un hueco vacío.
         .fromTo(catalogLayer,
           { xPercent: 100, opacity: 0 },
-          { xPercent: 0, opacity: 1, duration: 0.15, ease: "none" }, 0.60)
+          { xPercent: 0, opacity: 1, duration: 0.15, ease: "none" }, 0.50)
         .to(catalogRow, {
           x: () => -getCatalogDistance(),
-          duration: 0.25,
+          duration: 0.35,
           ease: "none",
-        }, 0.75);
+        }, 0.65);
     }
 
     preload(() => {

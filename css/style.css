@@ -33,7 +33,9 @@
 
 /* ---- Reset base ---- */
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+/* scroll-behavior:smooth nativo se saca a propósito: Lenis (js/main.js)
+   es quien maneja el smoothing del scroll ahora, y los dos compitiendo
+   por el mismo eje producen un "tironeo" doble en saltos a anclas. */
 body {
   margin: 0;
   background: var(--color-black);
@@ -102,7 +104,7 @@ h1, h2, h3, h4 {
    fuente activa), así que solo se overridea por breakpoint donde la
    medición real lo pidió — no en todos por sistema. */
 #why-tecnolab .h2 { max-width: 27ch; }
-#catalogo-destacado .h2 { max-width: 13ch; }
+#catalogo-destacado .h2 { max-width: none; }
 /* 48 caracteres: medido en los 3 breakpoints, el propio container ya
    es más angosto que este valor y queda como tope real — con ese ancho
    el texto no entra en 2 líneas a este font-size (da 3). Es el único
@@ -167,7 +169,7 @@ strong, .text-emphasis {
   font-weight: 700;
   font-size: calc(12px * 0.95);
   letter-spacing: 0.14em;
-  text-transform: none;
+  text-transform: uppercase;
   color: var(--color-blue);
 }
 
@@ -420,10 +422,14 @@ strong, .text-emphasis {
   pointer-events: none;
 }
 
-/* El catálogo entra por la derecha ocupando todo el pin; arranca oculto
-   fuera de pantalla por CSS (mismo estado inicial que el fromTo de GSAP)
+/* El catálogo entra por la derecha ocupando todo el pin; opacity:0 alcanza
    para que no haya flash del catálogo completo tapando el hero antes de
-   que la timeline tome el control. */
+   que la timeline tome el control (no hace falta transform acá: un
+   transform en % seteado por CSS queda cacheado por GSAP como un "x" fijo
+   en px la primera vez que toca el elemento, y el fromTo(xPercent) de la
+   timeline lo suma en vez de reemplazarlo — el catálogo terminaba
+   trabado fuera de pantalla aunque xPercent llegara a 0). El estado
+   inicial xPercent:100 lo establece únicamente el fromTo en JS. */
 .cinematic-catalog {
   position: absolute;
   inset: 0;
@@ -432,7 +438,6 @@ strong, .text-emphasis {
   flex-direction: column;
   justify-content: center;
   opacity: 0;
-  transform: translateX(100%);
 }
 
 /* Párrafo descriptivo: mismo patrón que .body-lede.center, pero con
@@ -538,8 +543,8 @@ strong, .text-emphasis {
    ========================================================================== */
 
 .catalog-header {
-  padding: 0 var(--gutter);
-  margin-bottom: 48px;
+  padding: 180px var(--gutter) 0;
+  margin-bottom: 40px;
 }
 /* Sin esto el eyebrow (span inline) queda pegado contra el h2 de abajo:
    un margin-bottom en un inline no separa nada, hace falta el block. */
@@ -604,6 +609,30 @@ strong, .text-emphasis {
      blancas de la foto original sin tocar el archivo fuente */
   mask-image: radial-gradient(ellipse 76% 76% at center, #000 50%, transparent 96%);
   -webkit-mask-image: radial-gradient(ellipse 76% 76% at center, #000 50%, transparent 96%);
+}
+
+/* Producto sin foto todavía: el fondo radial oscuro ya lo pone el padre
+   (.product-card-media), este bloque solo centra ícono + texto encima. */
+.product-card-media-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-white-60);
+}
+.product-card-media-placeholder svg {
+  width: 36px;
+  height: 36px;
+  opacity: 0.5;
+}
+.product-card-media-placeholder span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .product-card-body { position: relative; z-index: 1; }
@@ -774,6 +803,7 @@ strong, .text-emphasis {
   line-height: 1;
   color: var(--color-blue);
   margin-bottom: 16px;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-caption {
