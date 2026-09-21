@@ -15,13 +15,23 @@
 </head>
 <body>
 
+  <svg style="position:absolute; width:0; height:0; overflow:hidden;">
+    <filter id="glass-distortion" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012"
+        numOctaves="2" seed="7" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="2" result="blurredNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="blurredNoise"
+        scale="68" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
   <!-- ============================================================
        HEADER
        ============================================================ -->
   <header class="site-header">
     <div class="container header-inner">
       <a href="index.html" class="logo">
-        <img src="assets/img/logo-tecnolab-horizontal.png" alt="Tecnolab">
+        <img src="assets/img/logo-horizontal-blanco.png" alt="Tecnolab">
       </a>
 
       <nav class="main-nav">
@@ -45,6 +55,12 @@
       </div>
     </div>
   </header>
+
+  <!-- Clon del contenido de <main>, distorsionado, que se ve "a través"
+       del header — ver js/header-glass.js -->
+  <div class="header-glass-clone" aria-hidden="true"></div>
+
+  <main class="site-main">
 
   <!-- ============================================================
        HERO
@@ -169,7 +185,7 @@
   <!-- ============================================================
        SERVICE TÉCNICO
        ============================================================ -->
-  <section class="section section-navy" id="service">
+  <section class="section section-offwhite" id="service">
     <div class="container">
       <div class="section-head">
         <span class="eyebrow reveal">Service técnico</span>
@@ -262,6 +278,8 @@
     </div>
   </section>
 
+  </main>
+
   <!-- ============================================================
        FOOTER
        ============================================================ -->
@@ -304,5 +322,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="js/products-data.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/header-glass.js"></script>
 </body>
 </html>

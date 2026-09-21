@@ -11,6 +11,9 @@
   --color-white-15: rgba(255, 255, 255, 0.15);
   --color-white-08: rgba(255, 255, 255, 0.08);
   --color-blue-rgb: 4, 165, 255;
+  --color-offwhite: #F5F5F7;
+  --color-text-dark: #1D1D1F;
+  --color-text-dark-secondary: #6E6E73;
 
   --font-family: 'Montserrat', sans-serif;
 
@@ -137,20 +140,78 @@ p, .body-text {
 .site-header {
   position: fixed;
   top: 0; left: 0; right: 0;
-  z-index: 100;
+  z-index: 1000;
   padding: 18px 0;
   transition: background 400ms, backdrop-filter 400ms, padding 300ms;
 }
 
+/* El "vidrio" real ahora lo hace .header-glass-clone (filter con SVG,
+   soportado en Chromium) — el header solo pone un tinte y un borde
+   de luz por encima, ya no carga backdrop-filter. */
 .site-header.is-scrolled {
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(0, 0, 0, 0.12);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   padding: 12px 0;
+  border-top: 0.8px solid rgba(255, 255, 255, 0.15);
   border-bottom: 1px solid var(--color-white-08);
 }
 
+/* ---- Clon distorsionado del contenido — simula el "vidrio" ----
+   filter (no backdrop-filter) SÍ soporta SVG por referencia en
+   Chromium, por eso el efecto se aplica acá y no en el header real. */
+.header-glass-clone {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 84px;
+  overflow: hidden;
+  z-index: 998;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 300ms;
+}
+.header-glass-clone.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+.header-glass-clone > * {
+  filter: blur(4px) url(#glass-distortion) saturate(1.6) brightness(0.85);
+}
+
+/* Separación cromática sutil — gradiente normal, sin depender de
+   backdrop-filter con SVG (no soportado de forma confiable en Chromium). */
+.site-header.is-scrolled::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 0, 60, 0.10) 0%,
+    rgba(0, 180, 255, 0.12) 50%,
+    rgba(120, 0, 255, 0.10) 100%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* Grano fino para romper la uniformidad del blur y acercarse a un
+   vidrio esmerilado real en vez de un blur liso. */
+.site-header.is-scrolled::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.025;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
 .header-inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -323,8 +384,40 @@ p, .body-text {
    ========================================================================== */
 
 .section { padding: 140px 0; position: relative; }
-.section-navy { background: var(--color-navy); }
 .section-black { background: var(--color-black); }
+.section-offwhite { background: var(--color-offwhite); }
+
+/* Texto sobre superficies claras (offwhite): headings y párrafos
+   pasan a los tonos oscuros del sistema; eyebrows y step-numbers
+   quedan en --color-blue por herencia, sin tocarlos acá. */
+.section-offwhite h1, .section-offwhite h2, .section-offwhite h3, .section-offwhite h4, .section-offwhite .subtitle,
+.canje-section h1, .canje-section h2, .canje-section h3, .canje-section h4, .canje-section .subtitle,
+.diff-card h1, .diff-card h2, .diff-card h3, .diff-card h4, .diff-card .subtitle,
+.branch-lite-card h1, .branch-lite-card h2, .branch-lite-card h3, .branch-lite-card h4, .branch-lite-card .subtitle,
+.final-cta h1, .final-cta h2, .final-cta h3, .final-cta h4, .final-cta .subtitle {
+  color: var(--color-text-dark);
+}
+
+.section-offwhite p, .section-offwhite .body-text,
+.canje-section p, .canje-section .body-text,
+.diff-card p, .diff-card .body-text,
+.branch-lite-card p, .branch-lite-card .body-text,
+.final-cta p, .final-cta .body-text {
+  color: var(--color-text-dark-secondary);
+}
+
+/* CTAs en texto plano (no pill sólido) sobre superficies claras:
+   pasan a azul para seguir leyéndose como acción clickeable. */
+.section-offwhite .btn-outline,
+.branch-lite-card .btn-outline {
+  border-color: rgba(var(--color-blue-rgb), 0.35);
+  color: var(--color-blue);
+}
+.section-offwhite .btn-outline:hover,
+.branch-lite-card .btn-outline:hover {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
 
 @media (max-width: 700px) {
   .section { padding: 64px 0; }
@@ -495,11 +588,11 @@ p, .body-text {
 }
 
 .diff-card {
-  background: var(--color-navy);
+  background: var(--color-offwhite);
   padding: 40px 28px;
   transition: background 400ms;
 }
-.diff-card:hover { background: #1e1252; }
+.diff-card:hover { background: #E5E5EA; }
 
 .diff-card h3 { margin-bottom: 12px; text-transform: none; font-size: 18px; }
 .diff-card p { font-size: 13px; }
@@ -524,8 +617,8 @@ p, .body-text {
   overflow: hidden;
   text-align: center;
   background:
-    radial-gradient(circle at 18% 25%, rgba(var(--color-blue-rgb), 0.22), transparent 55%),
-    var(--color-navy);
+    radial-gradient(circle at 18% 25%, rgba(var(--color-blue-rgb), 0.14), transparent 55%),
+    var(--color-offwhite);
 }
 
 .canje-content {
@@ -626,24 +719,24 @@ p, .body-text {
 
 .branch-lite-card {
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-offwhite);
   padding: 32px;
   display: flex;
   flex-direction: column;
   gap: 18px;
   transition: background 400ms;
 }
-.branch-lite-card:hover { background: rgba(255, 255, 255, 0.06); }
+.branch-lite-card:hover { background: #E5E5EA; }
 
 .branch-lite-name { font-size: 12px; color: var(--color-blue); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-.branch-lite-address { font-size: 18px; font-weight: 600; text-transform: none; color: var(--color-white); }
+.branch-lite-address { font-size: 18px; font-weight: 600; text-transform: none; color: var(--color-text-dark); }
 
 /* ==========================================================================
    CTA FINAL
    ========================================================================== */
 
 .final-cta {
-  background: var(--color-navy);
+  background: var(--color-offwhite);
   text-align: center;
 }
 
