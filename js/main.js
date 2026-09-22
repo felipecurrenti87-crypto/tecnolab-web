@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
      ============================================================ */
   function renderProductCard(p) {
     return `
-      <article class="product-card reveal">
+      <article class="product-card reveal" data-categoria="${p.categoria}" data-nombre="${p.nombre.toLowerCase()}">
         <div class="glow" aria-hidden="true"></div>
         <div class="product-card-media">
           ${p.imagen
@@ -86,7 +86,65 @@ document.addEventListener("DOMContentLoaded", () => {
   const catalogGrid = document.querySelector(".catalog-grid-full");
   if (catalogGrid && typeof CATALOGO_DESTACADO !== "undefined") {
     catalogGrid.innerHTML = CATALOGO_DESTACADO.map(renderProductCard).join("");
+
+    /* Filtro real: tabs de categoría generadas desde CATALOGO_DESTACADO
+       (nunca hardcodeadas — si mañana hay productos Mac/iPad ahí, la tab
+       aparece sola) + búsqueda de texto por nombre. 100% client-side,
+       solo esconde/muestra .product-card, sin tocar el DOM de nuevo. */
+    const filterTabs = document.querySelector(".catalog-filter-tabs");
+    const filterSearch = document.querySelector(".catalog-filter-search");
+
+    if (filterTabs) {
+      const categorias = [...new Set(CATALOGO_DESTACADO.map((p) => p.categoria))];
+      filterTabs.innerHTML = [
+        `<button type="button" class="catalog-filter-tab is-active" data-category="all">Todos</button>`,
+        ...categorias.map(
+          (cat) => `<button type="button" class="catalog-filter-tab" data-category="${cat}">${cat}</button>`
+        ),
+      ].join("");
+    }
+
+    const applyCatalogFilter = () => {
+      const activeTab = filterTabs ? filterTabs.querySelector(".is-active") : null;
+      const activeCategory = activeTab ? activeTab.dataset.category : "all";
+      const query = filterSearch ? filterSearch.value.trim().toLowerCase() : "";
+      catalogGrid.querySelectorAll(".product-card").forEach((card) => {
+        const matchesCategory = activeCategory === "all" || card.dataset.categoria === activeCategory;
+        const matchesQuery = !query || card.dataset.nombre.includes(query);
+        card.style.display = matchesCategory && matchesQuery ? "" : "none";
+      });
+    };
+
+    if (filterTabs) {
+      filterTabs.addEventListener("click", (e) => {
+        const btn = e.target.closest(".catalog-filter-tab");
+        if (!btn) return;
+        filterTabs.querySelectorAll(".catalog-filter-tab").forEach((t) => t.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        applyCatalogFilter();
+      });
+    }
+    if (filterSearch) {
+      filterSearch.addEventListener("input", applyCatalogFilter);
+    }
   }
+
+  /* ============================================================
+     CATÁLOGO — hover de card real (translateY al pasar el mouse).
+     Vía GSAP y no CSS :hover: el .reveal de la card deja un transform
+     inline seteado por GSAP al terminar de animar, y eso le gana a
+     cualquier :hover de la hoja de estilos — solo GSAP puede pisar su
+     propio inline style de forma prolija (compone contra lo que ya
+     esté en y/scale en vez de resetear todo el transform).
+     ============================================================ */
+  document.querySelectorAll(".product-card").forEach((card) => {
+    card.addEventListener("mouseenter", () => {
+      gsap.to(card, { y: -6, duration: 0.3, ease: "power2.out" });
+    });
+    card.addEventListener("mouseleave", () => {
+      gsap.to(card, { y: 0, duration: 0.3, ease: "power2.out" });
+    });
+  });
 
   /* ============================================================
      SCROLL REVEALS — fade + translateY sutil
@@ -101,6 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
     gsap.to(el, {
       opacity: 1,
       y: 0,
+      scale: 1,
       duration: 0.9,
       ease: "power2.out",
       force3D: true,
@@ -148,6 +207,31 @@ document.addEventListener("DOMContentLoaded", () => {
         once: true,
       },
     });
+  });
+
+  /* ============================================================
+     STAT BLOCKS — stagger real al entrar (no el .reveal genérico:
+     los 4 bloques de una fila cruzan el 85% del viewport casi al
+     mismo tiempo, así que .reveal los dispara juntos. Se separan
+     del sistema .reveal a propósito — si llevaran las dos clases,
+     competirían por opacity/y en dos tweens distintos.
+     ============================================================ */
+  gsap.utils.toArray(".stat-block").forEach((el, i) => {
+    gsap.fromTo(el,
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.9,
+        ease: "power2.out",
+        delay: i * 0.12,
+        scrollTrigger: {
+          trigger: el,
+          start: "top 85%",
+          once: true,
+        },
+      }
+    );
   });
 
   /* ============================================================
