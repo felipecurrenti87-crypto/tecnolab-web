@@ -526,6 +526,18 @@ strong, .text-emphasis {
   color: var(--color-blue);
 }
 
+/* .product-card nace pensado para fondo negro (gradiente blanco muy sutil);
+   sobre offwhite (catalogo.html, sección Mac & iPad) se invierte a un
+   gradiente oscuro igual de sutil para que la card siga leyéndose como
+   card y no como una mancha blanca casi invisible. */
+.section-offwhite .product-card {
+  background: linear-gradient(180deg, rgba(0,0,0,0.035), rgba(0,0,0,0.01));
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.section-offwhite .product-card:hover {
+  background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.02));
+}
+
 @media (max-width: 700px) {
   .section { padding: 64px 0; }
 }
@@ -537,6 +549,16 @@ strong, .text-emphasis {
 .section-head .h2 { margin-bottom: 18px; }
 
 .section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+
+/* Párrafo corto debajo de un .section-head (catalogo.html): más liviano
+   que .body-lede (que trae 64px/80px de margen, pensado para un lead
+   de Hero) — mismo cuerpo de texto (hereda de p, .body-text), solo
+   agrega ancho máximo, centrado y el espacio antes del contenido. */
+.section-intro {
+  max-width: 640px;
+  margin: 0 auto 48px;
+  text-align: center;
+}
 
 /* ==========================================================================
    CATÁLOGO DESTACADO — dentro del home-cinematic
@@ -560,6 +582,16 @@ strong, .text-emphasis {
   padding: 0 var(--gutter);
   will-change: transform;
 }
+
+/* Grid vertical normal (catalogo.html) — misma card que el .catalog-cards-row
+   pineado del Home, sin el scroll horizontal: acá .product-card suelta su
+   width fijo y pasa a ocupar el ancho de su celda de grid. */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 32px;
+}
+.catalog-grid .product-card { width: 100%; }
 
 .product-card {
   position: relative;
@@ -917,6 +949,26 @@ strong, .text-emphasis {
 .service-mac-card h3 { font-size: 22px; text-transform: none; margin-bottom: 14px; }
 .service-mac-card p { margin-bottom: 28px; }
 
+/* "Qué reparamos" (service.html): misma fila de .service-item (marcador +
+   h3 + p) pero en grid multi-columna en vez de lista vertical — se saca
+   el divisor inferior, pensado para una lista, no para una grilla. El
+   marcador pasa de .step-number (número, tipográfico) a un ícono SVG:
+   .step-number no sirve para tamañar eso, hace falta un marcador propio. */
+.repair-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 32px 40px;
+}
+.repair-grid .service-item { border-bottom: 0; padding: 0; }
+
+.service-item-icon {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  color: var(--color-blue);
+}
+.service-item-icon svg { width: 32px; height: 32px; }
+
 /* ==========================================================================
    SUCURSALES (versión liviana en Home)
    ========================================================================== */
@@ -997,3 +1049,58 @@ strong, .text-emphasis {
   font-size: 12px;
   color: var(--color-white-60);
 }
+
+/* ==========================================================================
+   CATALOGO.HTML — estilos puntuales de esta página
+   ========================================================================== */
+
+/* Teaser de Plan Canje: mismo criterio que .final-cta (text-align:center
+   a nivel de sección para centrar el .btn-primary, que no se autocentra
+   como el h2/.section-intro). */
+#catalogo-plan-canje { text-align: center; }
+
+/* Fundas / Cables / Auriculares / Protección — bloque de texto con
+   íconos, no cards de producto (no hay nada que "elegir" acá). Mismo
+   lenguaje de ícono que .product-card-media-placeholder (línea, 24x24,
+   currentColor) para no sumar un segundo estilo de ícono al sistema. */
+.accessories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 32px;
+  margin-top: 48px;
+}
+.accessory-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+.accessory-item svg {
+  width: 32px;
+  height: 32px;
+  color: var(--color-blue);
+}
+.accessory-item span {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text-dark);
+}
+
+/* ==========================================================================
+   SERVICE.HTML — estilos puntuales de esta página
+   ========================================================================== */
+
+/* Nicho Mac: mismo criterio que #catalogo-plan-canje / .final-cta para
+   centrar el .btn-primary final (el stat-row ya se centra solo, cada
+   .stat-block trae su propio text-align:center). */
+#service-mac { text-align: center; }
+
+/* ==========================================================================
+   PLAN-CANJE.HTML — estilos puntuales de esta página
+   ========================================================================== */
+
+/* Hero: mismo criterio de siempre para centrar el .btn-primary (eyebrow/h1
+   ya vienen centrados por .section-head.center / .h1 / .body-lede.center). */
+#plan-canje-hero { text-align: center; }

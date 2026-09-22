@@ -45,11 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ============================================================
      CATÁLOGO — render de cards desde products-data.js
+     Compartido entre el .catalog-cards-row pineado del Home y el
+     .catalog-grid-full de catalogo.html — misma data, mismo template.
      ============================================================ */
-  const catalogRow = document.querySelector(".catalog-cards-row");
-  if (catalogRow && typeof CATALOGO_DESTACADO !== "undefined") {
-    catalogRow.innerHTML = CATALOGO_DESTACADO.map(
-      (p) => `
+  function renderProductCard(p) {
+    return `
       <article class="product-card reveal">
         <div class="glow" aria-hidden="true"></div>
         <div class="product-card-media">
@@ -75,8 +75,17 @@ document.addEventListener("DOMContentLoaded", () => {
             )}" target="_blank" rel="noopener">Consultar</a>
           </div>
         </div>
-      </article>`
-    ).join("");
+      </article>`;
+  }
+
+  const catalogRow = document.querySelector(".catalog-cards-row");
+  if (catalogRow && typeof CATALOGO_DESTACADO !== "undefined") {
+    catalogRow.innerHTML = CATALOGO_DESTACADO.map(renderProductCard).join("");
+  }
+
+  const catalogGrid = document.querySelector(".catalog-grid-full");
+  if (catalogGrid && typeof CATALOGO_DESTACADO !== "undefined") {
+    catalogGrid.innerHTML = CATALOGO_DESTACADO.map(renderProductCard).join("");
   }
 
   /* ============================================================
