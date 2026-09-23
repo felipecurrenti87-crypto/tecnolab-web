@@ -37,10 +37,41 @@ const CATALOGO_DESTACADO = [
     ],
     disponible: true,
   },
-  // La variante Azul (assets/img/iphone18promax-azul-camara-detalle.jpg)
+  // La variante Glacier / Azul (assets/img/iphone18promax-azul-camara-detalle.jpg)
   // queda afuera por ahora: es un macro diagonal de la cámara, no el
   // mismo encuadre de plano trasero recto que las dos de arriba.
   // Sumarla de nuevo apenas haya una foto de azul en ese mismo ángulo.
+  {
+    id: "iphone-air",
+    categoria: "iPhone",
+    nombre: "iPhone Air",
+    variante: "256GB",
+    especificacion: "Diseño ultradelgado · Chip A19 Pro",
+    precio: "Consultar",
+    // Solo Sky Blue por ahora (gallery-3, frente + dorso en 3/4). Pendientes:
+    // Light Gold (gallery-5 es dorso recto + canto, otro ángulo),
+    // Cloud White (gallery-4 es macro de cámara) y Space Black (solo aparece
+    // en el lineup gallery-1). Sumarlos cuando haya fotos en el mismo ángulo.
+    colores: [
+      { nombre: "Sky Blue", hex: "#cfdde9", imagen: "assets/img/iphone-air-digitalmat-gallery-3-202509.jpg" },
+    ],
+    disponible: true,
+  },
+  {
+    id: "iphone-duo",
+    categoria: "iPhone",
+    nombre: "iPhone Duo",
+    variante: "256GB",
+    especificacion: "Primer iPhone plegable · Pantalla exterior 5.4″ + interior 7.6″",
+    precio: "Consultar",
+    // Solo Star White por ahora (gallery-4, dorso con cámara). Night Sky
+    // pendiente: solo aparece en el lineup (gallery-1) y abierto mostrando
+    // pantalla (gallery-3), ninguna es un dorso comparable.
+    colores: [
+      { nombre: "Star White", hex: "#ece9e4", imagen: "assets/img/iphone-duo-digitalmat-gallery-4-202609.jpg" },
+    ],
+    disponible: true,
+  },
   {
     id: "iphone-17-pro-max-negro",
     categoria: "iPhone",
@@ -65,10 +96,12 @@ const CATALOGO_DESTACADO = [
     id: "iphone-17-azul",
     categoria: "iPhone",
     nombre: "iPhone 17",
-    variante: "Azul · 128GB",
+    variante: "Azul brumoso · 128GB",
     especificacion: "Chip A19",
     precio: "Desde $1.050.000",
-    colores: [], // sin fotos todavía — la card usa el fallback "Foto próximamente"
+    colores: [
+      { nombre: "Azul brumoso", hex: "#96aed1", imagen: "assets/img/iphone-17-digitalmat-gallery-4-202509.jpg" },
+    ],
     disponible: true,
   },
   {
@@ -95,10 +128,24 @@ const CATALOGO_DESTACADO = [
     id: "iphone-16-verde",
     categoria: "iPhone",
     nombre: "iPhone 16",
-    variante: "Verde · 128GB",
+    variante: "Verde azulado · 128GB",
     especificacion: "Chip A18",
     precio: "Desde $890.000",
-    colores: [], // sin fotos todavía — la card usa el fallback "Foto próximamente"
+    colores: [
+      { nombre: "Verde azulado", hex: "#7fb5b0", imagen: "assets/img/iphone16-digitalmat-gallery-5-202409.jpg" },
+    ],
+    disponible: true,
+  },
+  {
+    id: "airpods-5",
+    categoria: "AirPods",
+    nombre: "AirPods 5",
+    variante: "Con carga inalámbrica",
+    especificacion: "Cancelación activa de ruido · Chip H2",
+    precio: "Consultar",
+    colores: [
+      { nombre: "Blanco", hex: "#f5f5f5", imagen: "assets/img/airpods-5-select-202609_FV1.jpg" },
+    ],
     disponible: true,
   },
 ];

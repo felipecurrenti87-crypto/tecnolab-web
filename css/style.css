@@ -534,18 +534,6 @@ strong, .text-emphasis {
   color: var(--color-blue);
 }
 
-/* .product-card nace pensado para fondo negro (gradiente blanco muy sutil);
-   sobre offwhite (catalogo.html, sección Mac & iPad) se invierte a un
-   gradiente oscuro igual de sutil para que la card siga leyéndose como
-   card y no como una mancha blanca casi invisible. */
-.section-offwhite .product-card {
-  background: linear-gradient(180deg, rgba(0,0,0,0.035), rgba(0,0,0,0.01));
-  border: 1px solid rgba(0,0,0,0.06);
-}
-.section-offwhite .product-card:hover {
-  background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.02));
-}
-
 @media (max-width: 700px) {
   .section { padding: 64px 0; }
 }
@@ -661,9 +649,9 @@ strong, .text-emphasis {
   flex: 0 0 auto;
   width: clamp(240px, 24vw, 320px);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+  background: var(--color-offwhite);
   padding: 32px;
-  box-shadow: 0 8px 24px -18px rgba(0,0,0,0.7);
+  box-shadow: 0 20px 40px -20px rgba(0,0,0,0.5);
   transition: background 500ms, box-shadow 300ms var(--ease-out-expo);
   overflow: hidden;
 }
@@ -682,8 +670,7 @@ strong, .text-emphasis {
    siempre le gana a esta regla — un :hover en CSS quedaría pisado y
    nunca se vería. El box-shadow no tiene ese problema (GSAP no lo toca). */
 .product-card:hover {
-  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.015));
-  box-shadow: 0 28px 48px -18px rgba(0,0,0,0.55);
+  box-shadow: 0 28px 56px -18px rgba(0,0,0,0.6);
 }
 
 .product-card .glow {
@@ -762,6 +749,7 @@ strong, .text-emphasis {
 .product-card-name {
   font-size: 20px;
   margin-bottom: 6px;
+  color: var(--color-black);
 }
 
 /* Selector de color — solo se renderiza con 2+ colores */
@@ -790,7 +778,7 @@ strong, .text-emphasis {
 
 .product-card-spec {
   font-size: 13px;
-  color: var(--color-white-60);
+  color: rgba(0,0,0,0.6);
   margin-bottom: 18px;
 }
 
@@ -805,13 +793,13 @@ strong, .text-emphasis {
 
 .product-card-price {
   font-size: 12px;
-  color: var(--color-white-60);
+  color: rgba(0,0,0,0.6);
 }
 .product-card-price strong {
   display: block;
   font-size: 22px;
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-black);
 }
 
 .catalog-scroll-hint {
