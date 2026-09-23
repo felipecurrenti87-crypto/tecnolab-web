@@ -19,6 +19,41 @@ document.addEventListener("DOMContentLoaded", () => {
   gsap.ticker.lagSmoothing(0);
 
   /* ============================================================
+     MAPA DE SUCURSAL — Leaflet + tiles oscuros de Esri (sin key)
+     ============================================================ */
+  function initBranchMap() {
+    const el = document.getElementById("home-branch-map");
+    if (!el || typeof L === "undefined") return;
+
+    const MOLDES = [-32.9132971, -68.8322202]; // confirmado en Google Maps
+    // const CHAMPAGNAT = [lat, lng]; // pendiente de confirmar con el cliente — sumar acá cuando esté
+
+    const map = L.map(el, {
+      center: MOLDES,
+      zoom: 15,
+      scrollWheelZoom: false,
+      zoomControl: false,
+      attributionControl: true,
+    });
+
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+      attribution: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+      maxZoom: 16,
+    }).addTo(map);
+
+    const pinIcon = L.divIcon({
+      className: "brand-map-pin",
+      html: '<div class="brand-map-pin-dot"></div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+    });
+
+    L.marker(MOLDES, { icon: pinIcon }).addTo(map);
+  }
+
+  initBranchMap();
+
+  /* ============================================================
      HEADER — vidrio permanente desde el primer frame; el scroll
      ya solo achica el padding (is-compact), no trae el fondo/blur.
      ============================================================ */
@@ -49,12 +84,21 @@ document.addEventListener("DOMContentLoaded", () => {
      .catalog-grid-full de catalogo.html — misma data, mismo template.
      ============================================================ */
   function renderProductCard(p) {
+    const colores = p.colores || [];
+    // Un solo color no se ofrece como elección: los swatches aparecen desde 2.
+    const swatches = colores.length > 1
+      ? `<div class="color-swatches" role="group" aria-label="Colores disponibles">
+          ${colores.map((color, i) => `<button type="button" class="color-swatch${i === 0 ? " is-active" : ""}"
+            style="background: ${color.hex}" data-img="${color.imagen}"
+            aria-label="${color.nombre}" aria-pressed="${i === 0}" title="${color.nombre}"></button>`).join("")}
+        </div>`
+      : "";
     return `
       <article class="product-card reveal" data-categoria="${p.categoria}" data-nombre="${p.nombre.toLowerCase()}">
         <div class="glow" aria-hidden="true"></div>
         <div class="product-card-media">
-          ${p.imagen
-            ? `<img src="${p.imagen}" alt="${p.nombre} ${p.variante}" loading="lazy">`
+          ${colores.length
+            ? `<img src="${colores[0].imagen}" alt="${p.nombre} ${p.variante}" loading="lazy">`
             : `<div class="product-card-media-placeholder">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
                 <rect x="7" y="2" width="10" height="20" rx="2.2"></rect>
@@ -67,6 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="product-card-body">
           <span class="product-card-tag">${p.categoria}</span>
           <h3 class="product-card-name">${p.nombre}</h3>
+          ${swatches}
           <p class="product-card-spec">${p.variante} · ${p.especificacion}</p>
           <div class="product-card-price-row">
             <span class="product-card-price">Precio<strong>${p.precio}</strong></span>
@@ -77,6 +122,21 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </article>`;
   }
+
+  /* Selector de color: delegado a nivel documento para cubrir tanto el
+     row del Home como la grilla de catalogo.html. Solo cambia el src de
+     la imagen de esa card — no re-renderiza la card. */
+  document.addEventListener("click", (e) => {
+    const swatch = e.target.closest(".color-swatch");
+    if (!swatch) return;
+    const card = swatch.closest(".product-card");
+    const img = card && card.querySelector(".product-card-media img");
+    if (img) img.src = swatch.dataset.img;
+    swatch.parentElement.querySelectorAll(".color-swatch").forEach((s) => {
+      s.classList.toggle("is-active", s === swatch);
+      s.setAttribute("aria-pressed", String(s === swatch));
+    });
+  });
 
   const catalogRow = document.querySelector(".catalog-cards-row");
   if (catalogRow && typeof CATALOGO_DESTACADO !== "undefined") {
@@ -181,33 +241,63 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ============================================================
-     STAT NUMBERS — contador ascendente al entrar en viewport
+     CORTINA — #plan-canje sube y tapa a #why-tecnolab pineado
+     (patrón "hero cortina", pero con ScrollTrigger porque no está
+     al tope de la página)
      ============================================================ */
-  const statsReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  gsap.utils.toArray(".stat-number").forEach((el) => {
-    const match = el.textContent.match(/^(\d+)(.*)$/);
-    if (!match) return;
-    const value = parseInt(match[1], 10);
-    const suffix = match[2];
-    if (statsReducedMotion) {
-      el.textContent = value + suffix;
-      return;
-    }
-    const counter = { n: 0 };
-    gsap.to(counter, {
-      n: value,
-      duration: 1.4,
-      ease: "power2.out",
-      onUpdate: () => {
-        el.textContent = Math.round(counter.n) + suffix;
-      },
-      scrollTrigger: {
-        trigger: el,
-        start: "top 85%",
-        once: true,
-      },
+  function initCurtainReveal() {
+    const pinnedSection = document.getElementById("why-tecnolab");
+    const curtainSection = document.getElementById("plan-canje");
+    if (!pinnedSection || !curtainSection) return;
+
+    ScrollTrigger.create({
+      trigger: pinnedSection,
+      start: "top top",
+      end: () => "+=" + curtainSection.offsetHeight,
+      pin: true,
+      pinSpacing: false, // clave: sin esto, el pin agrega espacio extra y la
+                          // sección siguiente no queda pegada arriba para "taparlo"
+      // Se crea antes que el pin del home-cinematic (que nace async tras el
+      // preload) pero está debajo en la página: refreshPriority negativo
+      // hace que se recalcule después, ya contando el spacer de ese pin.
+      refreshPriority: -1,
     });
-  });
+  }
+  initCurtainReveal();
+
+  /* ============================================================
+     STAT NUMBERS — contador ascendente al entrar en viewport.
+     Se llama desde el preload de initHomeCinematic, después de
+     buildTimeline(): el ScrollTrigger tiene que nacer con el pin del
+     hero ya insertado, para que "top 85%" se mida contra el alto real.
+     ============================================================ */
+  function initStatCounters() {
+    const statsReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    gsap.utils.toArray(".stat-number").forEach((el) => {
+      const match = el.textContent.match(/^(\d+)(.*)$/);
+      if (!match) return;
+      const value = parseInt(match[1], 10);
+      const suffix = match[2];
+      if (statsReducedMotion) {
+        el.textContent = value + suffix;
+        return;
+      }
+      const counter = { n: 0 };
+      gsap.to(counter, {
+        n: value,
+        duration: 1.4,
+        ease: "power2.out",
+        onUpdate: () => {
+          el.textContent = Math.round(counter.n) + suffix;
+        },
+        scrollTrigger: {
+          trigger: el,
+          start: "top 85%",
+          once: true,
+        },
+      });
+    });
+  }
 
   /* ============================================================
      STAT BLOCKS — stagger real al entrar (no el .reveal genérico:
@@ -357,6 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
       drawFrame(0);
       window.addEventListener("resize", () => { resizeCanvas(); drawFrame(Math.round(frameState.f)); });
       buildTimeline();
+      initStatCounters();
       // El pin recién insertado agrega un spacer y corre el layout de
       // todo lo que viene después — sin este refresh, los .reveal que
       // caen debajo del home-cinematic quedan con su punto de disparo

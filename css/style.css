@@ -706,9 +706,9 @@ strong, .text-emphasis {
   border-radius: var(--radius-md);
   overflow: hidden;
   margin-bottom: 24px;
-  /* "escenario" oscuro radial: el fondo blanco de la foto de producto
-     se funde acá en vez de quedar como un rectángulo blanco */
-  background: radial-gradient(ellipse at center, #1c1c22 0%, #08080a 60%, #000000 100%);
+  /* fondo neutro claro (patrón Apple): el producto se lee bien aun dentro
+     de una página oscura; el fondo blanco de la foto se funde por multiply */
+  background: var(--color-offwhite);
 }
 .product-card-media img {
   width: 100%;
@@ -723,8 +723,8 @@ strong, .text-emphasis {
   -webkit-mask-image: radial-gradient(ellipse 76% 76% at center, #000 50%, transparent 96%);
 }
 
-/* Producto sin foto todavía: el fondo radial oscuro ya lo pone el padre
-   (.product-card-media), este bloque solo centra ícono + texto encima. */
+/* Producto sin foto todavía: el fondo offwhite ya lo pone el padre
+   (.product-card-media), este bloque solo centra ícono + texto oscuro encima. */
 .product-card-media-placeholder {
   width: 100%;
   height: 100%;
@@ -733,12 +733,12 @@ strong, .text-emphasis {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: var(--color-white-60);
+  color: var(--color-text-dark-secondary);
 }
 .product-card-media-placeholder svg {
   width: 36px;
   height: 36px;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 .product-card-media-placeholder span {
   font-size: 12px;
@@ -762,6 +762,30 @@ strong, .text-emphasis {
 .product-card-name {
   font-size: 20px;
   margin-bottom: 6px;
+}
+
+/* Selector de color — solo se renderiza con 2+ colores */
+.color-swatches {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+.color-swatch {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  /* borde interno fino: separa swatches oscuros del fondo oscuro de la card */
+  border: 1px solid var(--color-white-15);
+  cursor: pointer;
+  transition: box-shadow 200ms;
+}
+.color-swatch.is-active {
+  box-shadow: 0 0 0 2px var(--color-black), 0 0 0 3.5px var(--color-blue);
+}
+.color-swatch:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 3px;
 }
 
 .product-card-spec {
@@ -1185,3 +1209,64 @@ strong, .text-emphasis {
 /* Hero: mismo criterio de siempre para centrar el .btn-primary (eyebrow/h1
    ya vienen centrados por .section-head.center / .h1 / .body-lede.center). */
 #plan-canje-hero { text-align: center; }
+
+/* ============================================================
+   MAPA DE SUCURSAL (Home) — Leaflet oscuro + pin de marca
+   ============================================================ */
+.branch-map-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.branch-map { width: 100%; height: 340px; background: var(--color-navy); }
+.branch-map-label {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  background: rgba(23, 13, 62, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-md);
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 260px;
+}
+.branch-map-name { font-family: var(--font-family); font-weight: 700; color: #fff; }
+.branch-map-address { color: rgba(255,255,255,0.7); font-size: 14px; }
+
+.brand-map-pin-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--color-blue);
+  transform: rotate(-45deg);
+  box-shadow: 0 0 0 6px rgba(4, 165, 255, 0.25);
+}
+.brand-map-pin-dot::after {
+  content: "";
+  position: absolute;
+  width: 10px; height: 10px;
+  background: var(--color-navy);
+  border-radius: 50%;
+  top: 9px; left: 9px;
+}
+
+/* Card de Complejo Lomas debajo del mapa: mismo ancho que .branch-map-card */
+.branch-map-card + .branch-lite-card {
+  max-width: 640px;
+  margin: 24px auto 0;
+}
+
+/* Cortina: #plan-canje sube y tapa a #why-tecnolab pineado (ver
+   initCurtainReveal en main.js). Su fondo offwhite de .canje-section
+   es opaco, así que tapa por completo lo que queda atrás. */
+#plan-canje {
+  position: relative;
+  z-index: 2; /* por encima de #why-tecnolab pineado, para que lo tape */
+  border-radius: 20px 20px 0 0; /* mismo radio que .site-header */
+}
