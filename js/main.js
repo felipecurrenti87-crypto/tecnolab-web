@@ -327,8 +327,17 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ============================================================
      HOME CINEMATIC — hero con frame-sequence + catálogo, un solo pin
      ============================================================ */
-  const FRAME_COUNT = 60; // ajustar cuando entren los frames reales
+  const FRAME_COUNT = 60; // turntable de Blender: 6° por frame, sin easing horneado
   const FRAME_PATH = (i) => `assets/video/iphone-hero/frame-${String(i).padStart(4, "0")}.webp`;
+
+  // Bob de flotación: sinusoide en Y aplicada al canvas (no está en los frames).
+  // Ventana en progreso de la timeline (dura 1): arranca al 45% del tramo de
+  // entrada (0.05 + 0.4 × 0.45 ≈ 0.23) y se apaga en 0.45, cuando empieza la
+  // salida. La amplitud entra y sale con un fundido para no pegar saltos.
+  const BOB_AMPLITUDE = 8;     // px
+  const BOB_PERIOD = 3000;     // ms
+  const BOB_START = 0.23;
+  const BOB_END = 0.45;
 
   function initHomeCinematic() {
     const section = document.querySelector(".home-cinematic");
@@ -386,6 +395,30 @@ document.addEventListener("DOMContentLoaded", () => {
       ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
     }
 
+    // `y` en px se compone con el yPercent/xPercent que anima la timeline,
+    // así el bob no pisa la entrada ni la salida.
+    let bobActive = false;
+    let bobEnvelope = 0;
+    let bobRaf = null;
+
+    function bobLoop(now) {
+      bobEnvelope += ((bobActive ? 1 : 0) - bobEnvelope) * 0.06;
+      if (!bobActive && bobEnvelope < 0.01) {
+        bobEnvelope = 0;
+        gsap.set(canvas, { y: 0 });
+        bobRaf = null;
+        return;
+      }
+      const y = Math.sin((now / BOB_PERIOD) * Math.PI * 2) * BOB_AMPLITUDE * bobEnvelope;
+      gsap.set(canvas, { y });
+      bobRaf = requestAnimationFrame(bobLoop);
+    }
+
+    function setBob(active) {
+      bobActive = active;
+      if (active && !bobRaf) bobRaf = requestAnimationFrame(bobLoop);
+    }
+
     function buildTimeline() {
       // Reserva del recorrido de scroll: se recalcula con el ancho real
       // del catálogo, igual que hacía el pin viejo, para que el tramo
@@ -394,6 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
         Math.max(0, catalogRow.scrollWidth - pin.clientWidth + 80);
 
       const tl = gsap.timeline({
+        onUpdate: () => setBob(tl.progress() >= BOB_START && tl.progress() < BOB_END),
         scrollTrigger: {
           trigger: section,
           start: "top top",
@@ -416,10 +450,11 @@ document.addEventListener("DOMContentLoaded", () => {
       tl.fromTo(canvas,
         { yPercent: 130, opacity: 0 },
         { yPercent: 0, opacity: 1, duration: 0.4, ease: "none" }, 0.05)
+        // rotación con easing: arranca y termina suave, no a velocidad constante
         .to(frameState, {
           f: FRAME_COUNT - 1,
           duration: 0.4,
-          ease: "none",
+          ease: "sine.inOut",
           onUpdate: () => drawFrame(Math.round(frameState.f)),
         }, 0.05)
         // el texto cede protagonismo a medida que el iPhone toma el centro
