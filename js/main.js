@@ -1,25 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-  gsap.registerPlugin(ScrollTrigger);
-
   /* ============================================================
-     SMOOTH SCROLL — Lenis con inercia. Se sincroniza a mano con
-     ScrollTrigger (lenis.on("scroll") + gsap.ticker en vez de un rAF
-     propio) porque el home-cinematic más abajo pinea con scrub: sin
-     este enganche, el scroll virtual de Lenis y el scroll real que
-     ScrollTrigger mide para el pin quedan desfasados.
-     ============================================================ */
-  const lenis = new Lenis({
-    duration: 1.8,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    smoothWheel: true,
-    wheelMultiplier: 0.7,
-  });
-  lenis.on("scroll", ScrollTrigger.update);
-  gsap.ticker.add((time) => lenis.raf(time * 1000));
-  gsap.ticker.lagSmoothing(0);
-
-  /* ============================================================
-     MAPA DE SUCURSAL — Leaflet + tiles oscuros de Esri (sin key)
+     MAPA DE SUCURSAL — Leaflet + tiles oscuros de Esri (sin key).
+     Leaflet (CSS + JS) no se pide al abrir el Home: se inyecta recién
+     cuando el contenedor del mapa está a menos de 400px del viewport.
      ============================================================ */
   function initBranchMap() {
     const el = document.getElementById("home-branch-map");
@@ -51,18 +34,35 @@ document.addEventListener("DOMContentLoaded", () => {
     L.marker(MOLDES, { icon: pinIcon }).addTo(map);
   }
 
-  initBranchMap();
+  function loadBranchMap() {
+    const el = document.getElementById("home-branch-map");
+    if (!el) return;
+    const LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/";
 
-  /* ============================================================
-     HEADER — vidrio permanente desde el primer frame; el scroll
-     ya solo achica el padding (is-compact), no trae el fondo/blur.
-     ============================================================ */
-  const header = document.querySelector(".site-header");
-  const onHeaderScroll = () => {
-    header.classList.toggle("is-compact", window.scrollY > 40);
-  };
-  onHeaderScroll();
-  window.addEventListener("scroll", onHeaderScroll, { passive: true });
+    const load = () => {
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = LEAFLET + "leaflet.min.css";
+      document.head.appendChild(css);
+
+      const js = document.createElement("script");
+      js.src = LEAFLET + "leaflet.min.js";
+      js.onload = initBranchMap;
+      document.head.appendChild(js);
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      load();
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      observer.disconnect();
+      load();
+    }, { rootMargin: "400px" });
+    observer.observe(el);
+  }
+
 
   /* ============================================================
      NAV MOBILE
@@ -70,37 +70,60 @@ document.addEventListener("DOMContentLoaded", () => {
   const navToggle = document.querySelector(".nav-toggle");
   const mainNav = document.querySelector(".main-nav");
   if (navToggle && mainNav) {
-    navToggle.addEventListener("click", () => {
-      mainNav.classList.toggle("is-open");
-    });
+    const setNav = (open) => {
+      mainNav.classList.toggle("is-open", open);
+      document.documentElement.classList.toggle("nav-open", open);
+      navToggle.setAttribute("aria-expanded", String(open));
+      navToggle.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+      // el nav está antes que el botón en el DOM: al abrir, el foco pasa al primer link
+      if (open) mainNav.querySelector("a")?.focus();
+    };
+    navToggle.addEventListener("click", () => setNav(!mainNav.classList.contains("is-open")));
     mainNav.querySelectorAll("a").forEach((link) => {
-      link.addEventListener("click", () => mainNav.classList.remove("is-open"));
+      link.addEventListener("click", () => setNav(false));
+    });
+    // Escape cierra el menú y devuelve el foco al botón
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape" || !mainNav.classList.contains("is-open")) return;
+      setNav(false);
+      navToggle.focus();
+    });
+  }
+
+  /* ============================================================
+     WHATSAPP — todos los links [data-wa] se arman acá con el número de
+     js/config.js. El href del HTML es solo un respaldo sin mensaje.
+     ============================================================ */
+  function applyWhatsAppLinks(root = document) {
+    if (typeof SITE_CONFIG === "undefined") return;
+    root.querySelectorAll("[data-wa]").forEach((a) => {
+      const text = a.dataset.wa;
+      a.href = "https://wa.me/" + SITE_CONFIG.whatsappNumber + (text ? "?text=" + encodeURIComponent(text) : "");
     });
   }
 
   /* ============================================================
      CATÁLOGO — render de cards desde products-data.js
-     Compartido entre el .catalog-cards-row pineado del Home y el
+     Compartido entre el carrusel .catalog-cards-row del Home y el
      .catalog-grid-full de catalogo.html — misma data, mismo template.
      ============================================================ */
-  function renderProductCard(p) {
+  function renderProductCard(p, eager = false) {
     const colores = p.colores || [];
     // Un solo color no se ofrece como elección: los swatches aparecen desde 2.
     const swatches = colores.length > 1
       ? `<div class="color-swatches" role="group" aria-label="Colores disponibles">
           ${colores.map((color, i) => `<button type="button" class="color-swatch${i === 0 ? " is-active" : ""}"
-            style="background: ${color.hex}" data-img="${color.imagen}"
+            style="--swatch: ${color.hex}" data-img="${color.imagen}" data-alt="${p.nombre} color ${color.nombre.toLowerCase()}"
             aria-label="${color.nombre}" aria-pressed="${i === 0}" title="${color.nombre}"></button>`).join("")}
         </div>`
       : "";
     return `
-      <article class="product-card reveal" data-categoria="${p.categoria}" data-nombre="${p.nombre.toLowerCase()}">
-        <div class="glow" aria-hidden="true"></div>
+      <article class="product-card" data-categoria="${p.categoria}" data-nombre="${p.nombre.toLowerCase()}">
         <div class="product-card-media">
           ${colores.length
-            ? `<img src="${colores[0].imagen}" alt="${p.nombre} ${p.variante}" loading="lazy">`
+            ? `<img src="${colores[0].imagen}" alt="${p.nombre} color ${colores[0].nombre.toLowerCase()}" width="728" height="666" loading="${eager ? "eager" : "lazy"}" decoding="async">`
             : `<div class="product-card-media-placeholder">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <rect x="7" y="2" width="10" height="20" rx="2.2"></rect>
                 <line x1="11" y1="18" x2="13" y2="18"></line>
               </svg>
@@ -109,16 +132,14 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         </div>
         <div class="product-card-body">
-          <span class="product-card-tag">${p.categoria}</span>
           <h3 class="product-card-name">${p.nombre}</h3>
+          <p class="product-card-variant">${p.variante}</p>
           ${swatches}
-          <p class="product-card-spec">${p.variante} · ${p.especificacion}</p>
-          <div class="product-card-price-row">
-            <span class="product-card-price">Precio<strong>${p.precio}</strong></span>
-            <a class="btn btn-outline btn-sm" href="https://wa.me/549XXXXXXXXX?text=${encodeURIComponent(
-              "Hola, quiero consultar disponibilidad de " + p.nombre + " " + p.variante
-            )}" target="_blank" rel="noopener">Consultar</a>
-          </div>
+          <p class="product-card-spec">${p.especificacion}</p>
+          <p class="product-card-price"><span class="sr-only">Precio: </span>${p.precio}</p>
+          <a class="btn btn-primary" data-wa="Hola, me interesa el ${p.nombre} · ${p.variante}"
+             href="https://wa.me/${typeof SITE_CONFIG !== "undefined" ? SITE_CONFIG.whatsappNumber : ""}"
+             target="_blank" rel="noopener">Consultar</a>
         </div>
       </article>`;
   }
@@ -131,366 +152,226 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!swatch) return;
     const card = swatch.closest(".product-card");
     const img = card && card.querySelector(".product-card-media img");
-    if (img) img.src = swatch.dataset.img;
+    if (img) {
+      img.src = swatch.dataset.img;
+      if (swatch.dataset.alt) img.alt = swatch.dataset.alt;
+    }
     swatch.parentElement.querySelectorAll(".color-swatch").forEach((s) => {
       s.classList.toggle("is-active", s === swatch);
       s.setAttribute("aria-pressed", String(s === swatch));
     });
   });
 
+  // Si products-data.js no cargó, la fila no queda vacía sin explicación
+  const catalogError = `<p class="catalog-error">No pudimos cargar el catálogo en este momento.
+    <a data-wa="Hola, quiero consultar por el catálogo" href="https://wa.me/" target="_blank" rel="noopener">Consultanos por WhatsApp</a>.</p>`;
+
   const catalogRow = document.querySelector(".catalog-cards-row");
-  if (catalogRow && typeof CATALOGO_DESTACADO !== "undefined") {
-    catalogRow.innerHTML = CATALOGO_DESTACADO.map(renderProductCard).join("");
+  if (catalogRow) {
+    catalogRow.innerHTML = typeof CATALOGO_DESTACADO !== "undefined"
+      ? CATALOGO_DESTACADO.map((p, i) => renderProductCard(p, i < 2)).join("")
+      : catalogError;
   }
 
+  /* ============================================================
+     CARRUSEL DESTACADO — scroll horizontal nativo (overflow-x + snap).
+     El JS solo suma: arrastre con mouse, flechas y barra de progreso.
+     La rueda vertical nunca se intercepta.
+     ============================================================ */
+  function initCatalogCarousel() {
+    const row = document.querySelector(".catalog-cards-row");
+    if (!row) return;
+    const bar = document.querySelector(".catalog-progress-bar");
+    const arrows = document.querySelectorAll(".catalog-arrow");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function updateUI() {
+      const max = row.scrollWidth - row.clientWidth;
+      const ratio = max > 0 ? row.scrollLeft / max : 1;
+      if (bar) {
+        // el thumb mide lo que se ve del total y recorre el resto de la pista
+        const visible = row.scrollWidth > 0 ? Math.min(1, row.clientWidth / row.scrollWidth) : 1;
+        bar.style.width = visible * 100 + "%";
+        bar.style.transform = "translateX(" + (ratio * (1 - visible) / visible) * 100 + "%)";
+      }
+      arrows.forEach((btn) => {
+        const atEdge = Number(btn.dataset.dir) < 0 ? row.scrollLeft <= 2 : row.scrollLeft >= max - 2;
+        btn.setAttribute("aria-disabled", String(atEdge));
+      });
+    }
+    row.addEventListener("scroll", updateUI, { passive: true });
+    window.addEventListener("resize", updateUI);
+    updateUI();
+
+    // Flechas: una card por click
+    arrows.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (btn.getAttribute("aria-disabled") === "true") return;
+        const card = row.querySelector(".product-card");
+        if (!card) return;
+        const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+        row.scrollBy({ left: Number(btn.dataset.dir) * (card.offsetWidth + gap), behavior: reducedMotion ? "auto" : "smooth" });
+      });
+    });
+
+    // Arrastre con mouse (el touch ya es nativo)
+    let startX = 0, startLeft = 0, dragging = false, moved = false;
+    row.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      dragging = true;
+      moved = false;
+      startX = e.clientX;
+      startLeft = row.scrollLeft;
+    });
+    row.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      if (!moved && Math.abs(dx) > 5) {
+        moved = true;
+        row.classList.add("is-dragging"); // desactiva el snap mientras se arrastra
+        row.setPointerCapture(e.pointerId);
+      }
+      if (moved) row.scrollLeft = startLeft - dx;
+    });
+    const endDrag = () => {
+      dragging = false;
+      row.classList.remove("is-dragging");
+    };
+    row.addEventListener("pointerup", endDrag);
+    row.addEventListener("pointercancel", endDrag);
+    // Si hubo arrastre, el click que sigue al pointerup no debe llegar a card/swatch/botón
+    row.addEventListener("click", (e) => {
+      if (moved) {
+        e.preventDefault();
+        e.stopPropagation();
+        moved = false;
+      }
+    }, true);
+    row.addEventListener("dragstart", (e) => e.preventDefault());
+  }
+  initCatalogCarousel();
+
   const catalogGrid = document.querySelector(".catalog-grid-full");
+  if (catalogGrid && typeof CATALOGO_DESTACADO === "undefined") {
+    catalogGrid.innerHTML = catalogError;
+  }
   if (catalogGrid && typeof CATALOGO_DESTACADO !== "undefined") {
-    catalogGrid.innerHTML = CATALOGO_DESTACADO.map(renderProductCard).join("");
+    catalogGrid.innerHTML = CATALOGO_DESTACADO.map((p, i) => renderProductCard(p, i < 4)).join("");
 
     /* Filtro real: tabs de categoría generadas desde CATALOGO_DESTACADO
        (nunca hardcodeadas — si mañana hay productos Mac/iPad ahí, la tab
        aparece sola) + búsqueda de texto por nombre. 100% client-side,
-       solo esconde/muestra .product-card, sin tocar el DOM de nuevo. */
+       solo esconde/muestra .product-card, sin tocar el DOM de nuevo.
+       ?cat=iPhone en la URL activa la pestaña correspondiente. */
     const filterTabs = document.querySelector(".catalog-filter-tabs");
     const filterSearch = document.querySelector(".catalog-filter-search");
+    const countEl = document.querySelector(".catalog-count");
+    const emptyEl = document.querySelector(".catalog-empty");
+    const categorias = [...new Set(CATALOGO_DESTACADO.map((p) => p.categoria))];
+    const requested = new URLSearchParams(window.location.search).get("cat");
+    const initialCat = categorias.find((c) => c.toLowerCase() === (requested || "").toLowerCase()) || "all";
 
     if (filterTabs) {
-      const categorias = [...new Set(CATALOGO_DESTACADO.map((p) => p.categoria))];
-      filterTabs.innerHTML = [
-        `<button type="button" class="catalog-filter-tab is-active" data-category="all">Todos</button>`,
-        ...categorias.map(
-          (cat) => `<button type="button" class="catalog-filter-tab" data-category="${cat}">${cat}</button>`
-        ),
-      ].join("");
+      const tab = (cat, label) =>
+        `<button type="button" class="catalog-filter-tab${cat === initialCat ? " is-active" : ""}" data-category="${cat}" aria-pressed="${cat === initialCat}">${label}</button>`;
+      filterTabs.innerHTML = [tab("all", "Todos"), ...categorias.map((cat) => tab(cat, cat))].join("");
     }
 
     const applyCatalogFilter = () => {
       const activeTab = filterTabs ? filterTabs.querySelector(".is-active") : null;
       const activeCategory = activeTab ? activeTab.dataset.category : "all";
       const query = filterSearch ? filterSearch.value.trim().toLowerCase() : "";
+      let visible = 0;
       catalogGrid.querySelectorAll(".product-card").forEach((card) => {
         const matchesCategory = activeCategory === "all" || card.dataset.categoria === activeCategory;
         const matchesQuery = !query || card.dataset.nombre.includes(query);
-        card.style.display = matchesCategory && matchesQuery ? "" : "none";
+        const show = matchesCategory && matchesQuery;
+        card.style.display = show ? "" : "none";
+        if (show) visible++;
       });
+      if (countEl) countEl.textContent = visible + (visible === 1 ? " equipo" : " equipos");
+      if (emptyEl) emptyEl.hidden = visible > 0;
     };
 
     if (filterTabs) {
       filterTabs.addEventListener("click", (e) => {
         const btn = e.target.closest(".catalog-filter-tab");
         if (!btn) return;
-        filterTabs.querySelectorAll(".catalog-filter-tab").forEach((t) => t.classList.remove("is-active"));
-        btn.classList.add("is-active");
+        filterTabs.querySelectorAll(".catalog-filter-tab").forEach((t) => {
+          t.classList.toggle("is-active", t === btn);
+          t.setAttribute("aria-pressed", String(t === btn));
+        });
         applyCatalogFilter();
       });
     }
     if (filterSearch) {
       filterSearch.addEventListener("input", applyCatalogFilter);
     }
+    applyCatalogFilter();
   }
 
   /* ============================================================
-     CATÁLOGO — hover de card real (translateY al pasar el mouse).
-     Vía GSAP y no CSS :hover: el .reveal de la card deja un transform
-     inline seteado por GSAP al terminar de animar, y eso le gana a
-     cualquier :hover de la hoja de estilos — solo GSAP puede pisar su
-     propio inline style de forma prolija (compone contra lo que ya
-     esté en y/scale en vez de resetear todo el transform).
+     ACCESOS RÁPIDOS (Home) — una categoría con productos lleva al catálogo
+     filtrado; una sin productos cargados no se oculta: pasa a consultar
+     disponibilidad por WhatsApp.
      ============================================================ */
-  document.querySelectorAll(".product-card").forEach((card) => {
-    card.addEventListener("mouseenter", () => {
-      gsap.to(card, { y: -6, duration: 0.3, ease: "power2.out" });
-    });
-    card.addEventListener("mouseleave", () => {
-      gsap.to(card, { y: 0, duration: 0.3, ease: "power2.out" });
-    });
+  document.querySelectorAll(".category-card[data-cat]").forEach((card) => {
+    const cat = card.dataset.cat;
+    const hasProducts = typeof CATALOGO_DESTACADO !== "undefined" && CATALOGO_DESTACADO.some((p) => p.categoria === cat);
+    if (hasProducts) return;
+    card.setAttribute("data-wa", "Hola, quiero consultar disponibilidad de " + cat);
+    card.setAttribute("target", "_blank");
+    card.setAttribute("rel", "noopener");
+    card.setAttribute("href", "https://wa.me/");
+    const cta = card.querySelector(".category-card-cta");
+    if (cta) cta.textContent = "Consultá disponibilidad";
   });
 
   /* ============================================================
-     SCROLL REVEALS — fade + translateY sutil
+     MAPA — se carga solo en el Home, cuando se acerca al viewport
      ============================================================ */
-  // will-change solo mientras dura el tween: el reveal lo maneja GSAP
-  // con requestAnimationFrame (no transition/@keyframes de CSS), así
-  // que no hay transitionend/animationend para engancharse — se usa
-  // el equivalente real, onStart/onComplete de GSAP. Si will-change
-  // quedaba seteado en el CSS en reposo, eso es justo lo que deja una
-  // capa de composición fantasma sin limpiar en Chrome.
-  gsap.utils.toArray(".reveal").forEach((el) => {
-    gsap.to(el, {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      duration: 0.9,
-      ease: "power2.out",
-      force3D: true,
-      onStart: () => {
-        el.style.willChange = "transform, opacity";
-      },
-      onComplete: () => {
-        el.style.willChange = "auto";
-        // fuerza un reflow para que Chrome descarte cualquier capa de
-        // raster obsoleta en casos límite (lectura descartada a propósito)
-        void el.offsetHeight;
-      },
-      scrollTrigger: {
-        trigger: el,
-        start: "top 85%",
-        once: true,
-      },
-    });
-  });
+  loadBranchMap();
 
   /* ============================================================
-     CORTINA — #plan-canje sube y tapa a #why-tecnolab pineado
-     (patrón "hero cortina", pero con ScrollTrigger porque no está
-     al tope de la página)
-     ============================================================ */
-  function initCurtainReveal() {
-    const pinnedSection = document.getElementById("why-tecnolab");
-    const curtainSection = document.getElementById("plan-canje");
-    if (!pinnedSection || !curtainSection) return;
-
-    ScrollTrigger.create({
-      trigger: pinnedSection,
-      start: "top top",
-      end: () => "+=" + curtainSection.offsetHeight,
-      pin: true,
-      pinSpacing: false, // clave: sin esto, el pin agrega espacio extra y la
-                          // sección siguiente no queda pegada arriba para "taparlo"
-      // Se crea antes que el pin del home-cinematic (que nace async tras el
-      // preload) pero está debajo en la página: refreshPriority negativo
-      // hace que se recalcule después, ya contando el spacer de ese pin.
-      refreshPriority: -1,
-    });
-  }
-  initCurtainReveal();
-
-  /* ============================================================
-     STAT NUMBERS — contador ascendente al entrar en viewport.
-     Se llama desde el preload de initHomeCinematic, después de
-     buildTimeline(): el ScrollTrigger tiene que nacer con el pin del
-     hero ya insertado, para que "top 85%" se mida contra el alto real.
+     STAT NUMBERS — conteo 0 → valor final al entrar en viewport.
+     El HTML ya trae el valor final (sin JS o con reduced-motion se ve
+     correcto); el JS lo baja a 0 solo si va a animar.
      ============================================================ */
   function initStatCounters() {
-    const statsReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    gsap.utils.toArray(".stat-number").forEach((el) => {
-      const match = el.textContent.match(/^(\d+)(.*)$/);
-      if (!match) return;
-      const value = parseInt(match[1], 10);
-      const suffix = match[2];
-      if (statsReducedMotion) {
-        el.textContent = value + suffix;
-        return;
-      }
-      const counter = { n: 0 };
-      gsap.to(counter, {
-        n: value,
-        duration: 1.4,
-        ease: "power2.out",
-        onUpdate: () => {
-          el.textContent = Math.round(counter.n) + suffix;
-        },
-        scrollTrigger: {
-          trigger: el,
-          start: "top 85%",
-          once: true,
-        },
+    const numbers = document.querySelectorAll(".stat-number[data-count]");
+    if (!numbers.length) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+
+    const DURATION = 1600;
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+    const format = (el, n) => (el.dataset.prefix || "") + n + (el.dataset.suffix || "");
+
+    const animate = (el) => {
+      const target = parseInt(el.dataset.count, 10);
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min((now - start) / DURATION, 1);
+        el.textContent = format(el, Math.round(target * easeOutCubic(t)));
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
+        const num = entry.target.matches(".stat-number") ? entry.target : entry.target.querySelector(".stat-number[data-count]");
+        if (num) animate(num);
       });
+    }, { threshold: 0.4 });
+
+    numbers.forEach((el) => {
+      el.textContent = format(el, 0);
+      observer.observe(el.closest(".stat-block") || el);
     });
   }
 
-  /* ============================================================
-     STAT BLOCKS — stagger real al entrar (no el .reveal genérico:
-     los 4 bloques de una fila cruzan el 85% del viewport casi al
-     mismo tiempo, así que .reveal los dispara juntos. Se separan
-     del sistema .reveal a propósito — si llevaran las dos clases,
-     competirían por opacity/y en dos tweens distintos.
-     ============================================================ */
-  gsap.utils.toArray(".stat-block").forEach((el, i) => {
-    gsap.fromTo(el,
-      { opacity: 0, y: 24 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.9,
-        ease: "power2.out",
-        delay: i * 0.12,
-        scrollTrigger: {
-          trigger: el,
-          start: "top 85%",
-          once: true,
-        },
-      }
-    );
-  });
-
-  /* ============================================================
-     HOME CINEMATIC — hero con frame-sequence + catálogo, un solo pin
-     ============================================================ */
-  const FRAME_COUNT = 60; // turntable de Blender: 6° por frame, sin easing horneado
-  const FRAME_PATH = (i) => `assets/video/iphone-hero/frame-${String(i).padStart(4, "0")}.webp`;
-
-  // Bob de flotación: sinusoide en Y aplicada al canvas (no está en los frames).
-  // Ventana en progreso de la timeline (dura 1): arranca al 45% del tramo de
-  // entrada (0.05 + 0.4 × 0.45 ≈ 0.23) y se apaga en 0.45, cuando empieza la
-  // salida. La amplitud entra y sale con un fundido para no pegar saltos.
-  const BOB_AMPLITUDE = 8;     // px
-  const BOB_PERIOD = 3000;     // ms
-  const BOB_START = 0.23;
-  const BOB_END = 0.45;
-
-  function initHomeCinematic() {
-    const section = document.querySelector(".home-cinematic");
-    const pin = document.querySelector(".cinematic-pin");
-    const canvas = document.getElementById("phoneCanvas");
-    const heroText = document.querySelector(".cinematic-hero-text");
-    const catalogLayer = document.querySelector(".cinematic-catalog");
-    if (!section || !pin || !canvas || !catalogRow) return;
-
-    // Gate a desktop, igual que el pin viejo del catálogo, y respeta
-    // prefers-reduced-motion: en mobile o con reduced-motion, el CSS
-    // ya deja todo en flujo normal (ver .cinematic-pin en media query) —
-    // acá ni siquiera vale la pena precargar los 60 frames.
-    const isDesktop = window.matchMedia("(min-width: 900px)").matches;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!isDesktop || reducedMotion) {
-      ScrollTrigger.refresh();
-      return;
-    }
-
-    const ctx = canvas.getContext("2d");
-    const frames = [];
-    let imagesLoaded = 0;
-    const frameState = { f: 0 };
-
-    function preload(onDone) {
-      for (let i = 1; i <= FRAME_COUNT; i++) {
-        const img = new Image();
-        img.onload = img.onerror = () => {
-          imagesLoaded++;
-          if (imagesLoaded === FRAME_COUNT) onDone();
-        };
-        img.src = FRAME_PATH(i);
-        frames.push(img);
-      }
-    }
-
-    function resizeCanvas() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = pin.clientWidth * dpr;
-      canvas.height = pin.clientHeight * dpr;
-      canvas.style.width = pin.clientWidth + "px";
-      canvas.style.height = pin.clientHeight + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-
-    function drawFrame(index) {
-      const img = frames[Math.max(0, Math.min(FRAME_COUNT - 1, index))];
-      if (!img || !img.complete || !img.naturalWidth) return;
-      const w = pin.clientWidth, h = pin.clientHeight;
-      ctx.clearRect(0, 0, w, h);
-      // "contain" centrado, el frame ya trae su propio margen/sombra
-      const scale = Math.min(w / img.width, h / img.height) * 0.85;
-      const dw = img.width * scale, dh = img.height * scale;
-      ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
-    }
-
-    // `y` en px se compone con el yPercent/xPercent que anima la timeline,
-    // así el bob no pisa la entrada ni la salida.
-    let bobActive = false;
-    let bobEnvelope = 0;
-    let bobRaf = null;
-
-    function bobLoop(now) {
-      bobEnvelope += ((bobActive ? 1 : 0) - bobEnvelope) * 0.06;
-      if (!bobActive && bobEnvelope < 0.01) {
-        bobEnvelope = 0;
-        gsap.set(canvas, { y: 0 });
-        bobRaf = null;
-        return;
-      }
-      const y = Math.sin((now / BOB_PERIOD) * Math.PI * 2) * BOB_AMPLITUDE * bobEnvelope;
-      gsap.set(canvas, { y });
-      bobRaf = requestAnimationFrame(bobLoop);
-    }
-
-    function setBob(active) {
-      bobActive = active;
-      if (active && !bobRaf) bobRaf = requestAnimationFrame(bobLoop);
-    }
-
-    function buildTimeline() {
-      // Reserva del recorrido de scroll: se recalcula con el ancho real
-      // del catálogo, igual que hacía el pin viejo, para que el tramo
-      // horizontal alcance a mostrar todas las cards.
-      const getCatalogDistance = () =>
-        Math.max(0, catalogRow.scrollWidth - pin.clientWidth + 80);
-
-      const tl = gsap.timeline({
-        onUpdate: () => setBob(tl.progress() >= BOB_START && tl.progress() < BOB_END),
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: () => `+=${window.innerHeight * 1.8 + getCatalogDistance()}`,
-          pin: pin,
-          scrub: 2,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      // Duraciones explícitas para que la timeline dure exactamente 1 —
-      // así los labels de fase (0.05, 0.45, ...) son directamente % de
-      // scroll, no un time offset arbitrario de GSAP. Arrancan a los 0.10
-      // de corrimiento respecto a la versión anterior (el iPhone reacciona
-      // casi de inmediato al primer scroll, sin tramo "en vacío"); el
-      // último tramo absorbe ese corrimiento en su duración para que la
-      // timeline siga cerrando justo en 1.00.
-
-      // Fase 1 (5% → 45%): el iPhone sube desde abajo del viewport y rota.
-      tl.fromTo(canvas,
-        { yPercent: 130, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 0.4, ease: "none" }, 0.05)
-        // rotación con easing: arranca y termina suave, no a velocidad constante
-        .to(frameState, {
-          f: FRAME_COUNT - 1,
-          duration: 0.4,
-          ease: "sine.inOut",
-          onUpdate: () => drawFrame(Math.round(frameState.f)),
-        }, 0.05)
-        // el texto cede protagonismo a medida que el iPhone toma el centro
-        .to(heroText, { opacity: 0, y: -24, duration: 0.2, ease: "none" }, 0.25)
-
-        // Fase 2 (45% → 62%): el iPhone sale por la izquierda + fade.
-        .to(canvas, { xPercent: -140, opacity: 0, duration: 0.17, ease: "none" }, 0.45)
-
-        // Fase 3 (50% → 100%): el catálogo entra por la derecha y después
-        // se desplaza horizontalmente para mostrar el resto de las cards.
-        // Arranca antes de que el iPhone termine de salir, para que se
-        // crucen en vez de dejar un hueco vacío.
-        .fromTo(catalogLayer,
-          { xPercent: 100, opacity: 0 },
-          { xPercent: 0, opacity: 1, duration: 0.15, ease: "none" }, 0.50)
-        .to(catalogRow, {
-          x: () => -getCatalogDistance(),
-          duration: 0.35,
-          ease: "none",
-        }, 0.65);
-    }
-
-    preload(() => {
-      resizeCanvas();
-      drawFrame(0);
-      window.addEventListener("resize", () => { resizeCanvas(); drawFrame(Math.round(frameState.f)); });
-      buildTimeline();
-      initStatCounters();
-      // El pin recién insertado agrega un spacer y corre el layout de
-      // todo lo que viene después — sin este refresh, los .reveal que
-      // caen debajo del home-cinematic quedan con su punto de disparo
-      // calculado contra el layout viejo (antes del spacer) y nunca
-      // llegan a dispararse en el momento correcto.
-      ScrollTrigger.refresh();
-    });
-  }
-
-  initHomeCinematic();
+  initStatCounters();
+  applyWhatsAppLinks();
 });

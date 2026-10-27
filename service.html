@@ -3,17 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Service Técnico Apple — Reparaciones iPhone y Mac en Mendoza | Tecnolab</title>
-  <meta name="description" content="Reparación de iPhone y Mac en Mendoza, 100% in-house y con garantía. Especialistas en reparación de placa de Mac — un service que en Mendoza casi nadie ofrece.">
+  <title>Service técnico Apple en Mendoza: iPhone y Mac | Tecnolab</title>
+  <meta name="description" content="Reparación de iPhone y Mac en Mendoza: pantalla, batería, cámara, placa y daño por líquido. 100% in-house y con garantía. Consultá por WhatsApp.">
+  <link rel="canonical" href="https://tecnolab-web.vercel.app/service.html">
+  <meta property="og:title" content="Service técnico Apple en Mendoza: iPhone y Mac | Tecnolab">
+  <meta property="og:description" content="Reparación de iPhone y Mac en Mendoza: pantalla, batería, cámara, placa y daño por líquido. 100% in-house y con garantía. Consultá por WhatsApp.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tecnolab-web.vercel.app/service.html">
+  <meta property="og:locale" content="es_AR">
+  <meta property="og:site_name" content="Tecnolab">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="assets/img/logo-tecnolab-isotipo.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
 
   <!-- ============================================================
        HEADER
@@ -21,10 +32,10 @@
   <header class="site-header">
     <div class="container header-inner">
       <a href="index.html" class="logo">
-        <img src="assets/img/logo-horizontal-blanco.png" alt="Tecnolab">
+        <img src="assets/img/logo-horizontal-blanco.webp" alt="Tecnolab" width="153" height="28" decoding="async">
       </a>
 
-      <nav class="main-nav">
+      <nav class="main-nav" id="main-nav" aria-label="Principal">
         <ul>
           <li><a href="index.html" class="nav-link">Inicio</a></li>
           <li><a href="catalogo.html" class="nav-link">Catálogo</a></li>
@@ -35,29 +46,24 @@
       </nav>
 
       <div class="header-cta">
-        <a href="https://wa.me/549XXXXXXXXX?text=Hola%2C%20quiero%20hacer%20una%20consulta"
-           class="btn btn-primary btn-sm" target="_blank" rel="noopener">
+        <a data-wa="Hola, quiero hacer una consulta" href="https://wa.me/549XXXXXXXXX"
+           class="btn btn-primary header-wa" target="_blank" rel="noopener">
           WhatsApp
         </a>
-        <button class="nav-toggle" aria-label="Abrir menú">
+        <button class="nav-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="main-nav">
           <span></span><span></span><span></span>
         </button>
       </div>
     </div>
   </header>
 
-  <main class="site-main">
+  <main class="site-main" id="contenido" tabindex="-1">
 
-  <!-- ============================================================
-       HERO
-       ============================================================ -->
-  <section class="section section-black" id="service-hero">
+  <section class="page-hero" id="service-hero">
     <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow reveal">Service técnico</span>
-        <h1 class="h1 reveal">Reparamos todo, acá mismo — sin tercerizar</h1>
-      </div>
-      <p class="body-lede center reveal">
+      <span class="eyebrow">Service técnico</span>
+      <h1>Reparamos todo, acá mismo — sin tercerizar</h1>
+      <p class="lede">
         Pantalla, batería, cámara, placa, daño por líquido: lo hacemos
         nosotros, en nuestros dos locales. Menos del 1% de los casos de
         garantía queda sin resolver.
@@ -65,180 +71,131 @@
     </div>
   </section>
 
-  <!-- ============================================================
-       QUÉ REPARAMOS
-       ============================================================ -->
-  <section class="section section-black" id="service-repairs">
+  <!-- QUÉ REPARAMOS -->
+  <section class="section surface-light" id="service-repairs">
     <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow reveal">Qué reparamos</span>
-        <h2 class="h2 reveal">Todo, sin excepciones</h2>
+      <div class="section-head">
+        <span class="eyebrow">Qué reparamos</span>
+        <h2>Todo, sin excepciones</h2>
       </div>
       <div class="repair-grid">
-        <div class="service-item reveal">
-          <div class="service-item-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-              <rect x="5" y="3" width="14" height="18" rx="2"></rect>
-              <line x1="9" y1="19.5" x2="15" y2="19.5"></line>
-            </svg>
+          <div class="service-item">
+            <div class="service-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"></rect><line x1="9" y1="19.5" x2="15" y2="19.5"></line></svg></div>
+            <div>
+              <h3>Pantalla</h3>
+              <p>Cambio de pantalla original o alternativa de alta calidad, para toda la línea iPhone.</p>
+            </div>
           </div>
-          <div>
-            <h3>Pantalla</h3>
-            <p>Cambio de pantalla original o alternativa de alta calidad, para toda la línea iPhone.</p>
+          <div class="service-item">
+            <div class="service-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="8" width="17" height="8" rx="2"></rect><rect x="20" y="10.5" width="2" height="3" rx="0.6" fill="currentColor" stroke="none"></rect><line x1="6" y1="10" x2="6" y2="14"></line></svg></div>
+            <div>
+              <h3>Batería</h3>
+              <p>Diagnóstico de salud de batería y reemplazo con repuestos de calidad certificada.</p>
+            </div>
           </div>
-        </div>
-        <div class="service-item reveal">
-          <div class="service-item-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-              <rect x="2" y="8" width="17" height="8" rx="2"></rect>
-              <rect x="20" y="10.5" width="2" height="3" rx="0.6" fill="currentColor" stroke="none"></rect>
-              <line x1="6" y1="10" x2="6" y2="14"></line>
-            </svg>
+          <div class="service-item">
+            <div class="service-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2.5"></rect><circle cx="12" cy="13" r="4"></circle><circle cx="17" cy="9.5" r="0.6" fill="currentColor" stroke="none"></circle></svg></div>
+            <div>
+              <h3>Cámara</h3>
+              <p>Reemplazo de módulo de cámara trasera y frontal, con calibración incluida.</p>
+            </div>
           </div>
-          <div>
-            <h3>Batería</h3>
-            <p>Diagnóstico de salud de batería y reemplazo con repuestos de calidad certificada.</p>
+          <div class="service-item">
+            <div class="service-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"></rect><line x1="9" y1="3" x2="9" y2="7"></line><line x1="15" y1="3" x2="15" y2="7"></line><line x1="9" y1="17" x2="9" y2="21"></line><line x1="15" y1="17" x2="15" y2="21"></line><line x1="3" y1="9" x2="7" y2="9"></line><line x1="3" y1="15" x2="7" y2="15"></line><line x1="17" y1="9" x2="21" y2="9"></line><line x1="17" y1="15" x2="21" y2="15"></line></svg></div>
+            <div>
+              <h3>Placa / chip</h3>
+              <p>Reparación a nivel de componente, cuando otros ya dijeron "no tiene arreglo".</p>
+            </div>
           </div>
-        </div>
-        <div class="service-item reveal">
-          <div class="service-item-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-              <rect x="3" y="6" width="18" height="14" rx="2.5"></rect>
-              <circle cx="12" cy="13" r="4"></circle>
-              <circle cx="17" cy="9.5" r="0.6" fill="currentColor" stroke="none"></circle>
-            </svg>
+          <div class="service-item">
+            <div class="service-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"></path></svg></div>
+            <div>
+              <h3>Daño por líquido</h3>
+              <p>Limpieza y recuperación de placa después de un contacto con líquido.</p>
+            </div>
           </div>
-          <div>
-            <h3>Cámara</h3>
-            <p>Reemplazo de módulo de cámara trasera y frontal, con calibración incluida.</p>
+          <div class="service-item">
+            <div class="service-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.2a2.5 2.5 0 1 1 3.7 2.2c-.9.5-1.2 1-1.2 1.9"></path><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"></circle></svg></div>
+            <div>
+              <h3>¿No está en la lista?</h3>
+              <p>Si tu equipo tiene otro problema, consultanos — hacemos reparaciones que en Mendoza casi nadie ofrece.</p>
+            </div>
           </div>
-        </div>
-        <div class="service-item reveal">
-          <div class="service-item-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-              <rect x="7" y="7" width="10" height="10" rx="1.5"></rect>
-              <line x1="9" y1="3" x2="9" y2="7"></line>
-              <line x1="15" y1="3" x2="15" y2="7"></line>
-              <line x1="9" y1="17" x2="9" y2="21"></line>
-              <line x1="15" y1="17" x2="15" y2="21"></line>
-              <line x1="3" y1="9" x2="7" y2="9"></line>
-              <line x1="3" y1="15" x2="7" y2="15"></line>
-              <line x1="17" y1="9" x2="21" y2="9"></line>
-              <line x1="17" y1="15" x2="21" y2="15"></line>
-            </svg>
-          </div>
-          <div>
-            <h3>Placa / chip</h3>
-            <p>Reparación a nivel de componente, cuando otros ya dijeron "no tiene arreglo".</p>
-          </div>
-        </div>
-        <div class="service-item reveal">
-          <div class="service-item-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-              <path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"></path>
-            </svg>
-          </div>
-          <div>
-            <h3>Daño por líquido</h3>
-            <p>Limpieza y recuperación de placa después de un contacto con líquido.</p>
-          </div>
-        </div>
-        <div class="service-item reveal">
-          <div class="service-item-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-              <circle cx="12" cy="12" r="9"></circle>
-              <path d="M9.5 9.2a2.5 2.5 0 1 1 3.7 2.2c-.9.5-1.2 1-1.2 1.9"></path>
-              <circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"></circle>
-            </svg>
-          </div>
-          <div>
-            <h3>¿No está en la lista?</h3>
-            <p>Si tu equipo tiene otro problema, consultanos — hacemos reparaciones que en Mendoza casi nadie ofrece.</p>
-          </div>
-        </div>
       </div>
     </div>
   </section>
 
-  <!-- ============================================================
-       REPUESTOS Y GARANTÍA
-       ============================================================ -->
-  <section class="section section-offwhite" id="service-parts-warranty">
-    <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow reveal">Repuestos y garantía</span>
-        <h2 class="h2 reveal">Vos elegís qué repuesto lleva tu equipo</h2>
+  <!-- REPUESTOS Y GARANTÍA -->
+  <section class="section surface-dark" id="service-parts-warranty">
+    <div class="container split split--even split--top">
+      <div class="section-head" style="margin:0">
+        <span class="eyebrow">Repuestos y garantía</span>
+        <h2>Vos elegís qué repuesto lleva tu equipo</h2>
       </div>
-      <p class="section-intro reveal">
-        Trabajamos principalmente con repuestos alternativos de muy alta
-        calidad — la opción que mejor relación tiene entre precio y
-        durabilidad. Si preferís el repuesto original (OEM), también lo
-        conseguimos: te damos las dos opciones, la decisión es tuya.
-      </p>
-      <p class="section-intro reveal">
-        Todas nuestras reparaciones incluyen garantía — consultá el plazo
-        según el trabajo.
-      </p>
+      <div class="two-col-text">
+        <p>
+          Trabajamos principalmente con repuestos alternativos de muy alta
+          calidad — la opción que mejor relación tiene entre precio y
+          durabilidad. Si preferís el repuesto original (OEM), también lo
+          conseguimos: te damos las dos opciones, la decisión es tuya.
+        </p>
+        <p>
+          Todas nuestras reparaciones incluyen garantía — consultá el plazo
+          según el trabajo.
+        </p>
+      </div>
     </div>
   </section>
 
-  <!-- ============================================================
-       NICHO MAC — protagonismo
-       ============================================================ -->
-  <section class="section section-black" id="service-mac">
+  <!-- NICHO MAC -->
+  <section class="section surface-white" id="service-mac">
     <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow reveal">Reparación de Mac</span>
-        <h2 class="h2 reveal">El service de Mac que en Mendoza casi nadie ofrece</h2>
-      </div>
-      <p class="section-intro reveal">
-        Cambio de batería y reparación de placa de Mac — el nicho más
-        fuerte de Tecnolab, y el menos conocido. Gonzalo, al frente del
-        taller, fue uno de los primeros en Mendoza en reparar celulares y
-        uno de los primeros en Argentina en reparación de placa — se formó
-        puntualmente en Colombia para eso.
-      </p>
-
-      <div class="stat-row">
-        <div class="stat-block">
-          <span class="stat-label">En el rubro</span>
-          <span class="stat-number">10 años</span>
-          <p class="stat-caption">reparando equipos Apple, <strong>antes de fundar Tecnolab</strong>.</p>
+      <div class="split split--even split--top" style="margin-bottom:var(--space-block)">
+        <div class="section-head" style="margin:0">
+          <span class="eyebrow">Reparación de Mac</span>
+          <h2>El service de Mac que en Mendoza casi nadie ofrece</h2>
         </div>
-        <div class="stat-block">
-          <span class="stat-label">Tecnolab en Mendoza</span>
-          <span class="stat-number">6 años</span>
-          <p class="stat-caption"><strong>Dos locales</strong>, service 100% in-house desde 2020.</p>
-        </div>
-        <div class="stat-block">
-          <span class="stat-label">En reparación de placa</span>
-          <span class="stat-number">1°</span>
-          <p class="stat-caption">de los primeros en <strong>Argentina</strong>, formado en Colombia.</p>
-        </div>
-        <div class="stat-block">
-          <span class="stat-label">Casos de garantía</span>
-          <span class="stat-number">&lt;1%</span>
-          <p class="stat-caption">quedan <strong>sin resolver</strong>.</p>
-        </div>
+        <p>
+          Cambio de batería y reparación de placa de Mac — el nicho más
+          fuerte de Tecnolab, y el menos conocido. Gonzalo, al frente del
+          taller, fue uno de los primeros en Mendoza en reparar celulares y
+          uno de los primeros en Argentina en reparación de placa — se formó
+          puntualmente en Colombia para eso.
+        </p>
       </div>
 
-      <a href="https://wa.me/549XXXXXXXXX?text=Hola%2C%20quiero%20consultar%20sobre%20reparaci%C3%B3n%20de%20Mac"
-         class="btn btn-primary reveal" target="_blank" rel="noopener">
-        Consultar por WhatsApp <span class="btn-arrow">→</span>
-      </a>
+        <div class="stat-row">
+          <div class="stat-block">
+            <span class="stat-label">En el rubro</span>
+            <span class="stat-number" data-count="10" data-suffix=" años">10 años</span>
+            <p class="stat-caption">reparando equipos Apple, <strong>antes de fundar Tecnolab</strong>.</p>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">Tecnolab en Mendoza</span>
+            <span class="stat-number" data-count="6" data-suffix=" años">6 años</span>
+            <p class="stat-caption"><strong>Dos locales</strong>, service 100% in-house desde 2020.</p>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">En reparación de placa</span>
+            <span class="stat-number" data-count="1" data-suffix="°">1°</span>
+            <p class="stat-caption">de los primeros en <strong>Argentina</strong>, formado en Colombia.</p>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">Casos de garantía</span>
+            <span class="stat-number" data-count="1" data-prefix="&lt;" data-suffix="%">&lt;1%</span>
+            <p class="stat-caption">quedan <strong>sin resolver</strong>.</p>
+          </div>
+        </div>
+      <div class="center" style="margin-top:var(--space-block)">
+        <a class="btn btn-primary" data-wa="Hola, quiero consultar sobre reparación de Mac" href="https://wa.me/549XXXXXXXXX" target="_blank" rel="noopener">Consultar por WhatsApp</a>
+      </div>
     </div>
   </section>
 
-  <!-- ============================================================
-       CTA FINAL
-       ============================================================ -->
-  <section class="section final-cta">
+  <section class="section final-cta surface-light">
     <div class="container">
-      <h2 class="h2 reveal">¿Tu equipo necesita una revisión?</h2>
-      <a href="https://wa.me/549XXXXXXXXX?text=Hola%2C%20quiero%20hacer%20una%20consulta"
-         class="btn btn-primary reveal" target="_blank" rel="noopener">
-        Consultar por WhatsApp <span class="btn-arrow">→</span>
-      </a>
+      <h2>¿Tu equipo necesita una revisión?</h2>
+      <a class="btn btn-primary" data-wa="Hola, quiero hacer una consulta" href="https://wa.me/549XXXXXXXXX" target="_blank" rel="noopener">Consultar por WhatsApp</a>
     </div>
   </section>
 
@@ -251,12 +208,12 @@
     <div class="container">
       <div class="footer-top">
         <div class="footer-logo">
-          <img src="assets/img/logo-vertical-blanco.png" alt="Tecnolab">
+          <img src="assets/img/logo-vertical-blanco.webp" alt="Tecnolab" width="92" height="46" loading="lazy" decoding="async">
           <p>Especialistas Apple en Mendoza. Venta y service técnico de iPhone, Mac y iPad.</p>
         </div>
 
         <div class="footer-col">
-          <h4>Navegación</h4>
+          <h3>Navegación</h3>
           <ul>
             <li><a href="index.html">Inicio</a></li>
             <li><a href="catalogo.html">Catálogo</a></li>
@@ -267,9 +224,9 @@
         </div>
 
         <div class="footer-col">
-          <h4>Contacto</h4>
+          <h3>Contacto</h3>
           <ul>
-            <li><a href="https://wa.me/549XXXXXXXXX" target="_blank" rel="noopener">WhatsApp</a></li>
+            <li><a data-wa="" href="https://wa.me/549XXXXXXXXX" target="_blank" rel="noopener">WhatsApp</a></li>
             <li><a href="https://instagram.com/tecnolabmza" target="_blank" rel="noopener">Instagram @tecnolabmza</a></li>
           </ul>
         </div>
@@ -281,11 +238,12 @@
       </div>
     </div>
   </footer>
+  <a class="wa-fab" data-wa="Hola, quiero hacer una consulta" href="https://wa.me/549XXXXXXXXX" target="_blank" rel="noopener" aria-label="Consultar por WhatsApp">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+  </a>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
-  <script src="js/products-data.js?v=2"></script>
-  <script src="js/main.js?v=2"></script>
+  <script src="js/config.js?v=7" defer></script>
+  <script src="js/products-data.js?v=7" defer></script>
+  <script src="js/main.js?v=7" defer></script>
 </body>
 </html>

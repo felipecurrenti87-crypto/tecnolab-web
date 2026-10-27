@@ -1,0 +1,8 @@
+{
+  "name": "tecnolab-scripts",
+  "private": true,
+  "description": "Herramientas de desarrollo (no se publican, ver .vercelignore)",
+  "devDependencies": {
+    "sharp": "^0.33.5"
+  }
+}

@@ -1,7 +1,7 @@
 /**
  * Estructura de datos del catálogo destacado.
  * Agregar más modelos acá (iPhone, Mac, iPad) no requiere tocar el
- * markup ni el JS del scroll pineado — el render de cards es genérico.
+ * markup ni el JS — el render de cards es genérico.
  */
 
 // CONVENCIÓN DE FOTOS: mismo ángulo de cámara para todos los colores de un
@@ -20,8 +20,8 @@ const CATALOGO_DESTACADO = [
     especificacion: "Cámara Pro · Chip A20 Pro",
     precio: "Desde $1.850.000",
     colores: [
-      { nombre: "Negro", hex: "#1a1a1a", imagen: "assets/img/iphone18promax-negro-front-back.jpg" },
-      { nombre: "Plateado", hex: "#e8e8ea", imagen: "assets/img/iphone18promax-plateado-back-side.jpg" },
+      { nombre: "Negro", hex: "#1a1a1a", imagen: "assets/img/iphone18promax-negro-front-back.webp" },
+      { nombre: "Plateado", hex: "#e8e8ea", imagen: "assets/img/iphone18promax-plateado-back-side.webp" },
     ],
     disponible: true,
   },
@@ -33,11 +33,11 @@ const CATALOGO_DESTACADO = [
     especificacion: "Cámara Pro · Chip A20 Pro",
     precio: "Desde $1.650.000",
     colores: [
-      { nombre: "Plateado", hex: "#e8e8ea", imagen: "assets/img/iphone18promax-plateado-back-side.jpg" },
+      { nombre: "Plateado", hex: "#e8e8ea", imagen: "assets/img/iphone18promax-plateado-back-side.webp" },
     ],
     disponible: true,
   },
-  // La variante Glacier / Azul (assets/img/iphone18promax-azul-camara-detalle.jpg)
+  // La variante Glacier / Azul (_originales/pendientes/iphone18promax-azul-camara-detalle.jpg)
   // queda afuera por ahora: es un macro diagonal de la cámara, no el
   // mismo encuadre de plano trasero recto que las dos de arriba.
   // Sumarla de nuevo apenas haya una foto de azul en ese mismo ángulo.
@@ -53,7 +53,7 @@ const CATALOGO_DESTACADO = [
     // Cloud White (gallery-4 es macro de cámara) y Space Black (solo aparece
     // en el lineup gallery-1). Sumarlos cuando haya fotos en el mismo ángulo.
     colores: [
-      { nombre: "Sky Blue", hex: "#cfdde9", imagen: "assets/img/iphone-air-digitalmat-gallery-3-202509.jpg" },
+      { nombre: "Sky Blue", hex: "#cfdde9", imagen: "assets/img/iphone-air-digitalmat-gallery-3-202509.webp" },
     ],
     disponible: true,
   },
@@ -68,7 +68,7 @@ const CATALOGO_DESTACADO = [
     // pendiente: solo aparece en el lineup (gallery-1) y abierto mostrando
     // pantalla (gallery-3), ninguna es un dorso comparable.
     colores: [
-      { nombre: "Star White", hex: "#ece9e4", imagen: "assets/img/iphone-duo-digitalmat-gallery-4-202609.jpg" },
+      { nombre: "Star White", hex: "#ece9e4", imagen: "assets/img/iphone-duo-digitalmat-gallery-4-202609.webp" },
     ],
     disponible: true,
   },
@@ -100,7 +100,7 @@ const CATALOGO_DESTACADO = [
     especificacion: "Chip A19",
     precio: "Desde $1.050.000",
     colores: [
-      { nombre: "Azul brumoso", hex: "#96aed1", imagen: "assets/img/iphone-17-digitalmat-gallery-4-202509.jpg" },
+      { nombre: "Azul brumoso", hex: "#96aed1", imagen: "assets/img/iphone-17-digitalmat-gallery-4-202509.webp" },
     ],
     disponible: true,
   },
@@ -132,7 +132,7 @@ const CATALOGO_DESTACADO = [
     especificacion: "Chip A18",
     precio: "Desde $890.000",
     colores: [
-      { nombre: "Verde azulado", hex: "#7fb5b0", imagen: "assets/img/iphone16-digitalmat-gallery-5-202409.jpg" },
+      { nombre: "Verde azulado", hex: "#7fb5b0", imagen: "assets/img/iphone16-digitalmat-gallery-5-202409.webp" },
     ],
     disponible: true,
   },
@@ -144,7 +144,7 @@ const CATALOGO_DESTACADO = [
     especificacion: "Cancelación activa de ruido · Chip H2",
     precio: "Consultar",
     colores: [
-      { nombre: "Blanco", hex: "#f5f5f5", imagen: "assets/img/airpods-5-select-202609_FV1.jpg" },
+      { nombre: "Blanco", hex: "#f5f5f5", imagen: "assets/img/airpods-5-select-202609_FV1.webp" },
     ],
     disponible: true,
   },
