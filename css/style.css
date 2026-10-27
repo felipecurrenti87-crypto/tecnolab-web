@@ -18,7 +18,6 @@
 :root {
   /* ---- Color de marca ---- */
   --black: #000000;
-  --navy: #170D3E;
   --blue: #04A5FF;
   --blue-hover: #3DBAFF;
   --blue-rgb: 4, 165, 255;
@@ -26,6 +25,13 @@
   --blue-on-light: #0069B4;
   --white: #FFFFFF;
   --offwhite: #F5F5F7;
+
+  /* ---- Escala de superficies (sin saltos de blanco a negro) ---- */
+  --surface-0: #000000;   /* solo hero, "Por qué Tecnolab" y footer */
+  --surface-1: #111113;   /* negro suave: bloques oscuros secundarios */
+  --surface-2: #F5F5F7;   /* gris claro */
+  --surface-3: #ECECEF;   /* gris claro más profundo */
+  /* blanco puro solo dentro de las cards */
 
   /* ---- Texto ---- */
   --text: #1D1D1F;          /* principal sobre claro */
@@ -76,10 +82,20 @@
 }
 
 /* Superficies: cada una trae su propio set de colores de texto/borde/acento */
-.surface-dark  { --fg: var(--text-inv); --fg-2: var(--text-inv-2); --line: rgba(255,255,255,.16); --line-strong: rgba(255,255,255,.5); --accent: var(--blue); background: var(--black); }
-.surface-navy  { --fg: var(--text-inv); --fg-2: var(--text-inv-2); --line: rgba(255,255,255,.16); --line-strong: rgba(255,255,255,.5); --accent: var(--blue); background: var(--navy); }
-.surface-light { --fg: var(--text); --fg-2: var(--text-2); --line: rgba(0,0,0,.12); --line-strong: rgba(0,0,0,.45); --accent: var(--blue-on-light); background: var(--offwhite); }
-.surface-white { --fg: var(--text); --fg-2: var(--text-2); --line: rgba(0,0,0,.12); --line-strong: rgba(0,0,0,.45); --accent: var(--blue-on-light); background: var(--white); }
+.surface-dark  { --bg: var(--surface-0); --fg: var(--text-inv); --fg-2: var(--text-inv-2); --line: rgba(255,255,255,.16); --line-strong: rgba(255,255,255,.5); --accent: var(--blue); background: var(--bg); }
+.surface-soft  { --bg: var(--surface-1); --fg: var(--text-inv); --fg-2: var(--text-inv-2); --line: rgba(255,255,255,.16); --line-strong: rgba(255,255,255,.5); --accent: var(--blue); background: var(--bg); }
+.surface-light { --bg: var(--surface-2); --fg: var(--text); --fg-2: var(--text-2); --line: rgba(0,0,0,.12); --line-strong: rgba(0,0,0,.45); --accent: var(--blue-on-light); background: var(--bg); }
+.surface-deep  { --bg: var(--surface-3); --fg: var(--text); --fg-2: var(--text-2); --line: rgba(0,0,0,.12); --line-strong: rgba(0,0,0,.45); --accent: var(--blue-on-light); background: var(--bg); }
+
+/* Degradé de 96px en cada frontera negro ↔ claro (el color previo/siguiente va en .from-N / .to-N).
+   El padding extra deja el degradé libre de contenido. No se usa en #why-tecnolab (sticky) ni
+   entre #why-tecnolab y #plan-canje: ahí manda la cortina. */
+.from-0 { --prev-bg: var(--surface-0); }
+.from-1 { --prev-bg: var(--surface-1); }
+.from-2 { --prev-bg: var(--surface-2); }
+.from-3 { --prev-bg: var(--surface-3); }
+.to-0   { --next-bg: var(--surface-0); }
+.to-1   { --next-bg: var(--surface-1); }
 
 /* ---- Base ---- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -210,7 +226,6 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   background: rgba(12, 12, 16, 0.82);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border-radius: 0 0 var(--radius-card) var(--radius-card);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .header-inner {
@@ -282,7 +297,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
     height: 100vh;
     height: 100dvh;
     padding: calc(var(--header-h) + 24px) var(--space-gutter) 32px;
-    background: var(--navy);
+    background: var(--surface-0);
     overflow-y: auto;
     visibility: hidden;
   }
@@ -359,53 +374,71 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   .split--top { align-items: start; }
 }
 
-/* ---- Hero del Home ---- */
+/* ---- Ritmo vertical de TODO encabezado (hero del Home y .page-hero):
+   eyebrow → 16px → h1 → 20px → lede (max 58ch) → 32px → botones ---- */
+.hero .eyebrow,
+.page-hero .eyebrow { margin-bottom: 16px; }
+.hero .lede,
+.page-hero .lede { margin: 20px auto 0; max-width: 58ch; color: var(--fg-2); }
+.hero-actions,
+.page-hero .btn { margin-top: 32px; }
+
+/* ---- Hero del Home: ocupa exactamente el primer pantallazo ---- */
 .hero {
   position: relative;
-  min-height: 70svh;
+  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: calc(var(--header-h) + 48px) var(--space-gutter) 56px;
+  padding: calc(var(--header-h) + 56px) var(--space-gutter) 96px;
   background:
     radial-gradient(ellipse 60% 55% at 50% 50%, rgba(var(--blue-rgb), 0.08) 0%, transparent 70%),
-    var(--black);
+    var(--surface-0);
 }
 /* Acá va a entrar el render 3D del iPhone cuando esté listo (capa absoluta
    detrás del texto). Por ahora no hay imagen ni placeholder. */
 .hero h1 { max-width: 20ch; }
-.hero .lede { margin: 24px auto 32px; max-width: 56ch; }
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 16px;
-}
+.hero-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
 @media (max-width: 599px) {
   .hero-actions { flex-direction: column; align-items: stretch; width: 100%; }
   .hero-actions .btn { width: 100%; }
 }
+/* Chevron estático al pie: indica que hay más contenido abajo */
+.hero-scroll {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--text-inv-2);
+  transition: color 150ms;
+}
+.hero-scroll:hover { color: var(--blue); }
+.hero-scroll svg { width: 28px; height: 28px; }
 
-/* ---- Encabezado de página interna (service, nosotros, plan-canje, catálogo) ---- */
+/* ---- Encabezado de página interna ---- */
 .page-hero {
-  padding: calc(var(--header-h) + 56px) 0 56px;
+  padding: calc(var(--header-h) + 72px) 0 72px;
   text-align: center;
   background:
     radial-gradient(ellipse 60% 70% at 50% 40%, rgba(var(--blue-rgb), 0.07) 0%, transparent 70%),
-    var(--black);
+    var(--surface-0);
 }
 .page-hero h1 { max-width: 20ch; margin: 0 auto; font-size: var(--fs-h2); }
-.page-hero .lede { margin: 20px auto 0; }
-.page-hero .btn { margin-top: 32px; }
-/* Catálogo: encabezado compacto (~220px) para que filtros y grilla entren en el primer pantallazo */
-.page-hero--compact { padding: calc(var(--header-h) + 20px) 0 24px; }
-.page-hero--compact h1 { font-size: var(--fs-h2); }
-.page-hero--compact .lede { margin-top: 8px; font-size: var(--fs-body); max-width: none; }
+/* Catálogo: encabezado compacto para que filtros y grilla entren en el primer pantallazo */
+.page-hero--compact { padding: calc(var(--header-h) + 56px) 0 32px; }
+.page-hero--compact .lede { max-width: none; font-size: var(--fs-body); }
 
 /* ==========================================================================
-   CARDS DE PRODUCTO
+   CARDS DE PRODUCTO — toda la card es clicable (abre WhatsApp con el equipo);
+   los swatches cambian la foto sin disparar el enlace. Sin movimiento.
    ========================================================================== */
 .product-card {
   position: relative;
@@ -417,37 +450,48 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 24px;
+  padding: 12px 12px 18px;
   border-radius: var(--radius-card);
   background: var(--white);
   color: var(--fg);
   box-shadow: var(--shadow-card);
+  cursor: pointer;
   transition: box-shadow 150ms;
 }
-.product-card:hover { box-shadow: var(--shadow-card-hover); }
+/* Hover y foco: aro azul de 2px por box-shadow (no cambia el layout) */
+.product-card:hover,
+.product-card:focus-within {
+  box-shadow: 0 0 0 2px var(--blue), var(--shadow-card-hover);
+}
+.product-card:hover .btn-primary,
+.product-card:focus-within .btn-primary { background: var(--blue-hover); }
+.product-card:hover .product-card-media,
+.product-card:focus-within .product-card-media { filter: brightness(0.96); }
+.product-card a:focus-visible { outline: none; }
 
+/* Panel de imagen con fondo propio */
 .product-card-media {
+  position: relative;
   aspect-ratio: 1 / 1;
-  margin-bottom: 20px;
   border-radius: var(--radius-media);
-  background: var(--offwhite);
+  background: linear-gradient(160deg, #F5F5F7 0%, #E4E6EB 100%);
   overflow: hidden;
+  transition: filter 150ms;
 }
 .product-card-media img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 6%;
-  /* la foto trae fondo blanco: se funde con el fondo de la card por multiply */
+  padding: 10%;
+  /* la foto trae fondo blanco: se funde con el degradé del panel por multiply */
   mix-blend-mode: multiply;
   filter: brightness(1.18) contrast(1.05);
   mask-image: radial-gradient(ellipse 76% 76% at center, #000 50%, transparent 96%);
   -webkit-mask-image: radial-gradient(ellipse 76% 76% at center, #000 50%, transparent 96%);
 }
-/* Sin foto todavía: ícono de teléfono + texto, nunca un hueco vacío */
 .product-card-media-placeholder {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -463,24 +507,44 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   text-transform: uppercase;
 }
 
-.product-card-body { display: flex; flex-direction: column; flex: 1; }
-.product-card-name { margin-bottom: 4px; }
-.product-card-variant { font-weight: 600; color: var(--fg); }
-.product-card-spec { margin-top: 2px; font-size: var(--fs-small); }
-.product-card-price {
-  margin-top: auto;
-  padding-top: 20px;
-  font-size: var(--fs-price);
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--fg);
+/* Pills sobre el panel: categoría (izq.) y disponibilidad (der.) */
+.product-card-pills {
+  position: absolute;
+  top: 12px; left: 12px; right: 12px;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px;
 }
-.product-card .btn { margin-top: 16px; width: 100%; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-btn);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+.pill-status { margin-left: auto; }
+.pill-status::before {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #1E9E52;
+}
+.pill-status.is-off { color: var(--text-2); }
+.pill-status.is-off::before { background: #8E8E93; }
 
-/* Selector de color: área táctil de 44x44, el punto es chico */
-.color-swatches { display: flex; margin: 4px 0 0 -12px; }
+/* Swatches: círculo de 22px con área táctil de 44px */
+.color-swatches { display: flex; margin: 4px 0 0 -6px; }
 .color-swatch {
   position: relative;
+  z-index: 2;
   width: 44px;
   height: 44px;
   padding: 0;
@@ -488,15 +552,43 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 .color-swatch::before {
   content: '';
   position: absolute;
-  top: 12px; left: 12px;
-  width: 20px; height: 20px;
+  top: 11px; left: 11px;
+  width: 22px; height: 22px;
   border-radius: 50%;
   background: var(--swatch);
-  border: 1px solid rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.3);
 }
 .color-swatch.is-active::before {
-  box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--blue-on-light);
+  box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--blue);
 }
+
+.product-card-body { display: flex; flex-direction: column; flex: 1; padding: 8px 6px 0; }
+.product-card-name { margin-bottom: 2px; }
+.product-card-variant { color: var(--fg-2); }
+.product-card-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.product-card-chips li {
+  padding: 3px 12px;
+  border-radius: 12px;
+  background: #EDEDF0;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  color: var(--text-2);
+}
+.product-card-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 20px;
+}
+.product-card-price { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; line-height: 1.2; color: var(--fg); }
+.product-card-price small { font-size: var(--fs-small); color: var(--fg-2); }
+.product-card-price strong { font-size: var(--fs-price); font-weight: 700; color: var(--fg); }
+.product-card .btn { min-height: 44px; padding: 0 14px; margin-left: auto; }
+/* Toda la card es el área clicable del enlace de WhatsApp */
+.product-card .btn::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-card); }
 
 /* ==========================================================================
    CATÁLOGO DESTACADO (Home) — carrusel horizontal nativo
@@ -517,7 +609,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   -webkit-overflow-scrolling: touch;
   cursor: grab;
   /* altura reservada: las cards se inyectan por JS y no deben empujar lo de abajo (CLS) */
-  min-height: 559px;
+  min-height: 600px;
 }
 .catalog-cards-row::-webkit-scrollbar { display: none; }
 .catalog-cards-row.is-dragging { scroll-snap-type: none; cursor: grabbing; user-select: none; }
@@ -529,31 +621,60 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 @media (max-width: 699px) {
   /* card al 82%: se ve el borde de la siguiente */
   .catalog-cards-row { gap: 16px; }
-  .catalog-cards-row .product-card { flex-basis: 82vw; }
-  .catalog-cards-row { min-height: calc(82vw + 290px); }
+  .catalog-cards-row .product-card,
+  .catalog-cards-row .catalog-end-card { flex-basis: 82vw; }
+  .catalog-cards-row { min-height: calc(82vw + 330px); }
   .catalog-arrows { display: none; }
 }
 
-.catalog-carousel-footer { display: flex; align-items: center; gap: 32px; }
-.catalog-progress { position: relative; flex: 1; height: 2px; background: var(--line); overflow: hidden; }
-.catalog-progress-bar { position: absolute; inset: 0 auto 0 0; width: 100%; background: var(--accent); }
+.catalog-carousel-footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.catalog-pager {
+  margin: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-2);
+}
+.catalog-pager-current { color: var(--fg); }
 
 .catalog-arrows { display: flex; gap: 12px; }
 .catalog-arrow {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   border: 1px solid var(--line-strong);
-  background: var(--white);
+  background: transparent;
   color: var(--fg);
   transition: border-color 150ms, color 150ms;
 }
 .catalog-arrow svg { width: 20px; height: 20px; }
-.catalog-arrow:hover { border-color: var(--accent); color: var(--accent); }
+.catalog-arrow:hover { border-color: var(--blue); color: var(--blue-on-light); }
 .catalog-arrow[aria-disabled="true"] { opacity: 0.35; pointer-events: none; }
+
+/* Última "card" del carrusel: lleva al catálogo completo */
+.catalog-end-card {
+  flex: 0 0 clamp(260px, 24vw, 296px);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  border-radius: var(--radius-card);
+  background: var(--surface-1);
+  color: var(--text-inv);
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  line-height: 1.25;
+  transition: box-shadow 150ms;
+}
+.catalog-end-card:hover,
+.catalog-end-card:focus-visible { box-shadow: 0 0 0 2px var(--blue); }
+.catalog-end-card svg { width: 28px; height: 28px; color: var(--blue); }
 
 .catalog-error { color: var(--fg-2); }
 .catalog-error a { color: var(--fg); text-decoration: underline; }
@@ -574,7 +695,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   min-height: 44px;
   padding: 24px;
   border-radius: var(--radius-card);
-  background: var(--offwhite);
+  background: var(--white);
   border: 1px solid var(--line);
   transition: box-shadow 150ms, border-color 150ms;
 }
@@ -688,6 +809,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 }
 @media (min-width: 900px) {
   .stat-row { grid-template-columns: repeat(4, 1fr); }
+  .stat-row--3 { grid-template-columns: repeat(3, 1fr); }
 }
 .stat-block {
   padding: 0 12px;
@@ -698,6 +820,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 @media (min-width: 900px) {
   .stat-block:nth-child(2n) { border-right: 1px solid var(--line); }
   .stat-block:nth-child(4n) { border-right: 0; }
+  .stat-row--3 .stat-block:nth-child(3n) { border-right: 0; }
 }
 .stat-label {
   display: block;
@@ -732,7 +855,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 /* ==========================================================================
    PLAN CANJE
    ========================================================================== */
-.canje-steps { margin: 32px 0; display: flex; flex-direction: column; gap: 20px; counter-reset: paso; }
+.canje-steps { margin: 28px 0 32px; display: flex; flex-direction: column; gap: 12px; counter-reset: paso; }
 .canje-steps li {
   position: relative;
   padding-left: 56px;
@@ -747,7 +870,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   line-height: 1.25;
   color: var(--accent);
 }
-.canje-steps h3 { font-size: var(--fs-body); margin-bottom: 2px; letter-spacing: 0; }
+.canje-steps h3 { font-size: var(--fs-body); letter-spacing: 0; line-height: 1.6; }
 
 .canje-card {
   --fg: var(--text);
@@ -795,8 +918,10 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 .service-mac-card {
   padding: 40px;
   border-radius: var(--radius-card);
-  background: var(--navy);
-  --fg: var(--text-inv); --fg-2: var(--text-inv-2); --line: rgba(255,255,255,.16); --line-strong: rgba(255,255,255,.5); --accent: var(--blue);
+  background: var(--white);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+  --fg: var(--text); --fg-2: var(--text-2); --line: rgba(0,0,0,.12); --line-strong: rgba(0,0,0,.45); --accent: var(--blue-on-light);
 }
 .service-mac-card h3 { font-size: var(--fs-h2); margin-bottom: 16px; }
 .service-mac-card p { margin-bottom: 28px; }
@@ -840,7 +965,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   gap: 12px;
   padding: 16px 20px;
   border-radius: var(--radius-media);
-  background: rgba(23, 13, 62, 0.92);
+  background: rgba(17, 17, 19, 0.92);
 }
 .branch-map-label div { display: flex; flex-direction: column; }
 .branch-map-name { font-weight: 700; color: var(--text-inv); }
@@ -882,7 +1007,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   content: "";
   position: absolute;
   width: 10px; height: 10px;
-  background: var(--navy);
+  background: var(--black);
   border-radius: 50%;
   top: 9px; left: 9px;
 }
@@ -904,7 +1029,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
    FOOTER
    ========================================================================== */
 .site-footer {
-  background: var(--black);
+  background: var(--surface-0);
   padding: 64px 0 32px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -968,7 +1093,6 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 @media (max-height: 600px), (max-width: 899px) {
   #why-tecnolab { position: relative; }
 }
-}
 
 /* ==========================================================================
    ACCESIBILIDAD
@@ -1030,3 +1154,21 @@ input:focus-visible,
 
 /* Sin el cuadro azul de tap en mobile (el foco ya tiene su propio aro) */
 a, button { -webkit-tap-highlight-color: transparent; }
+
+/* ---- Plan Canje: pasos compactos en una fila ---- */
+.steps-grid .canje-step p { max-width: 30ch; }
+.canje-note { margin-top: 12px; }
+
+/* ---- Degradés entre superficies (van al final para ganar sobre .section / .final-cta) ---- */
+.fade-top    { padding-top: calc(var(--space-section) + 48px); }
+.fade-bottom { padding-bottom: calc(var(--space-section) + 48px); }
+.fade-top::before,
+.fade-bottom::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 96px;
+  pointer-events: none;
+}
+.fade-top::before    { top: 0;    background: linear-gradient(to bottom, var(--prev-bg), var(--bg)); }
+.fade-bottom::after  { bottom: 0; background: linear-gradient(to bottom, var(--bg), var(--next-bg)); }

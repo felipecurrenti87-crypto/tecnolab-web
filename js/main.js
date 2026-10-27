@@ -107,21 +107,34 @@ document.addEventListener("DOMContentLoaded", () => {
      Compartido entre el carrusel .catalog-cards-row del Home y el
      .catalog-grid-full de catalogo.html — misma data, mismo template.
      ============================================================ */
+  function escAttr(t) { return String(t).replace(/&/g, "&amp;").replace(/"/g, "&quot;"); }
+
   function renderProductCard(p, eager = false) {
     const colores = p.colores || [];
     // Un solo color no se ofrece como elección: los swatches aparecen desde 2.
     const swatches = colores.length > 1
       ? `<div class="color-swatches" role="group" aria-label="Colores disponibles">
           ${colores.map((color, i) => `<button type="button" class="color-swatch${i === 0 ? " is-active" : ""}"
-            style="--swatch: ${color.hex}" data-img="${color.imagen}" data-alt="${p.nombre} color ${color.nombre.toLowerCase()}"
-            aria-label="${color.nombre}" aria-pressed="${i === 0}" title="${color.nombre}"></button>`).join("")}
+            style="--swatch: ${color.hex}" data-img="${color.imagen}" data-alt="${escAttr(p.nombre + " color " + color.nombre.toLowerCase())}"
+            aria-label="${escAttr(color.nombre)}" aria-pressed="${i === 0}" title="${escAttr(color.nombre)}"></button>`).join("")}
         </div>`
       : "";
+    // "Desde $1.850.000" → "Desde" chico arriba y monto grande; "Consultar" va solo, igual de prominente
+    const m = String(p.precio).match(/^(Desde)\s+(.+)$/i);
+    const price = m
+      ? `<small>${m[1]}</small><strong>${m[2]}</strong>`
+      : `<strong>${p.precio}</strong>`;
+    const chips = String(p.especificacion || "").split("·").map((t) => t.trim()).filter(Boolean)
+      .map((t) => `<li>${t}</li>`).join("");
+    const status = p.disponible
+      ? `<span class="pill pill-status">Disponible</span>`
+      : `<span class="pill pill-status is-off">Consultar disponibilidad</span>`;
     return `
-      <article class="product-card" data-categoria="${p.categoria}" data-nombre="${p.nombre.toLowerCase()}">
+      <article class="product-card" data-categoria="${p.categoria}" data-nombre="${escAttr(p.nombre.toLowerCase())}">
         <div class="product-card-media">
+          <div class="product-card-pills"><span class="pill">${p.categoria}</span>${status}</div>
           ${colores.length
-            ? `<img src="${colores[0].imagen}" alt="${p.nombre} color ${colores[0].nombre.toLowerCase()}" width="728" height="666" loading="${eager ? "eager" : "lazy"}" decoding="async">`
+            ? `<img src="${colores[0].imagen}" alt="${escAttr(p.nombre + " color " + colores[0].nombre.toLowerCase())}" width="728" height="666" loading="${eager ? "eager" : "lazy"}"${eager ? " fetchpriority=\"high\"" : ""} decoding="async">`
             : `<div class="product-card-media-placeholder">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <rect x="7" y="2" width="10" height="20" rx="2.2"></rect>
@@ -131,15 +144,17 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>`
           }
         </div>
+        ${swatches}
         <div class="product-card-body">
           <h3 class="product-card-name">${p.nombre}</h3>
           <p class="product-card-variant">${p.variante}</p>
-          ${swatches}
-          <p class="product-card-spec">${p.especificacion}</p>
-          <p class="product-card-price"><span class="sr-only">Precio: </span>${p.precio}</p>
-          <a class="btn btn-primary" data-wa="Hola, me interesa el ${p.nombre} · ${p.variante}"
-             href="https://wa.me/${typeof SITE_CONFIG !== "undefined" ? SITE_CONFIG.whatsappNumber : ""}"
-             target="_blank" rel="noopener">Consultar</a>
+          <ul class="product-card-chips">${chips}</ul>
+          <div class="product-card-foot">
+            <p class="product-card-price"><span class="sr-only">Precio: </span>${price}</p>
+            <a class="btn btn-primary" data-wa="${escAttr("Hola, me interesa el " + p.nombre + " · " + p.variante)}"
+               href="https://wa.me/${typeof SITE_CONFIG !== "undefined" ? SITE_CONFIG.whatsappNumber : ""}"
+               target="_blank" rel="noopener">Consultar</a>
+          </div>
         </div>
       </article>`;
   }
@@ -168,8 +183,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const catalogRow = document.querySelector(".catalog-cards-row");
   if (catalogRow) {
+    // Última "card": lleva al catálogo completo
+    const endCard = `<a class="catalog-end-card" href="catalogo.html">Ver todo el catálogo
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>`;
     catalogRow.innerHTML = typeof CATALOGO_DESTACADO !== "undefined"
-      ? CATALOGO_DESTACADO.map((p, i) => renderProductCard(p, i < 2)).join("")
+      ? CATALOGO_DESTACADO.map((p, i) => renderProductCard(p, i < 2)).join("") + endCard
       : catalogError;
   }
 
@@ -181,25 +199,35 @@ document.addEventListener("DOMContentLoaded", () => {
   function initCatalogCarousel() {
     const row = document.querySelector(".catalog-cards-row");
     if (!row) return;
-    const bar = document.querySelector(".catalog-progress-bar");
     const arrows = document.querySelectorAll(".catalog-arrow");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const pagerCurrent = document.querySelector(".catalog-pager-current");
+    const pagerTotal = document.querySelector(".catalog-pager-total");
+    const cards = row.querySelectorAll(".product-card");
+    const total = cards.length;
+    const pad = (n) => String(n).padStart(2, "0");
+    if (pagerTotal) pagerTotal.textContent = pad(total);
 
     function updateUI() {
       const max = row.scrollWidth - row.clientWidth;
-      const ratio = max > 0 ? row.scrollLeft / max : 1;
-      if (bar) {
-        // el thumb mide lo que se ve del total y recorre el resto de la pista
-        const visible = row.scrollWidth > 0 ? Math.min(1, row.clientWidth / row.scrollWidth) : 1;
-        bar.style.width = visible * 100 + "%";
-        bar.style.transform = "translateX(" + (ratio * (1 - visible) / visible) * 100 + "%)";
-      }
+      const first = cards[0];
+      const step = first ? first.offsetWidth + (parseFloat(getComputedStyle(row).columnGap) || 0) : 1;
+      let current = Math.round(row.scrollLeft / step) + 1;
+      if (max > 0 && row.scrollLeft >= max - 2) current = total; // al final del carrusel
+      current = Math.max(1, Math.min(total, current));
+      if (pagerCurrent) pagerCurrent.textContent = pad(current);
       arrows.forEach((btn) => {
         const atEdge = Number(btn.dataset.dir) < 0 ? row.scrollLeft <= 2 : row.scrollLeft >= max - 2;
         btn.setAttribute("aria-disabled", String(atEdge));
       });
     }
-    row.addEventListener("scroll", updateUI, { passive: true });
+    // el scroll se procesa una vez por frame
+    let ticking = false;
+    row.addEventListener("scroll", () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { ticking = false; updateUI(); });
+    }, { passive: true });
     window.addEventListener("resize", updateUI);
     updateUI();
 
