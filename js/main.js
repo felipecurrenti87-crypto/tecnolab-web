@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="product-card-foot">
             <p class="product-card-price"><span class="sr-only">Precio: </span>${price}</p>
             <a class="btn btn-primary" data-wa="${escAttr("Hola, me interesa el " + p.nombre + " · " + p.variante)}"
-               href="https://wa.me/${typeof SITE_CONFIG !== "undefined" ? SITE_CONFIG.whatsappNumber : ""}"
+               href="https://wa.me/5492614699026"
                target="_blank" rel="noopener">Consultar</a>
           </div>
         </div>
@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Si products-data.js no cargó, la fila no queda vacía sin explicación
   const catalogError = `<p class="catalog-error">No pudimos cargar el catálogo en este momento.
-    <a data-wa="Hola, quiero consultar por el catálogo" href="https://wa.me/" target="_blank" rel="noopener">Consultanos por WhatsApp</a>.</p>`;
+    <a data-wa="Hola, quiero consultar por el catálogo" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Consultanos por WhatsApp</a>.</p>`;
 
   const catalogRow = document.querySelector(".catalog-cards-row");
   if (catalogRow) {
@@ -201,12 +201,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!row) return;
     const arrows = document.querySelectorAll(".catalog-arrow");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const pagerCurrent = document.querySelector(".catalog-pager-current");
-    const pagerTotal = document.querySelector(".catalog-pager-total");
+    const dotnav = document.querySelector(".dotnav");
     const cards = row.querySelectorAll(".product-card");
     const total = cards.length;
-    const pad = (n) => String(n).padStart(2, "0");
-    if (pagerTotal) pagerTotal.textContent = pad(total);
+    // Un punto por equipo; el activo es el primero visible (o el último al llegar al final)
+    const dots = [];
+    if (dotnav) {
+      cards.forEach((card, i) => {
+        const li = document.createElement("li");
+        li.className = "dot-item";
+        li.style.setProperty("--dot-number", i);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "dot-link";
+        btn.setAttribute("aria-label", "Ver " + (card.querySelector("h3")?.textContent || "equipo " + (i + 1)));
+        btn.addEventListener("click", () => {
+          const padLeft = parseFloat(getComputedStyle(row).paddingLeft) || 0;
+          const left = card.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft - padLeft;
+          row.scrollTo({ left, behavior: reducedMotion ? "auto" : "smooth" });
+        });
+        li.appendChild(btn);
+        dotnav.appendChild(li);
+        dots.push(li);
+      });
+    }
 
     function updateUI() {
       const max = row.scrollWidth - row.clientWidth;
@@ -215,7 +233,12 @@ document.addEventListener("DOMContentLoaded", () => {
       let current = Math.round(row.scrollLeft / step) + 1;
       if (max > 0 && row.scrollLeft >= max - 2) current = total; // al final del carrusel
       current = Math.max(1, Math.min(total, current));
-      if (pagerCurrent) pagerCurrent.textContent = pad(current);
+      dots.forEach((li, i) => {
+        const on = i === current - 1;
+        li.classList.toggle("active", on);
+        if (on) li.firstElementChild.setAttribute("aria-current", "true");
+        else li.firstElementChild.removeAttribute("aria-current");
+      });
       arrows.forEach((btn) => {
         const atEdge = Number(btn.dataset.dir) < 0 ? row.scrollLeft <= 2 : row.scrollLeft >= max - 2;
         btn.setAttribute("aria-disabled", String(atEdge));
@@ -350,7 +373,7 @@ document.addEventListener("DOMContentLoaded", () => {
     card.setAttribute("data-wa", "Hola, quiero consultar disponibilidad de " + cat);
     card.setAttribute("target", "_blank");
     card.setAttribute("rel", "noopener");
-    card.setAttribute("href", "https://wa.me/");
+    card.setAttribute("href", "https://wa.me/5492614699026");
     const cta = card.querySelector(".category-card-cta");
     if (cta) cta.textContent = "Consultá disponibilidad";
   });
@@ -402,4 +425,180 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initStatCounters();
   applyWhatsAppLinks();
+
+  /* ============================================================
+     REVELADO DE TÍTULOS — h2 de las secciones: opacidad + translateY(12px),
+     una sola vez al entrar en viewport. Sin movimiento (reduced-motion) o sin
+     IntersectionObserver no se oculta nada. El CSS vive en style.css (.reveal).
+     ============================================================ */
+  function initTitleReveal() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+    const titles = document.querySelectorAll("main h2:not(.hero h2):not(#calculadora h2)");
+    if (!titles.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-in");
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.2 });
+    titles.forEach((t) => { t.classList.add("reveal"); observer.observe(t); });
+  }
+  initTitleReveal();
+
+  /* ============================================================
+     CALCULADORA DE PLAN CANJE — la interfaz arma el DOM acá; la lógica pura
+     está en js/calculadora-logic.js y los números en js/calculadora-data.js.
+     Mientras CANJE_CONFIG.datosReales sea false NO se renderiza (el contenedor
+     queda vacío y hidden), salvo con ?preview=1, que agrega una franja de aviso.
+     Sin animaciones: el resultado aparece de inmediato. Sin guardar datos.
+     ============================================================ */
+  function initCalculadora() {
+    if (typeof CANJE_CONFIG === "undefined") return;
+    const habilitada = CANJE_CONFIG.datosReales === true;
+    // Home: el link "Calculá tu valor →" solo se muestra con datos reales
+    document.querySelectorAll("[data-calc-link]").forEach((a) => { a.hidden = !habilitada; });
+
+    const root = document.getElementById("calculadora");
+    if (!root || typeof CalculadoraCanje === "undefined") return;
+    const preview = new URLSearchParams(window.location.search).get("preview") === "1";
+    if (!habilitada && !preview) return;
+
+    const productos = typeof CATALOGO_DESTACADO !== "undefined" ? CATALOGO_DESTACADO : [];
+    const money = (n) => CalculadoraCanje.formatearMonto(CANJE_CONFIG, n);
+    const waLink = (texto) =>
+      "https://wa.me/" + (typeof SITE_CONFIG !== "undefined" ? SITE_CONFIG.whatsappNumber : "") + "?text=" + encodeURIComponent(texto);
+
+    const el = (tag, props = {}, ...hijos) => {
+      const n = document.createElement(tag);
+      Object.entries(props).forEach(([k, v]) => {
+        if (k === "class") n.className = v;
+        else if (k === "text") n.textContent = v;
+        else if (v === true) n.setAttribute(k, "");
+        else if (v !== false && v != null) n.setAttribute(k, v);
+      });
+      hijos.flat().forEach((h) => { if (h) n.append(h); });
+      return n;
+    };
+    const field = (id, label, control, ayuda) =>
+      el("div", { class: "calc-field" },
+        el("label", { for: id, text: label }),
+        control,
+        ayuda ? el("p", { class: "calc-help", id: id + "-ayuda", text: ayuda }) : null);
+
+    // --- Controles
+    const selModelo = el("select", { id: "calc-modelo", name: "modelo" },
+      el("option", { value: "", text: "Elegí un modelo" }),
+      CANJE_CONFIG.modelos.map((m) => el("option", { value: m.id, text: m.nombre })));
+    const selCap = el("select", { id: "calc-capacidad", name: "capacidad", disabled: true },
+      el("option", { value: "", text: "Elegí una capacidad" }));
+    const inBateria = el("input", { id: "calc-bateria", name: "bateria", type: "number", inputmode: "numeric", min: "1", max: "100", step: "1", "aria-describedby": "calc-bateria-ayuda" });
+    const chkDetalles = el("input", { id: "calc-detalles", name: "detalles", type: "checkbox" });
+    const txtDetalles = el("textarea", { id: "calc-detalles-texto", name: "detallesTexto", rows: "3", maxlength: "300" });
+    const boxDetalles = el("div", { class: "calc-field", hidden: true },
+      el("label", { for: "calc-detalles-texto", text: "Contanos los detalles (opcional)" }), txtDetalles);
+    const resultado = el("div", { class: "calc-result", id: "calc-resultado", "aria-live": "polite" });
+
+    const form = el("form", { class: "calc-card", novalidate: true, "aria-labelledby": "calc-titulo" },
+      el("h2", { class: "title-sentence", id: "calc-titulo", text: "Calculá cuánto te tomamos tu iPhone" }),
+      field("calc-modelo", "Modelo", selModelo),
+      field("calc-capacidad", "Capacidad", selCap),
+      field("calc-bateria", "Salud de batería (%)", inBateria, "Lo ves en Ajustes › Batería › Estado de la batería"),
+      el("div", { class: "calc-check" }, chkDetalles,
+        el("label", { for: "calc-detalles", text: "Mi iPhone tiene detalles (pantalla rota, golpes, no enciende, etc.)" })),
+      boxDetalles,
+      el("button", { class: "btn btn-primary calc-submit", type: "submit", text: "Calcular" }));
+
+    const contenedor = el("div", { class: "container" },
+      el("div", { class: "calc" },
+        !habilitada ? el("p", { class: "calc-preview", text: "VISTA PREVIA — datos de ejemplo" }) : null,
+        form, resultado));
+    root.append(contenedor);
+    root.hidden = false;
+    // Con la calculadora visible, el degradé desde el hero pasa a su sección
+    const siguiente = document.getElementById("plan-canje-como-funciona");
+    if (siguiente) siguiente.classList.remove("fade-top", "from-0");
+
+    // --- Comportamiento
+    const limpiar = () => {
+      resultado.replaceChildren();
+      form.querySelectorAll(".calc-error").forEach((e) => e.remove());
+      form.querySelectorAll("[aria-invalid]").forEach((c) => {
+        c.removeAttribute("aria-invalid");
+        if (c === inBateria) c.setAttribute("aria-describedby", "calc-bateria-ayuda");
+        else c.removeAttribute("aria-describedby");
+      });
+    };
+
+    selModelo.addEventListener("change", () => {
+      const m = CalculadoraCanje.buscarModelo(CANJE_CONFIG, selModelo.value);
+      selCap.replaceChildren(el("option", { value: "", text: "Elegí una capacidad" }),
+        ...(m ? m.capacidades : []).map((c) => el("option", { value: String(c.gb), text: c.gb + " GB" })));
+      selCap.disabled = !m;
+      limpiar();
+    });
+    [selCap, inBateria, txtDetalles].forEach((c) => c.addEventListener("input", limpiar));
+    chkDetalles.addEventListener("change", () => { boxDetalles.hidden = !chkDetalles.checked; limpiar(); });
+
+    const mostrarErrores = (errores) => {
+      const mapa = { modelo: selModelo, capacidad: selCap, bateria: inBateria };
+      let primero = null;
+      Object.keys(errores).forEach((k) => {
+        const control = mapa[k];
+        const id = "calc-error-" + k;
+        control.setAttribute("aria-invalid", "true");
+        control.setAttribute("aria-describedby", (k === "bateria" ? "calc-bateria-ayuda " : "") + id);
+        control.closest(".calc-field").append(el("p", { class: "calc-error", id, role: "alert", text: errores[k] }));
+        primero = primero || control;
+      });
+      if (primero) primero.focus();
+    };
+
+    const botonWa = (texto, etiqueta, clase) =>
+      el("a", { class: "btn " + clase, href: waLink(texto), target: "_blank", rel: "noopener", text: etiqueta });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      limpiar();
+      const entrada = {
+        modeloId: selModelo.value,
+        gb: selCap.value,
+        bateria: inBateria.value,
+        detalles: chkDetalles.checked,
+        detallesTexto: txtDetalles.value
+      };
+      const r = CalculadoraCanje.calcularCanje(CANJE_CONFIG, entrada, productos);
+      if (r.estado === "error") { mostrarErrores(r.errores); return; }
+
+      const partes = [];
+      if (r.estado === "valor") {
+        partes.push(el("p", { class: "calc-valor-wrap" },
+          el("span", { class: "calc-valor-label", text: "Valor estimado:" }),
+          el("strong", { class: "calc-valor", text: money(r.valor) })));
+      } else {
+        partes.push(el("p", { class: "calc-consulta", text: r.mensaje }));
+      }
+      partes.push(el("p", { class: "calc-aviso", text: CANJE_CONFIG.avisoLegal }));
+
+      if (r.estado === "valor" && r.escalones.length) {
+        partes.push(
+          el("h3", { class: "calc-escalones-titulo", text: "Si querés cambiar por otro equipo" }),
+          el("p", { class: "calc-help", text: "Estos son los equipos del catálogo con la diferencia que sumarías en cada caso:" }),
+          el("ol", { class: "calc-escalones" }, r.escalones.map((s) =>
+            el("li", { class: "calc-escalon" },
+              el("p", { class: "calc-escalon-nombre", text: s.etiqueta }),
+              el("p", { class: "calc-escalon-precio", text: "Precio de lista: " + money(s.precio) }),
+              el("p", { class: "calc-escalon-paga" }, "Pagás ", el("strong", { text: money(s.diferencia) })),
+              s.sumaVsAnterior > 0
+                ? el("p", { class: "calc-escalon-suma", text: "Sumando solo " + money(s.sumaVsAnterior) + " más pasás al " + s.etiqueta })
+                : null,
+              botonWa(CalculadoraCanje.mensajeWhatsApp(CANJE_CONFIG, entrada, r, s.etiqueta), "Quiero este equipo", "btn-outline")))));
+      }
+      partes.push(el("div", { class: "calc-acciones" },
+        botonWa(CalculadoraCanje.mensajeWhatsApp(CANJE_CONFIG, entrada, r, ""),
+          r.estado === "valor" ? "Confirmar por WhatsApp" : "Consultar por WhatsApp", "btn-primary")));
+      resultado.append(el("div", { class: "calc-card calc-card--result" }, partes));
+    });
+  }
+  initCalculadora();
 });

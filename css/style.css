@@ -21,14 +21,15 @@
   --blue: #04A5FF;
   --blue-hover: #3DBAFF;
   --blue-rgb: 4, 165, 255;
+  --navy: #170D3E;        /* azul marino corporativo (manual de marca) */
   /* #04A5FF sobre #F5F5F7 da 2.46:1: sobre claro el azul de texto/íconos es este (5.24:1) */
   --blue-on-light: #0069B4;
   --white: #FFFFFF;
   --offwhite: #F5F5F7;
 
   /* ---- Escala de superficies (sin saltos de blanco a negro) ---- */
-  --surface-0: #000000;   /* solo hero, "Por qué Tecnolab" y footer */
-  --surface-1: #111113;   /* negro suave: bloques oscuros secundarios */
+  --surface-0: #0B0720;   /* marino casi negro: hero, "Por qué Tecnolab" y footer */
+  --surface-1: #120A2E;   /* marino profundo: bloques oscuros secundarios */
   --surface-2: #F5F5F7;   /* gris claro */
   --surface-3: #ECECEF;   /* gris claro más profundo */
   /* blanco puro solo dentro de las cards */
@@ -41,8 +42,10 @@
 
   /* ---- Tipografía ---- */
   --font-family: 'Montserrat', 'Montserrat Fallback', sans-serif;
-  --fs-h1: clamp(40px, 6vw, 72px);
-  --fs-h2: clamp(30px, 4vw, 48px);
+  --fs-h1: clamp(40px, 6vw, 72px);       /* h1 en sentence case (no se usa hoy) */
+  --fs-h2: clamp(30px, 4vw, 48px);       /* h2 largos (.title-sentence) y números/títulos de card */
+  --fs-h1-caps: clamp(34px, 4.8vw, 60px); /* titulares en mayúsculas: más anchos, un paso menos */
+  --fs-h2-caps: clamp(26px, 3.4vw, 40px);
   --fs-h3: 22px;
   --fs-lead: clamp(18px, 2vw, 20px);
   --fs-body: 17px;
@@ -50,8 +53,8 @@
   --fs-btn: 15px;
   --fs-price: 20px;
   --fs-display: clamp(36px, 4.4vw, 56px);
-  --fw-title: 700;
-  --fw-body: 400;
+  --fw-title: 600;
+  --fw-body: 300;
   --fw-eyebrow: 600;
   --lh-body: 1.6;
 
@@ -105,7 +108,7 @@ html {
 }
 body {
   margin: 0;
-  background: var(--black);
+  background: var(--surface-0);
   color: var(--fg);
   font-family: var(--font-family);
   font-size: var(--fs-body);
@@ -136,12 +139,25 @@ h1, h2, h3 {
   text-wrap: balance;
   overflow-wrap: break-word;
 }
-h1 { font-size: var(--fs-h1); }
-h2 { font-size: var(--fs-h2); }
+/* Manual de marca: titulares en Montserrat SemiBold, mayúsculas. H1 y H2 cortos van
+   en mayúsculas; los H2 de más de ~30 caracteres llevan .title-sentence y quedan
+   en mayúscula/minúscula (si no, se vuelven una pared de capitales). */
+h1, h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-size: var(--fs-h2-caps);
+}
+h1 { font-size: var(--fs-h1-caps); }
+h2.title-sentence {
+  text-transform: none;
+  letter-spacing: -0.02em;
+  font-size: var(--fs-h2);
+}
 h3 { font-size: var(--fs-h3); letter-spacing: -0.01em; line-height: 1.25; }
 
 p {
   margin: 0;
+  text-wrap: pretty;
   color: var(--fg-2);
   font-size: var(--fs-body);
   line-height: var(--lh-body);
@@ -223,7 +239,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: rgba(12, 12, 16, 0.82);
+  background: rgba(11, 7, 32, 0.82);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -255,13 +271,15 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   content: '';
   position: absolute;
   left: 0; bottom: 6px;
-  width: 0; height: 2px;
+  width: 100%; height: 2px;
   background: var(--blue);
+  transform: scaleX(0);
+  transform-origin: left center;
 }
 .nav-link:hover,
 .nav-link.is-active { color: var(--text-inv); }
 .nav-link:hover::after,
-.nav-link.is-active::after { width: 100%; }
+.nav-link.is-active::after { transform: scaleX(1); }
 
 .header-cta { position: relative; z-index: 2; display: flex; align-items: center; gap: 16px; }
 
@@ -378,34 +396,66 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
    eyebrow → 16px → h1 → 20px → lede (max 58ch) → 32px → botones ---- */
 .hero .eyebrow,
 .page-hero .eyebrow { margin-bottom: 16px; }
-.hero .lede,
 .page-hero .lede { margin: 20px auto 0; max-width: 58ch; color: var(--fg-2); }
 .hero-actions,
 .page-hero .btn { margin-top: 32px; }
 
-/* ---- Hero del Home: ocupa exactamente el primer pantallazo ---- */
+/* ---- Hero del Home: ocupa el primer pantallazo. Dos columnas en desktop
+   (texto 55% / producto 45%); en mobile, texto arriba e imagen abajo. ---- */
 .hero {
   position: relative;
   min-height: 100vh;
   min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: center;
   align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: calc(var(--header-h) + 56px) var(--space-gutter) 96px;
+  gap: 40px;
+  padding: calc(var(--header-h) + 40px) var(--space-gutter) 96px;
   background:
-    radial-gradient(ellipse 60% 55% at 50% 50%, rgba(var(--blue-rgb), 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 60% at 72% 50%, rgba(var(--blue-rgb), 0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 70% at 50% 0%, var(--navy) 0%, transparent 75%),
     var(--surface-0);
 }
-/* Acá va a entrar el render 3D del iPhone cuando esté listo (capa absoluta
-   detrás del texto). Por ahora no hay imagen ni placeholder. */
-.hero h1 { max-width: 20ch; }
-.hero-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+.hero-copy { justify-self: start; max-width: 640px; }
+.hero h1 { max-width: 15ch; }
+.hero .lede { margin: 20px 0 0; max-width: 52ch; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 16px; }
+
+/* El render viene sobre negro puro (sin canal alfa): "screen" deja pasar el fondo
+   marino. El blend va en la propia <img> y ningún ancestro crea contexto de
+   apilamiento (sin opacity/transform en .hero-media), o el negro se vería. */
+.hero-media { display: flex; justify-content: center; }
+.hero-media img {
+  width: auto;
+  max-width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  mix-blend-mode: screen;
+}
 @media (max-width: 599px) {
   .hero-actions { flex-direction: column; align-items: stretch; width: 100%; }
   .hero-actions .btn { width: 100%; }
 }
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: 55fr 45fr;
+    gap: 48px;
+    padding-left: max(var(--space-gutter), calc((100vw - var(--container-max)) / 2 + var(--space-gutter)));
+    padding-right: max(var(--space-gutter), calc((100vw - var(--container-max)) / 2 + var(--space-gutter)));
+  }
+  .hero-media img { max-height: min(72vh, 640px); }
+}
+
+/* Entrada: texto primero, producto 150ms después. Solo con movimiento permitido;
+   con reduced-motion el hero se ve completo desde el primer frame. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-copy { animation: hero-in-copy 400ms ease-out backwards; }
+  .hero-media img { animation: hero-in-media 400ms ease-out 150ms backwards; }
+}
+@keyframes hero-in-copy  { from { opacity: 0; transform: translateY(12px); } }
+@keyframes hero-in-media { from { opacity: 0; transform: translateY(8px); } }
+
 /* Chevron estático al pie: indica que hay más contenido abajo */
 .hero-scroll {
   position: absolute;
@@ -429,9 +479,10 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   text-align: center;
   background:
     radial-gradient(ellipse 60% 70% at 50% 40%, rgba(var(--blue-rgb), 0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 80% at 50% 0%, var(--navy) 0%, transparent 75%),
     var(--surface-0);
 }
-.page-hero h1 { max-width: 20ch; margin: 0 auto; font-size: var(--fs-h2); }
+.page-hero h1 { max-width: 20ch; margin: 0 auto; font-size: var(--fs-h2-caps); }
 /* Catálogo: encabezado compacto para que filtros y grilla entren en el primer pantallazo */
 .page-hero--compact { padding: calc(var(--header-h) + 56px) 0 32px; }
 .page-hero--compact .lede { max-width: none; font-size: var(--fs-body); }
@@ -483,11 +534,6 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   height: 100%;
   object-fit: contain;
   padding: 10%;
-  /* la foto trae fondo blanco: se funde con el degradé del panel por multiply */
-  mix-blend-mode: multiply;
-  filter: brightness(1.18) contrast(1.05);
-  mask-image: radial-gradient(ellipse 76% 76% at center, #000 50%, transparent 96%);
-  -webkit-mask-image: radial-gradient(ellipse 76% 76% at center, #000 50%, transparent 96%);
 }
 .product-card-media-placeholder {
   position: absolute;
@@ -585,7 +631,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 }
 .product-card-price { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; line-height: 1.2; color: var(--fg); }
 .product-card-price small { font-size: var(--fs-small); color: var(--fg-2); }
-.product-card-price strong { font-size: var(--fs-price); font-weight: 700; color: var(--fg); }
+.product-card-price strong { font-size: var(--fs-price); font-weight: 600; color: var(--fg); }
 .product-card .btn { min-height: 44px; padding: 0 14px; margin-left: auto; }
 /* Toda la card es el área clicable del enlace de WhatsApp */
 .product-card .btn::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-card); }
@@ -628,14 +674,44 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 }
 
 .catalog-carousel-footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.catalog-pager {
-  margin: 0;
-  font-size: var(--fs-small);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--fg-2);
+/* ---- Dotnav (estilo Apple): el punto activo se alarga. Un punto por equipo.
+   Colores pensados para la superficie clara del carrusel. ---- */
+.dotnav {
+  --dot-size: 8px;
+  --dot-active-width: 32px;
+  --dot-margin: 8px;
+  --dot-bg: rgba(0, 0, 0, 0.28);
+  --dot-bg-active: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0 0 0 calc(var(--dot-margin) * -1);
 }
-.catalog-pager-current { color: var(--fg); }
+.dot-item { opacity: 0.5; }
+.dot-item.active { opacity: 1; }
+.dot-link {
+  position: relative;
+  display: block;
+  box-sizing: content-box;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  padding: var(--dot-margin);
+  border: none;
+  border-radius: 999px;
+  background: var(--dot-bg);
+  background-clip: content-box;
+  cursor: pointer;
+}
+/* área táctil de 44px sin agrandar el punto */
+.dot-link::before { content: ""; position: absolute; inset: -10px 0; }
+.dot-item.active .dot-link {
+  width: var(--dot-active-width);
+  background-color: var(--dot-bg-active);
+  background-clip: content-box;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dot-link { transition: width 250ms linear; }
+}
 
 .catalog-arrows { display: flex; gap: 12px; }
 .catalog-arrow {
@@ -668,7 +744,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   background: var(--surface-1);
   color: var(--text-inv);
   font-size: var(--fs-h3);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25;
   transition: box-shadow 150ms;
 }
@@ -679,29 +755,63 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 .catalog-error { color: var(--fg-2); }
 .catalog-error a { color: var(--fg); text-decoration: underline; }
 
-/* ---- Accesos rápidos por categoría ---- */
+/* ---- Accesos rápidos por categoría: tiles asimétricos con foto.
+   Sin sombra ni borde (la card con sombra queda solo para producto). ---- */
 .category-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-auto-rows: 168px;
+  gap: 12px;
 }
-@media (min-width: 768px) {
-  .category-grid { grid-template-columns: repeat(4, 1fr); gap: 24px; }
-}
-.category-card {
+.category-tile {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: space-between;
   min-height: 44px;
-  padding: 24px;
-  border-radius: var(--radius-card);
+  padding: 20px;
+  overflow: hidden;
+  border-radius: var(--radius-media);
   background: var(--white);
-  border: 1px solid var(--line);
-  transition: box-shadow 150ms, border-color 150ms;
+  transition: background 150ms;
 }
-.category-card:hover { box-shadow: var(--shadow-card-hover); border-color: var(--accent); }
-.category-card svg { width: 32px; height: 32px; margin-bottom: 8px; color: var(--accent); }
-.category-card-cta { font-size: var(--fs-small); font-weight: 600; color: var(--accent); }
+.category-tile h3 { position: relative; z-index: 1; font-size: clamp(20px, 2.2vw, 28px); letter-spacing: -0.01em; }
+.category-tile-cta {
+  position: relative;
+  z-index: 1;
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--accent);
+}
+/* iPad sin foto todavía: el CTA dice qué falta confirmar */
+.category-tile:not(:has(img)) .category-tile-cta { font-size: var(--fs-small); }
+/* Las fotos traen aire alrededor del producto: se centran y agrandan, el tile recorta */
+.category-tile img {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  translate: 0 -50%;
+  width: 90%;
+  height: auto;
+  max-width: none;
+}
+.category-tile:hover { background: #FBFBFD; }
+.category-tile:hover h3 { color: var(--accent); }
+.category-tile--iphone,
+.category-tile--mac { grid-column: span 2; }
+.category-tile--iphone { grid-row: span 2; }
+.category-tile--iphone img { width: 82%; right: 0; }
+.category-tile--mac img { width: 66%; right: 2%; }
+.category-tile--airpods img { width: 92%; right: -6%; top: 64%; }
+@media (min-width: 768px) {
+  .category-grid { grid-template-columns: repeat(4, 1fr); grid-auto-rows: 200px; gap: 16px; }
+  .category-tile { padding: 24px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .category-tile img { transition: transform 300ms ease-out; }
+  .category-tile:hover img { transform: scale(1.03); }
+}
 
 /* ==========================================================================
    CATÁLOGO (catalogo.html) — barra de filtros sticky + grilla
@@ -852,6 +962,23 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   color: var(--accent);
 }
 
+/* Home: una cifra grande a la izquierda y dos secundarias apiladas a la derecha */
+.stat-layout { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: stretch; }
+@media (min-width: 900px) {
+  .stat-layout { grid-template-columns: 1.15fr 1fr; gap: 80px; align-items: center; }
+}
+.stat-layout .stat-block { padding: 0; text-align: left; border-right: 0; }
+.stat-layout .stat-caption { margin: 0; max-width: 34ch; }
+.stat-block--lead .stat-number {
+  margin-bottom: 16px;
+  font-size: clamp(96px, 15vw, 188px);
+  letter-spacing: -0.03em;
+}
+.stat-side { display: flex; flex-direction: column; gap: 0; }
+.stat-side .stat-block { padding: 28px 0; border-top: 1px solid var(--line); }
+.stat-side .stat-block:last-child { padding-bottom: 0; }
+.stat-side .stat-number { font-size: clamp(36px, 4.4vw, 56px); white-space: normal; }
+
 /* ==========================================================================
    PLAN CANJE
    ========================================================================== */
@@ -872,17 +999,14 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 }
 .canje-steps h3 { font-size: var(--fs-body); letter-spacing: 0; line-height: 1.6; }
 
-.canje-card {
-  --fg: var(--text);
-  --fg-2: var(--text-2);
-  --accent: var(--blue-on-light);
-  padding: 40px;
-  border-radius: var(--radius-card);
-  background: var(--white);
-  box-shadow: var(--shadow-card);
-}
-.canje-card svg { width: 48px; height: 48px; margin-bottom: 20px; color: var(--accent); }
-.canje-card h3 { font-size: var(--fs-h2); margin-bottom: 12px; }
+.canje-steps li p { margin-top: 2px; font-size: var(--fs-small); line-height: 1.5; }
+.canje-visual { margin: 0; text-align: center; }
+.canje-visual-pair { display: flex; align-items: center; justify-content: center; gap: 4%; }
+.canje-visual-pair img { width: 40%; height: auto; }
+.canje-visual-old { opacity: 0.8; transform: scale(0.9); }
+.canje-visual-new { width: 50%; }
+.canje-visual-arrow { flex: 0 0 auto; width: 40px; height: 20px; color: var(--accent); }
+.canje-visual figcaption { margin-top: 16px; font-size: var(--fs-small); color: var(--fg-2); }
 
 /* Plan Canje (página): 3 pasos en columnas */
 .steps-grid { display: grid; grid-template-columns: 1fr; gap: 32px; }
@@ -916,12 +1040,8 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 .service-item h3 { margin-bottom: 4px; }
 
 .service-mac-card {
-  padding: 40px;
-  border-radius: var(--radius-card);
-  background: var(--white);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-card);
-  --fg: var(--text); --fg-2: var(--text-2); --line: rgba(0,0,0,.12); --line-strong: rgba(0,0,0,.45); --accent: var(--blue-on-light);
+  padding: 28px 0 0;
+  border-top: 1px solid var(--line-strong);
 }
 .service-mac-card h3 { font-size: var(--fs-h2); margin-bottom: 16px; }
 .service-mac-card p { margin-bottom: 28px; }
@@ -934,11 +1054,8 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 28px;
-  border: 0;
-  border-radius: var(--radius-card);
-  background: var(--white);
-  box-shadow: var(--shadow-card);
+  padding: 28px 0 8px;
+  border-top: 1px solid var(--line-strong);
 }
 
 .two-col-text { display: grid; gap: 20px; }
@@ -953,7 +1070,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
 .branch-map-card { position: relative; border-radius: var(--radius-card); overflow: hidden; min-height: 400px; }
 /* Fondo gris neutro: es lo que se ve hasta que carga Leaflet (o si no carga);
    la dirección en texto está en .branch-map-label. */
-.branch-map { position: absolute; inset: 0; background: #2a2a2e; }
+.branch-map { position: absolute; inset: 0; background: #1b1438; }
 .branch-map-label {
   position: absolute;
   left: 16px; right: 16px; bottom: 36px;
@@ -965,10 +1082,15 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   gap: 12px;
   padding: 16px 20px;
   border-radius: var(--radius-media);
-  background: rgba(17, 17, 19, 0.92);
+  background: rgba(18, 10, 46, 0.92);
+}
+.branch-map-label {
+  --fg: var(--text-inv);
+  --accent: var(--blue);
+  --line-strong: rgba(255, 255, 255, 0.5);
 }
 .branch-map-label div { display: flex; flex-direction: column; }
-.branch-map-name { font-weight: 700; color: var(--text-inv); }
+.branch-map-name { font-weight: 600; color: var(--text-inv); }
 .branch-map-address { font-size: var(--fs-small); color: var(--text-inv-2); }
 
 .branches-lite { display: grid; grid-template-columns: 1fr; gap: 24px; }
@@ -979,11 +1101,8 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   flex-direction: column;
   justify-content: center;
   gap: 8px;
-  padding: 32px;
-  border-radius: var(--radius-card);
-  background: var(--white);
-  box-shadow: var(--shadow-card);
-  --fg: var(--text); --fg-2: var(--text-2); --line: rgba(0,0,0,.12); --line-strong: rgba(0,0,0,.45); --accent: var(--blue-on-light);
+  padding: 28px 0 0;
+  border-top: 1px solid var(--line-strong);
 }
 .branch-lite-name {
   font-size: var(--fs-small);
@@ -1007,7 +1126,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   content: "";
   position: absolute;
   width: 10px; height: 10px;
-  background: var(--black);
+  background: var(--surface-0);
   border-radius: 50%;
   top: 9px; left: 9px;
 }
@@ -1023,6 +1142,11 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
    CTA FINAL
    ========================================================================== */
 .final-cta { text-align: center; padding: calc(var(--space-section) * 1.2) 0; }
+.final-cta.surface-dark {
+  background:
+    radial-gradient(ellipse 70% 90% at 50% 100%, var(--navy) 0%, transparent 75%),
+    var(--surface-0);
+}
 .final-cta h2 { max-width: 22ch; margin: 0 auto 32px; }
 
 /* ==========================================================================
@@ -1132,6 +1256,8 @@ main:focus { outline: none; }
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 3px;
@@ -1139,7 +1265,8 @@ input:focus-visible,
 .surface-light a:focus-visible, .surface-light button:focus-visible, .surface-light input:focus-visible, .surface-light [tabindex]:focus-visible,
 .surface-white a:focus-visible, .surface-white button:focus-visible, .surface-white input:focus-visible, .surface-white [tabindex]:focus-visible,
 .product-card a:focus-visible, .product-card button:focus-visible,
-.catalog-toolbar a:focus-visible, .catalog-toolbar button:focus-visible, .catalog-toolbar input:focus-visible {
+.catalog-toolbar a:focus-visible, .catalog-toolbar button:focus-visible, .catalog-toolbar input:focus-visible,
+.calc select:focus-visible, .calc input:focus-visible, .calc textarea:focus-visible, .calc button:focus-visible, .calc a:focus-visible {
   outline-color: var(--blue-on-light);
 }
 
@@ -1172,3 +1299,144 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 .fade-top::before    { top: 0;    background: linear-gradient(to bottom, var(--prev-bg), var(--bg)); }
 .fade-bottom::after  { bottom: 0; background: linear-gradient(to bottom, var(--bg), var(--next-bg)); }
+
+/* ==========================================================================
+   MICRO-INTERACCIONES — solo con movimiento permitido.
+   Con prefers-reduced-motion todo queda en su estado final, sin transición.
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  /* Subrayado del nav: crece desde la izquierda */
+  .nav-link::after { transition: transform 200ms ease-out; }
+
+  /* Hamburguesa: las barras rotan / se desvanecen y el panel entra con fade */
+  .nav-toggle span { transition: transform 200ms ease-out, opacity 150ms ease-out; }
+  @media (max-width: 899px) {
+    .main-nav { opacity: 0; transition: opacity 200ms ease-out, visibility 0s linear 200ms; }
+    .main-nav.is-open { opacity: 1; transition: opacity 200ms ease-out, visibility 0s; }
+  }
+
+  /* Títulos: revelado único al entrar en viewport (js/main.js agrega .reveal / .is-in) */
+  .reveal { opacity: 0; transform: translateY(12px); }
+  .reveal.is-in {
+    opacity: 1;
+    transform: none;
+    transition: opacity 500ms ease-out, transform 500ms ease-out;
+  }
+}
+
+/* ---- Nav de escritorio: al pasar el mouse por un ítem, los demás se atenúan (efecto Apple).
+   Solo con puntero real y en la barra horizontal (≥900px), no en el panel mobile. ---- */
+@media (hover: hover) and (min-width: 900px) {
+  .main-nav ul:has(.nav-link:hover) .nav-link:not(:hover) { opacity: 0.4; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nav-link { transition: color 150ms, opacity 0.32s cubic-bezier(0.4, 0, 0.6, 1); }
+}
+
+/* ==========================================================================
+   CALCULADORA DE PLAN CANJE (plan-canje.html#calculadora)
+   Se arma por JS y solo se muestra con datos reales o ?preview=1.
+   Grises + tarjeta blanca; sin transiciones ni animaciones propias.
+   ========================================================================== */
+/* [hidden] gana siempre, aunque la clase del elemento defina display */
+[hidden] { display: none !important; }
+
+#calculadora { padding-top: calc(var(--space-section) * 0.6 + 48px); padding-bottom: calc(var(--space-section) * 0.6); }
+.calc { max-width: 720px; margin: 0 auto; }
+
+.calc-preview {
+  margin: 0 0 16px;
+  padding: 10px 16px;
+  border-radius: var(--radius-media);
+  background: #2C2C2E;
+  color: #FFFFFF;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.calc-card {
+  --fg: var(--text);
+  --fg-2: var(--text-2);
+  --accent: var(--blue-on-light);
+  padding: 32px;
+  border-radius: var(--radius-card);
+  background: var(--white);
+  box-shadow: var(--shadow-card);
+  color: var(--fg);
+}
+.calc-card h2 { margin-bottom: 24px; }
+.calc-result:not(:empty) { margin-top: 16px; }
+
+.calc-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.calc-field label { font-size: var(--fs-btn); font-weight: 600; color: var(--fg); }
+.calc-help { font-size: var(--fs-small); line-height: 1.5; color: var(--fg-2); }
+
+.calc select,
+.calc input[type="number"],
+.calc textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid #767676;
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--fg);
+  font-family: var(--font-family);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  line-height: 1.4;
+}
+.calc textarea { min-height: 96px; padding: 12px 16px; resize: vertical; }
+.calc select:disabled { background: var(--surface-2); color: var(--fg-2); }
+.calc [aria-invalid="true"] { border: 2px solid var(--fg); }
+
+.calc-check { display: flex; align-items: flex-start; gap: 12px; min-height: 48px; margin-bottom: 20px; }
+.calc-check input { flex: 0 0 24px; width: 24px; height: 24px; margin: 12px 0 0; accent-color: var(--fg); }
+.calc-check label { padding: 11px 0; font-size: var(--fs-body); line-height: 1.4; color: var(--fg); cursor: pointer; }
+
+/* Error sin depender del color: texto en tono principal + barra lateral */
+.calc-error {
+  padding-left: 12px;
+  border-left: 3px solid var(--fg);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--fg);
+}
+
+.calc-submit { width: 100%; min-height: 48px; font-size: var(--fs-body); }
+
+.calc-valor-wrap { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+.calc-valor-label { font-size: var(--fs-small); font-weight: 600; color: var(--fg-2); }
+.calc-valor { font-size: 36px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--fg); }
+.calc-consulta { margin-bottom: 16px; font-size: var(--fs-lead); font-weight: 600; line-height: 1.4; color: var(--fg); }
+.calc-aviso { font-size: var(--fs-small); line-height: 1.5; color: var(--fg-2); }
+
+.calc-escalones-titulo { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); font-size: var(--fs-h3); }
+.calc-escalones-titulo + .calc-help { margin-top: 4px; }
+.calc-escalones { display: flex; flex-direction: column; gap: 12px; margin: 16px 0 0; }
+.calc-escalon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-media);
+  background: var(--surface-2);
+}
+.calc-escalon p { font-size: var(--fs-body); color: var(--fg-2); }
+.calc-escalon .calc-escalon-nombre { font-weight: 600; color: var(--fg); }
+.calc-escalon-paga strong { font-size: var(--fs-h3); font-weight: 600; color: var(--fg); }
+.calc-escalon .btn { align-self: flex-start; margin-top: 12px; }
+.calc-acciones { margin-top: 24px; }
+.calc-acciones .btn { width: 100%; }
+
+.canje-calc-link { margin-left: 16px; }
+
+@media (max-width: 599px) {
+  .calc-card { padding: 20px; }
+  .calc-escalon .btn { align-self: stretch; }
+  .canje-calc-link { display: flex; margin: 8px 0 0; }
+}

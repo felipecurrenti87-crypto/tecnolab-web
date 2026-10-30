@@ -4,4 +4,4 @@
  *  - siteUrl: dominio final (también está escrito en canonical/og de cada HTML,
  *    en robots.txt y en sitemap.xml: ver README.md)
  */
-const SITE_CONFIG = { whatsappNumber: "549XXXXXXXXX", siteUrl: "https://tecnolab-web.vercel.app" };
+const SITE_CONFIG = { whatsappNumber: "5492614699026", siteUrl: "https://tecnolab-web.vercel.app" };

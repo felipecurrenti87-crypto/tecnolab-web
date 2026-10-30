@@ -19,9 +19,10 @@ const CATALOGO_DESTACADO = [
     variante: "Negro · 256GB",
     especificacion: "Cámara Pro · Chip A20 Pro",
     precio: "Desde $1.850.000",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [
-      { nombre: "Negro", hex: "#1a1a1a", imagen: "assets/img/iphone18promax-negro-front-back.webp" },
-      { nombre: "Plateado", hex: "#e8e8ea", imagen: "assets/img/iphone18promax-plateado-back-side.webp" },
+      { nombre: "Negro", hex: "#1a1a1a", imagen: "assets/img/iphone18promax-negro-front-back-t.webp" },
+      { nombre: "Plateado", hex: "#e8e8ea", imagen: "assets/img/iphone18promax-plateado-back-side-t.webp" },
     ],
     disponible: true,
   },
@@ -32,8 +33,9 @@ const CATALOGO_DESTACADO = [
     variante: "Plateado · 256GB",
     especificacion: "Cámara Pro · Chip A20 Pro",
     precio: "Desde $1.650.000",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [
-      { nombre: "Plateado", hex: "#e8e8ea", imagen: "assets/img/iphone18promax-plateado-back-side.webp" },
+      { nombre: "Plateado", hex: "#e8e8ea", imagen: "assets/img/iphone18promax-plateado-back-side-t.webp" },
     ],
     disponible: true,
   },
@@ -48,12 +50,13 @@ const CATALOGO_DESTACADO = [
     variante: "256GB",
     especificacion: "Diseño ultradelgado · Chip A19 Pro",
     precio: "Consultar",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     // Solo Sky Blue por ahora (gallery-3, frente + dorso en 3/4). Pendientes:
     // Light Gold (gallery-5 es dorso recto + canto, otro ángulo),
     // Cloud White (gallery-4 es macro de cámara) y Space Black (solo aparece
     // en el lineup gallery-1). Sumarlos cuando haya fotos en el mismo ángulo.
     colores: [
-      { nombre: "Sky Blue", hex: "#cfdde9", imagen: "assets/img/iphone-air-digitalmat-gallery-3-202509.webp" },
+      { nombre: "Sky Blue", hex: "#cfdde9", imagen: "assets/img/iphone-air-digitalmat-gallery-3-202509-t.webp" },
     ],
     disponible: true,
   },
@@ -64,11 +67,12 @@ const CATALOGO_DESTACADO = [
     variante: "256GB",
     especificacion: "Primer iPhone plegable · Pantalla exterior 5.4″ + interior 7.6″",
     precio: "Consultar",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     // Solo Star White por ahora (gallery-4, dorso con cámara). Night Sky
     // pendiente: solo aparece en el lineup (gallery-1) y abierto mostrando
     // pantalla (gallery-3), ninguna es un dorso comparable.
     colores: [
-      { nombre: "Star White", hex: "#ece9e4", imagen: "assets/img/iphone-duo-digitalmat-gallery-4-202609.webp" },
+      { nombre: "Star White", hex: "#ece9e4", imagen: "assets/img/iphone-duo-digitalmat-gallery-4-202609-t.webp" },
     ],
     disponible: true,
   },
@@ -79,6 +83,7 @@ const CATALOGO_DESTACADO = [
     variante: "Titanio Negro · 256GB",
     especificacion: "Cámara Pro · Chip A19 Pro",
     precio: "Desde $1.550.000",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [], // sin fotos todavía — la card usa el fallback "Foto próximamente"
     disponible: true,
   },
@@ -89,6 +94,7 @@ const CATALOGO_DESTACADO = [
     variante: "Titanio Natural · 256GB",
     especificacion: "Cámara Pro · Chip A19 Pro",
     precio: "Desde $1.380.000",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [], // sin fotos todavía — la card usa el fallback "Foto próximamente"
     disponible: true,
   },
@@ -99,8 +105,9 @@ const CATALOGO_DESTACADO = [
     variante: "Azul brumoso · 128GB",
     especificacion: "Chip A19",
     precio: "Desde $1.050.000",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [
-      { nombre: "Azul brumoso", hex: "#96aed1", imagen: "assets/img/iphone-17-digitalmat-gallery-4-202509.webp" },
+      { nombre: "Azul brumoso", hex: "#96aed1", imagen: "assets/img/iphone-17-digitalmat-gallery-4-202509-t.webp" },
     ],
     disponible: true,
   },
@@ -111,6 +118,7 @@ const CATALOGO_DESTACADO = [
     variante: "Titanio Desierto · 256GB",
     especificacion: "Cámara Pro · Chip A18 Pro",
     precio: "Desde $1.280.000",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [], // sin fotos todavía — la card usa el fallback "Foto próximamente"
     disponible: true,
   },
@@ -121,6 +129,7 @@ const CATALOGO_DESTACADO = [
     variante: "Titanio Blanco · 128GB",
     especificacion: "Cámara Pro · Chip A18 Pro",
     precio: "Desde $1.120.000",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [], // sin fotos todavía — la card usa el fallback "Foto próximamente"
     disponible: true,
   },
@@ -131,8 +140,9 @@ const CATALOGO_DESTACADO = [
     variante: "Verde azulado · 128GB",
     especificacion: "Chip A18",
     precio: "Desde $890.000",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [
-      { nombre: "Verde azulado", hex: "#7fb5b0", imagen: "assets/img/iphone16-digitalmat-gallery-5-202409.webp" },
+      { nombre: "Verde azulado", hex: "#7fb5b0", imagen: "assets/img/iphone16-digitalmat-gallery-5-202409-t.webp" },
     ],
     disponible: true,
   },
@@ -143,8 +153,9 @@ const CATALOGO_DESTACADO = [
     variante: "Con carga inalámbrica",
     especificacion: "Cancelación activa de ruido · Chip H2",
     precio: "Consultar",
+    precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [
-      { nombre: "Blanco", hex: "#f5f5f5", imagen: "assets/img/airpods-5-select-202609_FV1.webp" },
+      { nombre: "Blanco", hex: "#f5f5f5", imagen: "assets/img/airpods-5-select-202609_FV1-t.webp" },
     ],
     disponible: true,
   },
