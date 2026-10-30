@@ -447,10 +447,11 @@ document.addEventListener("DOMContentLoaded", () => {
   initTitleReveal();
 
   /* ============================================================
-     CALCULADORA DE PLAN CANJE — la interfaz arma el DOM acá; la lógica pura
-     está en js/calculadora-logic.js y los números en js/calculadora-data.js.
-     Mientras CANJE_CONFIG.datosReales sea false NO se renderiza (el contenedor
-     queda vacío y hidden), salvo con ?preview=1, que agrega una franja de aviso.
+     CALCULADORA DE PLAN CANJE — la interfaz arma el DOM acá. La lógica pura está en
+     js/calculadora-logic.js; los valores, en js/canje-tabla.js (planilla de Gonzalo) y la
+     configuración en js/calculadora-data.js.
+     Mientras CANJE_CONFIG.datosReales sea false NO se renderiza (el contenedor queda
+     vacío y hidden), salvo con ?preview=1, que agrega una franja de aviso.
      Sin animaciones: el resultado aparece de inmediato. Sin guardar datos.
      ============================================================ */
   function initCalculadora() {
@@ -460,12 +461,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-calc-link]").forEach((a) => { a.hidden = !habilitada; });
 
     const root = document.getElementById("calculadora");
-    if (!root || typeof CalculadoraCanje === "undefined") return;
+    if (!root || typeof CalculadoraCanje === "undefined" || typeof CANJE_TABLA === "undefined") return;
     const preview = new URLSearchParams(window.location.search).get("preview") === "1";
     if (!habilitada && !preview) return;
 
+    const Calc = CalculadoraCanje;
     const productos = typeof CATALOGO_DESTACADO !== "undefined" ? CATALOGO_DESTACADO : [];
-    const money = (n) => CalculadoraCanje.formatearMonto(CANJE_CONFIG, n);
+    const money = (n) => Calc.formatearMonto(CANJE_CONFIG, n);
     const waLink = (texto) =>
       "https://wa.me/" + (typeof SITE_CONFIG !== "undefined" ? SITE_CONFIG.whatsappNumber : "") + "?text=" + encodeURIComponent(texto);
 
@@ -489,31 +491,38 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Controles
     const selModelo = el("select", { id: "calc-modelo", name: "modelo" },
       el("option", { value: "", text: "Elegí un modelo" }),
-      CANJE_CONFIG.modelos.map((m) => el("option", { value: m.id, text: m.nombre })));
+      Calc.agruparModelosPorGeneracion(CANJE_TABLA).map((g) =>
+        el("optgroup", { label: g.etiqueta }, g.modelos.map((m) => el("option", { value: m.id, text: m.nombre })))),
+      el("option", { value: Calc.NO_LISTADO, text: "Mi modelo no está en la lista" }));
     const selCap = el("select", { id: "calc-capacidad", name: "capacidad", disabled: true },
       el("option", { value: "", text: "Elegí una capacidad" }));
     const inBateria = el("input", { id: "calc-bateria", name: "bateria", type: "number", inputmode: "numeric", min: "1", max: "100", step: "1", "aria-describedby": "calc-bateria-ayuda" });
     const chkDetalles = el("input", { id: "calc-detalles", name: "detalles", type: "checkbox" });
     const txtDetalles = el("textarea", { id: "calc-detalles-texto", name: "detallesTexto", rows: "3", maxlength: "300" });
+    const inOtro = el("input", { id: "calc-modelo-texto", name: "modeloTexto", type: "text", maxlength: "60", autocomplete: "off" });
+    const waOtro = el("a", { class: "btn btn-primary calc-wa-otro", target: "_blank", rel: "noopener", text: "Consultar por WhatsApp" });
+    const btnCalcular = el("button", { class: "btn btn-primary calc-submit", type: "submit", text: "Calcular" });
+
+    const fCap = field("calc-capacidad", "Capacidad", selCap);
+    const fBat = field("calc-bateria", "Salud de batería (%)", inBateria, "Lo ves en Ajustes › Batería › Estado de la batería");
+    const filaDetalles = el("div", { class: "calc-check" }, chkDetalles,
+      el("label", { for: "calc-detalles", text: "Mi iPhone tiene detalles (pantalla rota, golpes, no enciende, etc.)" }));
     const boxDetalles = el("div", { class: "calc-field", hidden: true },
       el("label", { for: "calc-detalles-texto", text: "Contanos los detalles (opcional)" }), txtDetalles);
+    const boxOtro = el("div", { class: "calc-otro", hidden: true },
+      field("calc-modelo-texto", "¿Qué modelo es?", inOtro, "Escribí el modelo y la memoria si la sabés. Lo tasamos en el local."),
+      waOtro);
     const resultado = el("div", { class: "calc-result", id: "calc-resultado", "aria-live": "polite" });
 
     const form = el("form", { class: "calc-card", novalidate: true, "aria-labelledby": "calc-titulo" },
       el("h2", { class: "title-sentence", id: "calc-titulo", text: "Calculá cuánto te tomamos tu iPhone" }),
       field("calc-modelo", "Modelo", selModelo),
-      field("calc-capacidad", "Capacidad", selCap),
-      field("calc-bateria", "Salud de batería (%)", inBateria, "Lo ves en Ajustes › Batería › Estado de la batería"),
-      el("div", { class: "calc-check" }, chkDetalles,
-        el("label", { for: "calc-detalles", text: "Mi iPhone tiene detalles (pantalla rota, golpes, no enciende, etc.)" })),
-      boxDetalles,
-      el("button", { class: "btn btn-primary calc-submit", type: "submit", text: "Calcular" }));
+      fCap, fBat, filaDetalles, boxDetalles, boxOtro, btnCalcular);
 
-    const contenedor = el("div", { class: "container" },
+    root.append(el("div", { class: "container" },
       el("div", { class: "calc" },
         !habilitada ? el("p", { class: "calc-preview", text: "VISTA PREVIA — datos de ejemplo" }) : null,
-        form, resultado));
-    root.append(contenedor);
+        form, resultado)));
     root.hidden = false;
     // Con la calculadora visible, el degradé desde el hero pasa a su sección
     const siguiente = document.getElementById("plan-canje-como-funciona");
@@ -530,13 +539,29 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     };
 
+    const actualizarLinkOtro = () => { waOtro.href = waLink(Calc.mensajeModeloNoListado(inOtro.value)); };
+    // "Mi modelo no está en la lista": sin capacidad ni batería, solo el modelo escrito + WhatsApp
+    const modoOtro = (on) => {
+      fCap.hidden = on;
+      fBat.hidden = on;
+      filaDetalles.hidden = on;
+      boxDetalles.hidden = on || !chkDetalles.checked;
+      boxOtro.hidden = !on;
+      btnCalcular.hidden = on;
+      if (on) actualizarLinkOtro();
+    };
+
     selModelo.addEventListener("change", () => {
-      const m = CalculadoraCanje.buscarModelo(CANJE_CONFIG, selModelo.value);
+      limpiar();
+      if (selModelo.value === Calc.NO_LISTADO) { modoOtro(true); return; }
+      modoOtro(false);
+      const m = Calc.buscarModelo(CANJE_TABLA, selModelo.value);
       selCap.replaceChildren(el("option", { value: "", text: "Elegí una capacidad" }),
         ...(m ? m.capacidades : []).map((c) => el("option", { value: String(c.gb), text: c.gb + " GB" })));
       selCap.disabled = !m;
-      limpiar();
+      if (m && m.capacidades.length === 1) selCap.value = String(m.capacidades[0].gb); // una sola memoria: ya elegida
     });
+    inOtro.addEventListener("input", actualizarLinkOtro);
     [selCap, inBateria, txtDetalles].forEach((c) => c.addEventListener("input", limpiar));
     chkDetalles.addEventListener("change", () => { boxDetalles.hidden = !chkDetalles.checked; limpiar(); });
 
@@ -565,16 +590,18 @@ document.addEventListener("DOMContentLoaded", () => {
         gb: selCap.value,
         bateria: inBateria.value,
         detalles: chkDetalles.checked,
-        detallesTexto: txtDetalles.value
+        detallesTexto: txtDetalles.value,
+        modeloTexto: inOtro.value
       };
-      const r = CalculadoraCanje.calcularCanje(CANJE_CONFIG, entrada, productos);
+      const r = Calc.calcularCanje(CANJE_CONFIG, CANJE_TABLA, entrada, productos);
       if (r.estado === "error") { mostrarErrores(r.errores); return; }
 
       const partes = [];
       if (r.estado === "valor") {
         partes.push(el("p", { class: "calc-valor-wrap" },
           el("span", { class: "calc-valor-label", text: "Valor estimado:" }),
-          el("strong", { class: "calc-valor", text: money(r.valor) })));
+          el("strong", { class: "calc-valor", text: money(r.valor) })),
+          el("p", { class: "calc-tramo", text: r.tramoTexto }));
       } else {
         partes.push(el("p", { class: "calc-consulta", text: r.mensaje }));
       }
@@ -592,10 +619,10 @@ document.addEventListener("DOMContentLoaded", () => {
               s.sumaVsAnterior > 0
                 ? el("p", { class: "calc-escalon-suma", text: "Sumando solo " + money(s.sumaVsAnterior) + " más pasás al " + s.etiqueta })
                 : null,
-              botonWa(CalculadoraCanje.mensajeWhatsApp(CANJE_CONFIG, entrada, r, s.etiqueta), "Quiero este equipo", "btn-outline")))));
+              botonWa(Calc.mensajeWhatsApp(CANJE_CONFIG, CANJE_TABLA, entrada, r, s.etiqueta), "Quiero este equipo", "btn-outline")))));
       }
       partes.push(el("div", { class: "calc-acciones" },
-        botonWa(CalculadoraCanje.mensajeWhatsApp(CANJE_CONFIG, entrada, r, ""),
+        botonWa(Calc.mensajeWhatsApp(CANJE_CONFIG, CANJE_TABLA, entrada, r, ""),
           r.estado === "valor" ? "Confirmar por WhatsApp" : "Consultar por WhatsApp", "btn-primary")));
       resultado.append(el("div", { class: "calc-card calc-card--result" }, partes));
     });

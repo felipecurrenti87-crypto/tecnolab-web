@@ -1375,6 +1375,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
 .calc select,
 .calc input[type="number"],
+.calc input[type="text"],
 .calc textarea {
   width: 100%;
   min-height: 48px;
@@ -1411,6 +1412,8 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .calc-valor-wrap { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
 .calc-valor-label { font-size: var(--fs-small); font-weight: 600; color: var(--fg-2); }
 .calc-valor { font-size: 36px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--fg); }
+.calc-tramo { margin: -8px 0 16px; font-size: var(--fs-small); line-height: 1.5; color: var(--fg-2); }
+.calc-otro .calc-wa-otro { width: 100%; }
 .calc-consulta { margin-bottom: 16px; font-size: var(--fs-lead); font-weight: 600; line-height: 1.4; color: var(--fg); }
 .calc-aviso { font-size: var(--fs-small); line-height: 1.5; color: var(--fg-2); }
 
