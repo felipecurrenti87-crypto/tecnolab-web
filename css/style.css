@@ -502,6 +502,70 @@ html.nav-open .site-header .logo img { filter: none; }
   .hero-actions .btn { width: 100%; }
 }
 
+/* ---- Hero del Home (.hero--cristal): objeto de cristal (WebGL, js/hero-glass.js) → etiqueta → titular → texto → botones.
+   Solo el cuerpo del hero: el header no se toca. La 404 sigue usando .hero plano. ---- */
+.hero--cristal {
+  --hg-reserve: 517px; /* alto que ocupan padding + texto + botones: el objeto se achica para que todo entre en 100svh */
+  --hg-size: min(560px, 72vw, max(220px, calc(100svh - var(--hg-reserve))));
+  justify-content: center;
+  gap: 0;
+  padding: calc(var(--header-space) + 12px) var(--space-gutter) 72px;
+  /* luz de estudio muy tenue y difusa detrás del objeto */
+  background:
+    radial-gradient(ellipse 48% 38% at 50% 45%, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0) 100%),
+    var(--surface-0);
+}
+.hero-glass { position: relative; width: var(--hg-size); aspect-ratio: 1; margin: 0 auto 8px; flex: 0 0 auto; }
+.hero-glass-img, .hero-glass-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-glass-img { object-fit: contain; }
+.hero-glass-canvas { opacity: 0; transition: opacity 400ms ease; }
+.hero-glass.is-live .hero-glass-canvas { opacity: 1; }
+.hero-glass.is-live .hero-glass-img { opacity: 0; transition: opacity 400ms ease; }
+
+.hero--cristal .eyebrow {
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--blue);
+}
+.hero--cristal h1 {
+  max-width: min(100%, 1240px);
+  font-size: clamp(36px, 5.6vw, 72px);
+  font-weight: 800;
+  line-height: 1.04;
+  text-transform: uppercase;
+  color: #fff;
+}
+.hero--cristal .lede { margin-top: 18px; max-width: 58ch; font-size: clamp(18px, 1.5vw, 20px); font-weight: 400; color: #86868B; }
+.hero--cristal .lede strong { font-weight: 600; color: #fff; }
+.hero--cristal .hero-actions { margin-top: 28px; gap: 12px; }
+.hero-btn {
+  gap: 10px;
+  min-height: 48px;
+  height: 48px;
+  padding: 0 24px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  font-weight: 600;
+  transition: background 150ms;
+}
+.hero-btn svg { flex: 0 0 auto; width: 20px; height: 20px; }
+.hero-btn:hover { background: rgba(255, 255, 255, 0.12); }
+.hero-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+@media (max-width: 599px) {
+  .hero--cristal { --hg-reserve: 572px; padding: calc(var(--header-space) + 4px) var(--space-gutter) 60px; }
+  .hero-glass { margin-bottom: 0; }
+  .hero--cristal .eyebrow { margin-bottom: 10px; }
+  .hero--cristal .lede { margin-top: 14px; }
+  .hero--cristal .hero-actions { width: 100%; margin-top: 20px; gap: 10px; }
+  .hero--cristal .hero-scroll { bottom: 8px; }
+}
+
 /* Chevron estático al pie: indica que hay más contenido abajo */
 .hero-scroll {
   position: absolute;
@@ -1707,21 +1771,21 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
 }
 
 /* ==========================================================================
-   OPINIONES (Home) — encabezado con promedios, ventanas con fotos que siguen al mouse
-   (js/main.js → initOpiniones) y carrusel de reseñas. Capas: ventanas (0) < contenido (1).
+   OPINIONES (Home)
+   a) .opiniones-franja: justo después del hero. Promedios de Google Maps + reseñas en loop.
+   b) .opiniones: después del catálogo destacado. Ventanas con fotos que siguen al mouse
+      (js/main.js → initOpiniones). Capas: ventanas (0) < contenido (1).
    ========================================================================== */
-.opiniones { overflow: hidden; }
-.opiniones-head, .opiniones-strip, .opiniones-row { position: relative; z-index: 1; }
-.opiniones-score { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 24px; }
+.opiniones-score { display: flex; flex-wrap: wrap; gap: 12px; }
 .opiniones-score a {
   display: inline-block;
   min-height: 44px;
   padding: 10px 20px;
-  text-align: center;
-  line-height: 1.4;
   border-radius: 999px;
   background: var(--white);
   box-shadow: var(--shadow-card);
+  text-align: center;
+  line-height: 1.4;
   font-size: var(--fs-small);
   font-weight: 600;
   color: var(--fg);
@@ -1729,23 +1793,52 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
 }
 .opiniones-score a:hover { box-shadow: var(--shadow-card-hover); }
 .opiniones-score .estrella { color: #F5A524; }
-.opiniones-legend { margin-top: 12px; font-size: 13px; color: var(--fg-2); }
+.opiniones-legend { margin-top: 8px; font-size: 13px; color: var(--fg-2); }
 
-/* Reseñas: carrusel nativo con snap; mismo ancho que las cards del catálogo */
-.opiniones-row {
-  --row-pad: max(var(--space-gutter), calc((100vw - var(--container-max)) / 2 + var(--space-gutter)));
-  display: flex;
-  gap: 24px;
-  padding: 24px var(--row-pad) 56px;   /* aire para que overflow no recorte la sombra */
-  margin-bottom: -40px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-padding-inline: var(--row-pad);
-  scrollbar-width: none;
+/* ---- a) Franja ---- */
+.opiniones-franja { position: relative; padding: 24px 0 32px; overflow: hidden; }
+.franja-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 32px; margin-bottom: 8px; }
+.franja-head h2 { max-width: none; margin: 0; font-size: clamp(22px, 2.1vw, 26px); }
+@media (min-width: 1100px) { .franja-head { flex-wrap: nowrap; } }
+.franja-meta { display: flex; flex-direction: column; align-items: flex-end; }
+.franja-meta .opiniones-score { justify-content: flex-end; }
+.franja-meta .opiniones-score a { min-height: 32px; padding: 4px 14px; font-size: 12.5px; }
+.franja-meta .opiniones-legend { margin-top: 4px; font-size: 12px; }
+@media (max-width: 899px) {
+  .franja-meta { align-items: flex-start; }
+  .franja-meta .opiniones-score { justify-content: flex-start; }
 }
-.opiniones-row::-webkit-scrollbar { display: none; }
+/* Marquee: padding-block 24/48 + margin negativo → la sombra completa de las cards no se corta y el layout no cambia */
+.franja-marquee {
+  position: relative;
+  overflow: hidden;
+  padding-block: 24px 48px;
+  margin-block: -24px -48px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+}
+.franja-pista {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: franja-loop var(--loop, 96s) linear infinite;
+}
+@keyframes franja-loop { to { transform: translateX(-50%); } }
+.franja-marquee:hover .franja-pista,
+.franja-marquee:focus-within .franja-pista { animation-play-state: paused; }
+.franja-marquee:focus-visible { outline: 2px solid var(--blue-on-light); outline-offset: -2px; }
+.franja-pista .opinion-card { flex: 0 0 400px; margin-right: 16px; padding: 14px 18px; gap: 10px; }
+.franja-pista .opinion-card blockquote { font-size: 13px; line-height: 1.42; }
+@media (max-width: 699px) { .franja-pista .opinion-card { flex-basis: min(320px, 82vw); } }
+@media (prefers-reduced-motion: reduce) {
+  .franja-pista { animation: none; will-change: auto; padding-inline: max(var(--space-gutter), calc((100vw - var(--container-max)) / 2 + var(--space-gutter))); }
+  .franja-marquee { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-mask-image: none; mask-image: none; scrollbar-width: thin; }
+  .franja-pista .opinion-card { scroll-snap-align: start; }
+  .franja-pista .opinion-card[aria-hidden="true"] { display: none; }
+}
+
+/* Tarjeta de reseña (compacta) */
 .opinion-card {
-  flex: 0 0 300px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -1753,7 +1846,6 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
   border-radius: var(--radius-product);
   background: var(--white);
   box-shadow: var(--shadow-card);
-  scroll-snap-align: start;
 }
 .opinion-card blockquote { flex: 1 1 auto; margin: 0; font-size: var(--fs-body); line-height: 1.5; color: var(--fg); white-space: pre-line; }
 .opinion-card-autor { display: flex; align-items: center; gap: 12px; }
@@ -1761,7 +1853,7 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 40px; height: 40px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   background: var(--surface-2);
   font-weight: 600;
@@ -1780,18 +1872,24 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
   font-weight: 600;
   color: var(--fg-2);
 }
-@media (max-width: 699px) {
-  .opiniones-row { gap: 16px; }
-  .opinion-card { flex-basis: min(300px, 82vw); }
-}
 
-/* Tira estática de 6 ventanas (táctil / sin mouse fino / reduced-motion): 3x2 en móvil, 1x6 desde 700px */
+/* ---- b) Clientes que retiraron su equipo ---- */
+.opiniones { overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+.opiniones-head, .opiniones-strip { position: relative; z-index: 1; }
+.opiniones-head { text-align: center; }
+.opiniones-head h2 { max-width: 22ch; margin: 0 auto; }
+.opiniones-head .lede { margin: 16px auto 0; max-width: 52ch; color: var(--fg-2); }
+.opiniones-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 28px; margin-top: 24px; }
+.opiniones-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--fs-btn); font-weight: 600; color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+.opiniones-links a span { font-weight: 400; color: var(--fg-2); white-space: pre; }
+
+/* Tira estática de ventanas (táctil / sin mouse fino / reduced-motion): 3 columnas en móvil, 6 desde 700px */
 .opiniones-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   max-width: 520px;
-  margin: 0 auto 8px;
+  margin: 40px auto 0;
 }
 .opiniones-strip li { aspect-ratio: 1; overflow: hidden; border-radius: 6px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
 .opiniones-strip img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -1801,7 +1899,7 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
 .opiniones-fx { display: none; }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .opiniones-strip { display: none; }
-  .opiniones-fx { display: block; position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .opiniones-fx { display: block; position: absolute; left: 0; top: 0; width: 100%; z-index: 0; overflow: hidden; pointer-events: none; }
   .opiniones-fx .fx-cell {
     position: absolute;
     left: 0; top: 0;
@@ -1809,10 +1907,36 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
     border-radius: 6px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
     opacity: 0;
-    scale: 0.9;
-    transition: opacity var(--fx-out, 700ms) ease, scale var(--fx-out, 700ms) ease;
+    scale: var(--fx-escala, 0.96);
+    transition: opacity var(--fx-out, 1600ms) ease, scale var(--fx-out, 1600ms) ease;
   }
   .opiniones-fx .fx-cell.is-on { will-change: opacity, scale; }
-  .opiniones-fx .fx-cell.is-in { opacity: 1; scale: 1; transition: opacity var(--fx-in, 200ms) ease-out, scale var(--fx-in, 200ms) ease-out; }
+  .opiniones-fx .fx-cell.is-in { opacity: var(--fx-max, 0.5); scale: 1; transition: opacity var(--fx-in, 450ms) ease-out, scale var(--fx-in, 450ms) ease-out; }
   .opiniones-fx .fx-cell img { display: block; width: 100%; height: 100%; object-fit: cover; }
 }
+
+/* ==========================================================================
+   HORARIOS DE SUCURSAL (js/main.js → initHorarios): horario en tres líneas, estado «Abierto ahora» / «Cerrado»
+   ========================================================================== */
+.branch-detalle { font-size: var(--fs-small); color: var(--fg-2); }
+.branch-horario { display: flex; flex-direction: column; gap: 2px; margin: 6px 0 10px; padding: 0; list-style: none; font-size: var(--fs-small); line-height: 1.45; color: var(--fg-2); }
+.branch-tel { align-self: flex-start; font-size: var(--fs-small); font-weight: 600; color: var(--accent); }
+.branch-tel:hover { text-decoration: underline; text-underline-offset: 3px; }
+.branch-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--fg-2);
+}
+.branch-estado::before { content: ''; flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: #8E8E93; }
+.branch-estado[data-abierto="1"]::before { background: #1FA44A; }
+.branch-map-label { --fg-2: var(--text-inv-2); }
+.branch-map-label .branch-estado[data-abierto="1"]::before { background: #30D158; }
+.branch-map-label .branch-horario { margin: 8px 0 4px; }
+.branch-map-label .branch-tel { color: var(--text-inv); }

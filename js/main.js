@@ -10,8 +10,23 @@ const LG = { escalaR: 70, escalaG: 66, escalaB: 62, bisel: 30 };
 const TILT_MAX = 6;
 const TILT_PARALLAX = 8;
 
-/* Opiniones: ventanas con fotos que siguen al mouse. Tiempos en ms; celdas en px. */
-const OPINIONES_FX = { celda: 140, celdaTablet: 90, anchoTablet: 1100, maxVisibles: 10, entradaMs: 200, retencionMs: 900, salidaMs: 700, fotos: 6 };
+/* Opiniones — franja de reseñas en loop y ventanas con fotos. Tiempos en ms, tamaños en px.
+   CLIENTES_FOTOS: para sumar fotos nuevas alcanza con agregar el nombre del archivo (en assets/img/clientes/). */
+const CLIENTES_FOTOS = ["cliente-1.webp", "cliente-2.webp", "cliente-3.webp", "cliente-4.webp", "cliente-5.webp", "cliente-6.webp"];
+const OPINIONES_FX = {
+  celdaObjetivo: 140,   // ancho de celda buscado; columnas = round(ancho / celdaObjetivo), celda = ancho / columnas
+  maxVisibles: 10,
+  entradaMs: 450,       // ease-out, escala 0.96 → 1
+  permanenciaMs: 1200,
+  salidaMs: 1600,
+  escalaInicial: 0.96,
+  opacidadMax: 0.5,     // opacidad máxima de las fotos
+  opacidadTexto: 0.15,  // opacidad máxima de las celdas que tocan texto ([data-foto-evitar])
+  margenTexto: 6,       // px de aire alrededor de cada bloque de texto
+  resizeDebounceMs: 150,
+  recientesSinRepetir: 2
+};
+const FRANJA_SEG_POR_TARJETA = 8; // duración del loop de reseñas = cantidad de tarjetas × este valor (s)
 
 document.addEventListener("DOMContentLoaded", () => {
   /* ============================================================
@@ -1262,39 +1277,35 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   initCalculadora();
   /* ============================================================
-     OPINIONES — reseñas de Google Maps (js/reviews-data.js) en tarjetas propias, sin estrellas por
-     reseña (solo el promedio de cada sucursal). Con mouse fino y sin reduced-motion, una capa de
-     ventanas cuadradas detrás del contenido revela fotos de clientes bajo el cursor: un solo
-     pointermove en la sección (throttle con rAF), pool fijo de OPINIONES_FX.maxVisibles nodos
-     reutilizados, activo solo mientras la sección está en pantalla (IntersectionObserver). Sin
-     scroll listeners. Sin ese entorno queda la tira estática del HTML.
+     OPINIONES — dos piezas con los datos de js/reviews-data.js:
+     a) #opiniones-franja (justo después del hero): promedios de Google Maps y reseñas en loop
+        (pista duplicada, translateX 0 → -50%, solo CSS; pausa con hover/foco). Sin estrellas por reseña.
+     b) #opiniones (después del catálogo destacado): ventanas cuadradas con fotos de clientes que siguen
+        al mouse. Un solo pointermove (throttle con rAF), pool fijo de nodos, activo solo mientras la
+        sección está en pantalla (IntersectionObserver), sin scroll listeners. La grilla se ajusta al
+        ancho (celdas cuadradas e iguales, última fila completa) y las celdas que tocan texto
+        ([data-foto-evitar]) se atenúan. Sin mouse fino o con reduced-motion: tira estática.
      ============================================================ */
   function initOpiniones() {
-    const sec = document.getElementById("opiniones");
-    if (!sec || typeof SUCURSALES_RESENAS === "undefined") return;
+    if (typeof SUCURSALES_RESENAS === "undefined") return;
     const mk = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
     const coma = (n) => String(n).replace(".", ",");
-
-    // --- encabezado: promedio y cantidad por sucursal ---
     const corto = { dorrego: "Dorrego", lomas: "Complejo Lomas" };
-    const score = sec.querySelector(".opiniones-score");
-    SUCURSALES_RESENAS.forEach((suc, i) => {
-      const a = mk("a");
-      a.href = suc.mapsUrl; a.target = "_blank"; a.rel = "noopener";
-      a.append(mk("span", "", coma(suc.promedio) + " "), mk("span", "estrella", "★ "),
-        mk("span", "", "· " + suc.cantidad + " reseñas" + (i === 0 ? " en Google Maps" : "") + " — " + (corto[suc.id] || suc.nombre)));
-      score.append(a);
-    });
-    sec.querySelector(".opiniones-legend").textContent = "Datos de Google Maps, " + (typeof RESENAS_ACTUALIZADO !== "undefined" ? RESENAS_ACTUALIZADO : "");
 
-    // --- tarjetas (intercaladas entre sucursales) ---
-    const row = sec.querySelector(".opiniones-row");
-    const listas = SUCURSALES_RESENAS.map((s) => s.resenas.map((r) => ({ r, s })));
-    const n = Math.max(...listas.map((l) => l.length));
-    for (let k = 0; k < n; k++) {
-      listas.forEach((l) => {
-        if (!l[k]) return;
-        const { r, s } = l[k];
+    // ---------- a) franja ----------
+    const fr = document.getElementById("opiniones-franja");
+    if (fr) {
+      const score = fr.querySelector(".opiniones-score");
+      SUCURSALES_RESENAS.forEach((suc, i) => {
+        const a = mk("a");
+        a.href = suc.mapsUrl; a.target = "_blank"; a.rel = "noopener";
+        a.append(mk("span", "", coma(suc.promedio) + " "), mk("span", "estrella", "★ "),
+          mk("span", "", "· " + suc.cantidad + " reseñas" + (i === 0 ? " en Google Maps" : "") + " — " + (corto[suc.id] || suc.nombre)));
+        score.append(a);
+      });
+      fr.querySelector(".opiniones-legend").textContent = "Datos de Google Maps, " + (typeof RESENAS_ACTUALIZADO !== "undefined" ? RESENAS_ACTUALIZADO : "");
+
+      const crearCard = (r, s) => {
         const card = mk("article", "opinion-card");
         const datos = mk("div", "opinion-card-datos");
         datos.append(mk("strong", "", r.autor), mk("span", "", s.nombre));
@@ -1302,12 +1313,41 @@ document.addEventListener("DOMContentLoaded", () => {
         const autor = mk("div", "opinion-card-autor");
         autor.append(mk("span", "opinion-card-inicial", r.autor.charAt(0)), datos);
         card.append(mk("blockquote", "", r.texto), autor);
-        row.append(card);
+        return card;
+      };
+      const listas = SUCURSALES_RESENAS.map((s) => s.resenas.map((r) => ({ r, s })));
+      const n = Math.max(...listas.map((l) => l.length));
+      const originales = [];
+      for (let k = 0; k < n; k++) listas.forEach((l) => { if (l[k]) originales.push(crearCard(l[k].r, l[k].s)); });
+      const pista = fr.querySelector(".franja-pista");
+      originales.forEach((c) => pista.append(c));
+      originales.forEach((c) => { // pista ×2: los duplicados no se leen ni se enfocan
+        const d = c.cloneNode(true);
+        d.setAttribute("aria-hidden", "true");
+        d.setAttribute("tabindex", "-1");
+        pista.append(d);
       });
+      pista.style.setProperty("--loop", originales.length * FRANJA_SEG_POR_TARJETA + "s");
+      fr.hidden = false;
     }
+
+    // ---------- b) ventanas con fotos ----------
+    const sec = document.getElementById("opiniones");
+    if (!sec) return;
+    sec.querySelectorAll("[data-resena-suc]").forEach((a) => {
+      const suc = SUCURSALES_RESENAS.find((s) => s.id === a.dataset.resenaSuc);
+      if (suc) a.href = suc.mapsUrl; else a.hidden = true;
+    });
+    const strip = sec.querySelector(".opiniones-strip");
+    strip.replaceChildren(...CLIENTES_FOTOS.map((f) => {
+      const li = mk("li"), im = new Image();
+      im.src = "assets/img/clientes/" + f; im.alt = "Cliente de Tecnolab retirando su equipo";
+      im.width = 900; im.height = 900; im.loading = "lazy"; im.decoding = "async";
+      li.append(im);
+      return li;
+    }));
     sec.hidden = false;
 
-    // --- ventanas con fotos (solo mouse fino, sin reduced-motion) ---
     const fxOk = window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
       !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const capa = sec.querySelector(".opiniones-fx");
@@ -1316,11 +1356,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const FX = OPINIONES_FX;
     capa.style.setProperty("--fx-in", FX.entradaMs + "ms");
     capa.style.setProperty("--fx-out", FX.salidaMs + "ms");
+    capa.style.setProperty("--fx-escala", FX.escalaInicial);
     let pool = null;            // [{ el, img, key, t, fase: 0 libre | 1 visible | 2 apagándose }]
     const ocupadas = new Map(); // "col,fila" → celda
-    let foto = Math.floor(Math.random() * FX.fotos);
+    const recientes = [];
+    let idx = Math.floor(Math.random() * CLIENTES_FOTOS.length);
     let activa = false, raf = 0, ptr = null, ultimaKey = "";
-    let rect = null, lado = FX.celda;
+    let cols = 1, lado = FX.celdaObjetivo, filas = 1, textos = [];
+
+    // Grilla: columnas = round(ancho / objetivo), celda = ancho / columnas, filas = ceil(alto / celda).
+    // El alto de la capa y el min-height de la sección valen filas × celda: la última fila queda completa.
+    function layout() {
+      sec.style.minHeight = ""; capa.style.height = "";
+      const w = sec.clientWidth, h = sec.offsetHeight;
+      cols = Math.max(1, Math.round(w / FX.celdaObjetivo));
+      lado = w / cols;
+      filas = Math.max(1, Math.ceil(h / lado));
+      sec.style.minHeight = filas * lado + "px";
+      capa.style.height = filas * lado + "px";
+      capa.dataset.cols = cols; capa.dataset.filas = filas; capa.dataset.lado = lado;
+      const sr = sec.getBoundingClientRect(), p = FX.margenTexto;
+      textos = [...sec.querySelectorAll("[data-foto-evitar]")].filter((e) => !e.hidden).map((e) => {
+        const r = e.getBoundingClientRect();
+        return { l: r.left - sr.left - p, t: r.top - sr.top - p, r: r.right - sr.left + p, b: r.bottom - sr.top + p };
+      });
+      apagarTodo();
+    }
+    const tocaTexto = (col, fila) => {
+      const l = col * lado + 4, t = fila * lado + 4, r = l + lado - 8, b = t + lado - 8;
+      return textos.some((x) => l < x.r && r > x.l && t < x.b && b > x.t);
+    };
 
     const montarPool = () => {
       pool = [];
@@ -1332,7 +1397,7 @@ document.addEventListener("DOMContentLoaded", () => {
         capa.append(el);
         pool.push({ el, img, key: "", t: 0, fase: 0 });
       }
-      for (let i = 1; i <= FX.fotos; i++) { const p = new Image(); p.src = "assets/img/clientes/cliente-" + i + ".webp"; } // calienta la caché
+      CLIENTES_FOTOS.forEach((f) => { const p = new Image(); p.src = "assets/img/clientes/" + f; }); // calienta la caché
     };
     const liberar = (c) => {
       c.el.classList.remove("is-in", "is-on");
@@ -1342,58 +1407,73 @@ document.addEventListener("DOMContentLoaded", () => {
     const celdaLibre = () => {
       let peor = null;
       for (const c of pool) { if (c.fase === 0) return c; if (!peor || c.t < peor.t) peor = c; }
-      liberar(peor); // todas en uso: se recicla la más vieja
+      // todas en uso: se recicla la más vieja, con corte seco (sin transición) para que no quede un destello a opacidad alta
+      peor.el.style.transition = "none";
+      liberar(peor);
+      void peor.el.offsetWidth;
+      peor.el.style.transition = "";
       return peor;
+    };
+    const siguienteFoto = () => { // rotativo; nunca una de las últimas FX.recientesSinRepetir
+      const n = CLIENTES_FOTOS.length;
+      for (let k = 1; k <= n; k++) {
+        const i = (idx + k) % n;
+        if (n <= FX.recientesSinRepetir || !recientes.includes(i)) { idx = i; break; }
+      }
+      recientes.push(idx);
+      if (recientes.length > FX.recientesSinRepetir) recientes.shift();
+      return idx;
     };
     const tocar = (col, fila, ahora) => {
       const key = col + "," + fila;
       let c = ocupadas.get(key);
-      if (c) { // la celda ya existe (visible o apagándose): se refresca con la misma foto
-        c.t = ahora; c.fase = 1; c.el.classList.add("is-in");
-        return;
-      }
+      if (c) { c.t = ahora; c.fase = 1; c.el.classList.add("is-in"); return; } // visible o apagándose: se refresca con la misma foto
       c = celdaLibre();
-      foto = (foto + 1) % FX.fotos; // rotativo: nunca la misma foto seguida
       const w = lado - 8;
       c.el.style.width = c.el.style.height = w + "px";
       c.el.style.translate = (col * lado + 4) + "px " + (fila * lado + 4) + "px";
-      c.img.src = "assets/img/clientes/cliente-" + (foto + 1) + ".webp";
+      c.el.style.setProperty("--fx-max", tocaTexto(col, fila) ? FX.opacidadTexto : FX.opacidadMax);
+      c.img.src = "assets/img/clientes/" + CLIENTES_FOTOS[siguienteFoto()];
       c.img.width = c.img.height = w;
       c.key = key; c.t = ahora; c.fase = 1;
       ocupadas.set(key, c);
       c.el.classList.add("is-on");
-      void c.el.offsetWidth; // fija el estado inicial (opacity 0 / scale .9) antes de entrar
+      void c.el.offsetWidth; // fija el estado inicial (opacity 0 / escala) antes de entrar
       c.el.classList.add("is-in");
     };
     const tick = (ahora) => {
       raf = 0;
       if (!activa) return;
       if (ptr) {
-        rect = sec.getBoundingClientRect();
-        lado = window.innerWidth < FX.anchoTablet ? FX.celdaTablet : FX.celda;
-        const col = Math.floor((ptr.x - rect.left) / lado);
+        const rect = sec.getBoundingClientRect();
+        const col = Math.min(cols - 1, Math.floor((ptr.x - rect.left) / lado));
         const fila = Math.floor((ptr.y - rect.top) / lado);
         ptr = null;
         const key = col + "," + fila;
-        if (col >= 0 && fila >= 0 && key !== ultimaKey) { ultimaKey = key; tocar(col, fila, ahora); }
+        if (col >= 0 && fila >= 0 && fila < filas && key !== ultimaKey) { ultimaKey = key; tocar(col, fila, ahora); }
       }
       let vivas = false;
       for (const c of pool) {
         if (c.fase === 0) continue;
         vivas = true;
         const edad = ahora - c.t;
-        if (c.fase === 1 && edad > FX.retencionMs) { c.fase = 2; c.el.classList.remove("is-in"); }
-        else if (c.fase === 2 && edad > FX.retencionMs + FX.salidaMs) liberar(c);
+        if (c.fase === 1 && edad > FX.permanenciaMs) { c.fase = 2; c.el.classList.remove("is-in"); }
+        else if (c.fase === 2 && edad > FX.permanenciaMs + FX.salidaMs) liberar(c);
       }
       if (vivas) raf = requestAnimationFrame(tick);
     };
-    const pedir = () => { if (!raf) raf = requestAnimationFrame(tick); };
     const mover = (e) => {
       if (e.pointerType !== "mouse") return;
       ptr = { x: e.clientX, y: e.clientY };
-      pedir();
+      if (!raf) raf = requestAnimationFrame(tick);
     };
-    const apagarTodo = () => { if (pool) pool.forEach((c) => { if (c.fase) liberar(c); }); ultimaKey = ""; ptr = null; };
+    function apagarTodo() { if (pool) pool.forEach((c) => { if (c.fase) liberar(c); }); ultimaKey = ""; ptr = null; }
+
+    layout();
+    let td = 0;
+    window.addEventListener("resize", () => { clearTimeout(td); td = setTimeout(layout, FX.resizeDebounceMs); });
+    window.addEventListener("load", layout, { once: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
 
     new IntersectionObserver((entradas) => {
       const dentro = entradas[entradas.length - 1].isIntersecting;
@@ -1410,5 +1490,103 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { threshold: 0 }).observe(sec);
   }
   initOpiniones();
+
+  /* ============================================================
+     HORARIOS DE SUCURSAL — en cada tarjeta [data-sucursal] (Home y Nosotros): resumen legible de tres líneas,
+     indicador «Abierto ahora» / «Cerrado» junto al nombre (hora de Mendoza, se actualiza una vez por minuto),
+     detalle de ubicación y teléfono si está confirmado. Datos: SUCURSALES en js/config.js.
+     Si el cálculo de la hora falla, se oculta el indicador y queda solo el horario.
+     ============================================================ */
+  function initHorarios() {
+    if (typeof SUCURSALES === "undefined") return;
+    const DIAS = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"];
+    const ETIQ = { lun: "Lun", mar: "Mar", mie: "Mié", jue: "Jue", vie: "Vie", sab: "Sáb", dom: "Dom" };
+    const aMin = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
+    const tramo = (t) => { const [a, b] = t.split("–"); return [aMin(a), aMin(b)]; };
+    const hora = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return m ? h + ":" + String(m).padStart(2, "0") : String(h); };
+    const firmaDia = (suc, d) => (suc.horarios[d] || []).join("|");
+
+    // «Lun a vie 10 a 14 y 15 a 19» / «Sáb 10 a 13» / «Dom cerrado»: agrupa días seguidos con el mismo horario
+    function resumen(suc) {
+      const lineas = [];
+      for (let i = 0; i < DIAS.length;) {
+        let j = i;
+        while (j + 1 < DIAS.length && firmaDia(suc, DIAS[j + 1]) === firmaDia(suc, DIAS[i])) j++;
+        const rotulo = i === j ? ETIQ[DIAS[i]] : ETIQ[DIAS[i]] + " a " + ETIQ[DIAS[j]].toLowerCase();
+        const tr = suc.horarios[DIAS[i]] || [];
+        const texto = tr.length ? tr.map((t) => { const [a, b] = t.split("–"); return hora(a) + " a " + hora(b); }).join(" y ") : "cerrado";
+        lineas.push(rotulo + " " + texto);
+        i = j + 1;
+      }
+      return lineas;
+    }
+
+    // Día y minutos actuales en la zona de la sucursal; lanza si el navegador no soporta la zona
+    function ahoraEn(zona) {
+      const partes = new Intl.DateTimeFormat("en-US", { timeZone: zona, weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
+      const get = (t) => partes.find((p) => p.type === t).value;
+      const dia = { Mon: "lun", Tue: "mar", Wed: "mie", Thu: "jue", Fri: "vie", Sat: "sab", Sun: "dom" }[get("weekday")];
+      const min = Number(get("hour")) * 60 + Number(get("minute"));
+      if (!dia || Number.isNaN(min)) throw new Error("hora inválida");
+      return { dia, min };
+    }
+    const abierto = (suc) => {
+      const { dia, min } = ahoraEn(suc.zona);
+      return (suc.horarios[dia] || []).some((t) => { const [a, b] = tramo(t); return min >= a && min < b; });
+    };
+
+    const tarjetas = [];
+    document.querySelectorAll("[data-sucursal]").forEach((card) => {
+      const suc = SUCURSALES[card.dataset.sucursal];
+      if (!suc) return;
+      const nombre = card.querySelector(".branch-map-name, .branch-lite-name");
+      const dir = card.querySelector(".branch-map-address, .branch-lite-address");
+      if (!nombre || !dir) return;
+      let ancla = dir;
+      if (suc.detalle) { // p. ej. «Lomas Plaza Comercial» debajo de la dirección
+        const d = document.createElement("span");
+        d.className = "branch-detalle";
+        d.textContent = suc.detalle;
+        ancla.after(d); ancla = d;
+      }
+      const ul = document.createElement("ul");
+      ul.className = "branch-horario";
+      ul.setAttribute("aria-label", "Horarios de atención");
+      resumen(suc).forEach((l) => { const li = document.createElement("li"); li.textContent = l; ul.append(li); });
+      ancla.after(ul); ancla = ul;
+      if (suc.telefono) { // null = sin confirmar: no se muestra
+        const a = document.createElement("a");
+        a.className = "branch-tel";
+        a.href = "tel:+54" + suc.telefono.replace(/\D/g, "").replace(/^0/, "");
+        a.textContent = suc.telefono;
+        ancla.after(a);
+      }
+      const estado = document.createElement("span");
+      estado.className = "branch-estado";
+      estado.hidden = true;
+      nombre.append(estado);
+      tarjetas.push({ suc, estado });
+    });
+    if (!tarjetas.length) return;
+
+    function actualizar() {
+      tarjetas.forEach(({ suc, estado }) => {
+        try {
+          const ab = abierto(suc);
+          estado.textContent = ab ? "Abierto ahora" : "Cerrado";
+          estado.dataset.abierto = ab ? "1" : "0";
+          estado.hidden = false;
+        } catch (err) {
+          estado.hidden = true; // si falla el cálculo, queda solo el horario
+        }
+      });
+    }
+    actualizar();
+    // una vez por minuto, alineado al cambio de minuto
+    const programar = () => setTimeout(() => { actualizar(); setInterval(actualizar, 60000); }, 60000 - (Date.now() % 60000) + 50);
+    programar();
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) actualizar(); });
+  }
+  initHorarios();
 
 });

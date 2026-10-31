@@ -47,9 +47,9 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=29">
+  <link rel="stylesheet" href="css/style.css?v=30">
 </head>
 <body data-page="home">
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -87,7 +87,11 @@
 
   <main class="site-main" id="contenido" tabindex="-1">
 
-  <section class="hero" id="hero" data-header-theme="dark" data-header-density="heavy">
+  <section class="hero hero--cristal" id="hero" data-header-theme="dark" data-header-density="heavy">
+    <div class="hero-glass" aria-hidden="true">
+      <img class="hero-glass-img" src="assets/img/hero-cristal.webp" srcset="assets/img/hero-cristal.webp 1x, assets/img/hero-cristal-2x.webp 2x" width="560" height="560" fetchpriority="high" alt="">
+      <canvas class="hero-glass-canvas" width="560" height="560"></canvas>
+    </div>
     <div class="hero-copy">
       <span class="eyebrow">Especialistas Apple en Mendoza</span>
       <h1>Todo el ecosistema Apple en un solo lugar</h1>
@@ -97,11 +101,25 @@
         menos del 1% de casos sin resolver.
       </p>
       <div class="hero-actions">
-        <a class="btn btn-primary" data-wa="Hola, quiero hacer una consulta" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Consultar por WhatsApp</a>
-        <a href="catalogo.html" class="btn btn-outline">Ver catálogo</a>
+        <a class="btn hero-btn" data-wa="Hola, quiero hacer una consulta" href="https://wa.me/5492614699026" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>Consultar por WhatsApp</a>
+        <a href="catalogo.html" class="btn hero-btn">Ver catálogo<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg></a>
       </div>
     </div>
     <a class="hero-scroll" href="#catalogo-destacado" aria-label="Ver el catálogo destacado"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></a>
+  </section>
+
+  <!-- FRANJA DE OPINIONES — promedios de Google Maps + reseñas en loop (js/main.js → initOpiniones) -->
+  <section class="opiniones-franja surface-white" id="opiniones-franja" data-header-theme="light" hidden>
+    <div class="container franja-head">
+      <h2 class="title-sentence">Más de 200 clientes ya nos eligieron</h2>
+      <div class="franja-meta">
+        <div class="opiniones-score"><!-- promedio y cantidad por sucursal: lo arma js/main.js desde SUCURSALES_RESENAS --></div>
+        <p class="opiniones-legend"></p>
+      </div>
+    </div>
+    <div class="franja-marquee" role="region" aria-label="Opiniones de clientes" tabindex="0">
+      <div class="franja-pista"></div>
+    </div>
   </section>
 
   <!-- CATÁLOGO DESTACADO — carrusel horizontal nativo -->
@@ -124,6 +142,22 @@
           <button type="button" class="catalog-arrow" data-dir="1" aria-label="Ver más modelos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- CLIENTES — ventanas con fotos de clientes que siguen al mouse (js/main.js → initOpiniones) -->
+  <section class="section surface-light opiniones" id="opiniones" data-header-theme="light" hidden>
+    <div class="opiniones-fx" aria-hidden="true"></div>
+    <div class="container opiniones-head">
+      <h2 class="title-sentence" data-foto-evitar>Clientes que ya retiraron su equipo</h2>
+      <p class="lede" data-foto-evitar>Fotos reales de clientes de Tecnolab llevándose su equipo en nuestras sucursales.</p>
+      <div class="opiniones-links">
+        <a data-foto-evitar data-resena-suc="dorrego" href="#" target="_blank" rel="noopener">Ver reseñas en Google Maps<span> — Dorrego</span></a>
+        <a data-foto-evitar data-resena-suc="lomas" href="#" target="_blank" rel="noopener">Ver reseñas en Google Maps<span> — Complejo Lomas</span></a>
+      </div>
+    </div>
+    <div class="container">
+      <ul class="opiniones-strip"><!-- 6 ventanas estáticas (táctil / reduced-motion): las arma el JS desde CLIENTES_FOTOS --></ul>
     </div>
   </section>
 
@@ -270,28 +304,6 @@
     </div>
   </section>
 
-  <!-- OPINIONES — prueba social: reseñas de Google Maps (js/reviews-data.js) + ventanas con fotos de clientes -->
-  <section class="section surface-light opiniones" id="opiniones" data-header-theme="light" hidden>
-    <div class="opiniones-fx" aria-hidden="true"></div>
-    <div class="container opiniones-head section-head center">
-      <span class="eyebrow">Opiniones</span>
-      <h2 class="title-sentence">Más de 200 clientes ya nos eligieron</h2>
-      <div class="opiniones-score"><!-- promedio y cantidad por sucursal: lo arma js/main.js desde SUCURSALES_RESENAS --></div>
-      <p class="opiniones-legend"></p>
-    </div>
-    <div class="container">
-      <ul class="opiniones-strip">
-        <li><img src="assets/img/clientes/cliente-1.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
-        <li><img src="assets/img/clientes/cliente-2.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
-        <li><img src="assets/img/clientes/cliente-3.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
-        <li><img src="assets/img/clientes/cliente-4.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
-        <li><img src="assets/img/clientes/cliente-5.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
-        <li><img src="assets/img/clientes/cliente-6.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
-      </ul>
-    </div>
-    <div class="opiniones-row" role="region" aria-label="Opiniones de clientes, desplazá horizontalmente" tabindex="0"></div>
-  </section>
-
   <!-- SUCURSALES -->
   <section class="section surface-light" id="sucursales" data-header-theme="light" data-header-density="heavy">
     <div class="container">
@@ -300,7 +312,7 @@
         <h2>Visitanos en Mendoza</h2>
       </div>
       <div class="branches">
-        <div class="branch-map-card">
+        <div class="branch-map-card" data-sucursal="dorrego">
           <div id="home-branch-map" class="branch-map"></div>
           <div class="branch-map-label">
             <div>
@@ -312,7 +324,7 @@
                target="_blank" rel="noopener">Cómo llegar →</a>
           </div>
         </div>
-        <div class="branch-lite-card">
+        <div class="branch-lite-card" data-sucursal="lomas">
           <span class="branch-lite-name">Complejo Lomas</span>
           <span class="branch-lite-address">Av. Champagnat</span>
           <div class="branch-lite-actions">
@@ -375,11 +387,12 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
   </a>
 
-  <script src="js/config.js?v=29" defer></script>
-  <script src="js/products-data.js?v=29" defer></script>
-  <script src="js/canje-tabla.js?v=29" defer></script>
-  <script src="js/calculadora-data.js?v=29" defer></script>
-  <script src="js/reviews-data.js?v=29" defer></script>
-  <script src="js/main.js?v=29" defer></script>
+  <script src="js/config.js?v=30" defer></script>
+  <script src="js/products-data.js?v=30" defer></script>
+  <script src="js/canje-tabla.js?v=30" defer></script>
+  <script src="js/calculadora-data.js?v=30" defer></script>
+  <script src="js/reviews-data.js?v=30" defer></script>
+  <script src="js/main.js?v=30" defer></script>
+  <script src="js/hero-glass.js?v=30" defer></script>
 </body>
 </html>
