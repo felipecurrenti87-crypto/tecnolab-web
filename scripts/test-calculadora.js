@@ -86,7 +86,7 @@ prueba("no existe ninguna ruta «batería baja → consulta»: toda batería de 
 prueba("sin restos de la regla vieja en el código (interpolación, batería mínima, consulta por batería)", () => {
   const codigo = ["calculadora-logic.js", "calculadora-data.js", "main.js"].map((f) => fs.readFileSync(path.join(__dirname, "..", "js", f), "utf8")).join("\n");
   // (los nombres viejos se arman por partes para que este archivo no los contenga literalmente)
-  const viejos = [/interpol/i, new RegExp("bateria" + "Minima"), new RegExp("regla" + "Bateria"), new RegExp("MSG_" + "BATERIA"), /consulta\("bateria"/];
+  const viejos = [new RegExp("interpol" + "ar|valorInterpol" + "ado", "i"), new RegExp("bateria" + "Minima"), new RegExp("regla" + "Bateria"), new RegExp("MSG_" + "BATERIA"), /consulta\("bateria"/];
   viejos.forEach((re) => assert.ok(!re.test(codigo), "quedó " + re));
   assert.ok(!/Con esa batería/.test(codigo), "quedó el texto de batería baja");
 });

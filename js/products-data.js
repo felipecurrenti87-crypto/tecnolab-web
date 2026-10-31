@@ -2,6 +2,13 @@
  * Estructura de datos del catálogo destacado.
  * Agregar más modelos acá (iPhone, Mac, iPad) no requiere tocar el
  * markup ni el JS — el render de cards es genérico.
+ *
+ * Campos OPCIONALES por producto (el detalle del producto solo muestra lo que existe; no se
+ * completan con valores inventados):
+ *   nuevo: true            → la card y el detalle muestran la etiqueta "NUEVO"
+ *   descripcion: "…"       → un párrafo en el detalle
+ *   detalles: ["…", "…"]   → una lista de características reales en el detalle
+ * Hoy ningún producto los tiene cargados: se suman cuando haya contenido confirmado.
  */
 
 // CONVENCIÓN DE FOTOS: mismo ángulo de cámara para todos los colores de un

@@ -83,3 +83,44 @@ Los productos con `precioNum: null` se ignoran. Si ninguno tiene precio, la calc
 5. Subir el `?v=` de CSS y JS en los seis HTML y publicar.
 
 Con `datosReales: true` la calculadora queda visible para todos y el link "Calculá tu valor →" aparece en el Home.
+
+---
+
+# Accesorios (catálogo)
+
+Los accesorios viven en `js/accesorios-data.js` y **solo se cargan en `catalogo.html`** (el carrusel del Home usa únicamente `CATALOGO_DESTACADO`). Aparecen en la grilla del catálogo, en la pestaña **Accesorios**, con una segunda fila de chips por subcategoría.
+
+## Cómo agregar un producto
+
+Sumar una fila en `ACCESORIOS_BASE`: `["Subcategoría", "Nombre", precioEnPesos]`.
+
+```js
+["Cables", "Soul C - C", 17700],
+["Audio", "AirPods Pro", null],      // null = sin precio cargado
+```
+
+- La **subcategoría** crea el chip sola: usar el mismo texto que las demás filas del grupo (si es nueva, aparece un chip nuevo).
+- El **precio** es un número en pesos argentinos, sin puntos ni símbolos; `null` si todavía no hay.
+- El `id` se arma solo con el nombre (sin tildes ni espacios) y es único.
+- El buscador mira nombre, subcategoría y variante, sin distinguir mayúsculas ni tildes.
+
+## Cómo cargar una foto
+
+1. Pasar la foto a WebP con fondo transparente (ver `scripts/cutout-products.js` y `scripts/optimize-images.js`) y ponerla en `assets/img/` con un **nombre nuevo** (los assets se cachean un año).
+2. Sumar la ruta como **cuarto valor** de la fila en `ACCESORIOS_BASE`:
+
+   ```js
+   ["Cables", "Soul C - C", 17700, "assets/img/soul-c-c-t.webp"],
+   ```
+
+   Sin ese valor la card muestra el ícono de caja con "Foto próximamente". Con foto, la card usa la misma imagen centrada (sin puntos de color) y la foto se carga en diferido.
+
+## Cómo activar los precios
+
+Hoy el sitio muestra **"Consultar"** en todos los accesorios, aunque el precio esté guardado. Cuando Gonzalo confirme que son **precios de venta vigentes**, cambiar en `js/accesorios-data.js`:
+
+```js
+const ACCESORIOS_CONFIG = { mostrarPrecio: true };
+```
+
+Con el interruptor en `true`, los accesorios con precio numérico se muestran como `$ 12.700` (los que tienen `null` siguen en "Consultar"). Después, subir el `?v=` de CSS y JS en los seis HTML y publicar.

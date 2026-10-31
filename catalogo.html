@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=21">
+  <link rel="stylesheet" href="css/style.css?v=28">
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -37,7 +37,7 @@
   <!-- ============================================================
        HEADER
        ============================================================ -->
-  <header class="site-header">
+  <header class="site-header" data-theme="dark">
     <div class="container header-inner">
       <a href="index.html" class="logo">
         <img src="assets/img/logo-horizontal-blanco.webp" alt="Tecnolab" width="153" height="28" decoding="async">
@@ -67,7 +67,7 @@
 
   <main class="site-main" id="contenido" tabindex="-1">
 
-  <section class="page-hero page-hero--compact" id="catalogo-hero">
+  <section class="page-hero page-hero--compact" id="catalogo-hero" data-header-theme="dark">
     <div class="container">
       <span class="eyebrow">Especialistas Apple en Mendoza</span>
       <h1>Catálogo</h1>
@@ -75,25 +75,30 @@
     </div>
   </section>
 
-  <!-- GRILLA COMPLETA desde products-data.js -->
-  <section class="catalog-page surface-light" id="catalogo-iphone">
-    <h2 class="sr-only">Equipos disponibles</h2>
+  <!-- GRILLA COMPLETA desde products-data.js + accesorios-data.js -->
+  <section class="catalog-page surface-light" id="catalogo-iphone" data-header-theme="light">
+    <h2 class="sr-only">Productos disponibles</h2>
     <div class="catalog-toolbar">
       <div class="container catalog-toolbar-inner">
         <div class="catalog-filter-tabs" role="group" aria-label="Filtrar por categoría">
-          <!-- Generadas por JS desde el campo categoria de CATALOGO_DESTACADO -->
+          <!-- Generadas por JS desde el campo categoria de los productos y accesorios -->
         </div>
         <span class="catalog-count" aria-live="polite"></span>
-        <input type="search" class="catalog-filter-search" placeholder="Buscar por nombre…" aria-label="Buscar producto por nombre">
+        <input type="search" class="catalog-filter-search" placeholder="Buscar producto…" aria-label="Buscar producto">
+      </div>
+      <div class="container catalog-subfilters" hidden>
+        <div class="catalog-filter-tabs catalog-subtabs" role="group" aria-label="Filtrar accesorios por tipo">
+          <!-- Chips generados por JS desde la subcategoría de los accesorios -->
+        </div>
       </div>
     </div>
     <div class="container">
       <div class="catalog-grid catalog-grid-full">
-        <!-- Cards renderizadas por JS desde js/products-data.js (CATALOGO_DESTACADO) -->
+        <!-- Cards renderizadas por JS desde js/products-data.js (CATALOGO_DESTACADO) y js/accesorios-data.js -->
       </div>
       <div class="catalog-empty" hidden>
-        <p>No encontramos ese modelo. Consultanos por WhatsApp y te lo conseguimos</p>
-        <a class="btn btn-primary" data-wa="Hola, no encuentro en el catálogo el modelo que busco" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Consultar por WhatsApp</a>
+        <p>No encontramos ese producto. Consultanos por WhatsApp y te lo conseguimos</p>
+        <a class="btn btn-primary" data-wa="Hola, no encuentro en el catálogo el producto que busco" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Consultar por WhatsApp</a>
       </div>
       <p class="catalog-note">
         Los equipos nuevos llevan la garantía de fábrica de Apple (1 año,
@@ -105,7 +110,7 @@
   </section>
 
   <!-- MAC & IPAD — a pedido, sin precio -->
-  <section class="section surface-deep" id="catalogo-mac-ipad">
+  <section class="section surface-white" id="catalogo-mac-ipad" data-header-theme="light">
     <div class="container">
       <div class="section-head">
         <span class="eyebrow">Mac &amp; iPad</span>
@@ -117,32 +122,32 @@
         </p>
       </div>
       <div class="catalog-grid catalog-grid--few">
-        <article class="product-card">
-          <div class="product-card-media">
-            <div class="product-card-pills"><span class="pill">Mac</span><span class="pill pill-status is-off">Consultar disponibilidad</span></div>
-            <div class="product-card-media-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.2"></rect><line x1="11" y1="18" x2="13" y2="18"></line></svg><span>Foto próximamente</span></div>
-          </div>
-          <div class="product-card-body">
+        <article class="product-card product-card--solo-wa">
+          <div class="product-card-head">
+            <span class="product-card-eyebrow">Mac</span>
             <h3 class="product-card-name">MacBook, iMac y Mac de escritorio</h3>
-            <ul class="product-card-chips"><li>A pedido</li><li>Entrega estimada en 1 semana</li></ul>
-            <div class="product-card-foot">
-              <p class="product-card-price"><strong>Consultar</strong></p>
-              <a class="btn btn-primary" data-wa="Hola, quiero consultar disponibilidad de una Mac" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Consultar</a>
-            </div>
+            <p class="product-card-spec">A pedido · Entrega estimada en 1 semana</p>
+          </div>
+          <div class="product-card-media product-card-media--vacio">
+            <div class="product-card-media-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"></path><path d="M3 7.5 12 12l9-4.5M12 12v9"></path></svg><span>Foto próximamente</span></div>
+          </div>
+          <div class="product-card-foot">
+            <p class="product-card-price"><strong class="es-consulta">Consultar</strong></p>
+            <a class="btn btn-primary" data-wa="Hola, quiero consultar disponibilidad de una Mac" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Consultar</a>
           </div>
         </article>
-        <article class="product-card">
-          <div class="product-card-media">
-            <div class="product-card-pills"><span class="pill">iPad</span><span class="pill pill-status is-off">Consultar disponibilidad</span></div>
-            <div class="product-card-media-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.2"></rect><line x1="11" y1="18" x2="13" y2="18"></line></svg><span>Foto próximamente</span></div>
-          </div>
-          <div class="product-card-body">
+        <article class="product-card product-card--solo-wa">
+          <div class="product-card-head">
+            <span class="product-card-eyebrow">iPad</span>
             <h3 class="product-card-name">iPad, todos los modelos</h3>
-            <ul class="product-card-chips"><li>A pedido</li><li>Entrega estimada en 1 semana</li></ul>
-            <div class="product-card-foot">
-              <p class="product-card-price"><strong>Consultar</strong></p>
-              <a class="btn btn-primary" data-wa="Hola, quiero consultar disponibilidad de un iPad" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Consultar</a>
-            </div>
+            <p class="product-card-spec">A pedido · Entrega estimada en 1 semana</p>
+          </div>
+          <div class="product-card-media product-card-media--vacio">
+            <div class="product-card-media-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"></path><path d="M3 7.5 12 12l9-4.5M12 12v9"></path></svg><span>Foto próximamente</span></div>
+          </div>
+          <div class="product-card-foot">
+            <p class="product-card-price"><strong class="es-consulta">Consultar</strong></p>
+            <a class="btn btn-primary" data-wa="Hola, quiero consultar disponibilidad de un iPad" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Consultar</a>
           </div>
         </article>
       </div>
@@ -150,7 +155,7 @@
   </section>
 
   <!-- PLAN CANJE — teaser -->
-  <section class="section section--tight surface-soft center fade-top from-3" id="catalogo-plan-canje">
+  <section class="section section--tight center surface-light" id="catalogo-plan-canje" data-header-theme="light">
     <div class="container">
       <span class="eyebrow">Plan Canje</span>
       <h2 class="title-sentence">Tomamos tu equipo en cualquier estado</h2>
@@ -164,7 +169,7 @@
   </section>
 
   <!-- ACCESORIOS -->
-  <section class="section surface-light fade-top from-1" id="catalogo-accesorios">
+  <section class="section surface-white" id="catalogo-accesorios" data-header-theme="light">
     <div class="container">
       <div class="section-head center">
         <span class="eyebrow">Accesorios</span>
@@ -186,7 +191,7 @@
     </div>
   </section>
 
-  <section class="section final-cta surface-deep fade-bottom to-0">
+  <section class="section final-cta surface-dark" data-header-theme="dark">
     <div class="container">
       <h2>¿Ya elegiste tu modelo?</h2>
       <a class="btn btn-primary" data-wa="Hola, quiero hacer una consulta" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Consultar por WhatsApp</a>
@@ -198,7 +203,7 @@
   <!-- ============================================================
        FOOTER
        ============================================================ -->
-  <footer class="site-footer">
+  <footer class="site-footer" data-header-theme="dark">
     <div class="container">
       <div class="footer-top">
         <div class="footer-logo">
@@ -236,8 +241,9 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
   </a>
 
-  <script src="js/config.js?v=21" defer></script>
-  <script src="js/products-data.js?v=21" defer></script>
-  <script src="js/main.js?v=21" defer></script>
+  <script src="js/config.js?v=28" defer></script>
+  <script src="js/products-data.js?v=28" defer></script>
+  <script src="js/accesorios-data.js?v=28" defer></script>
+  <script src="js/main.js?v=28" defer></script>
 </body>
 </html>
