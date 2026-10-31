@@ -49,9 +49,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=28">
+  <link rel="stylesheet" href="css/style.css?v=29">
 </head>
-<body>
+<body data-page="home">
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
 
   <!-- ============================================================
@@ -87,7 +87,7 @@
 
   <main class="site-main" id="contenido" tabindex="-1">
 
-  <section class="hero" id="hero" data-header-theme="dark">
+  <section class="hero" id="hero" data-header-theme="dark" data-header-density="heavy">
     <div class="hero-copy">
       <span class="eyebrow">Especialistas Apple en Mendoza</span>
       <h1>Todo el ecosistema Apple en un solo lugar</h1>
@@ -128,7 +128,7 @@
   </section>
 
   <!-- ACCESOS RÁPIDOS POR CATEGORÍA -->
-  <section class="section surface-white" id="categorias" data-header-theme="light">
+  <section class="section surface-white" id="categorias" data-header-theme="light" data-header-density="heavy">
     <div class="container">
       <div class="section-head">
         <h2>Explorá por categoría</h2>
@@ -190,26 +190,37 @@
 
     <!-- PLAN CANJE -->
     <section class="section surface-light" id="plan-canje" data-header-theme="light">
-      <div class="container split">
-        <div>
+      <div class="container">
+        <div class="section-head center">
           <span class="eyebrow">Plan Canje</span>
           <h2 class="title-sentence">Te lo tomamos en cualquier estado, a buen precio</h2>
-          <ol class="canje-steps">
-            <li><h3>Traé tu equipo</h3><p>En cualquier estado: funcionando o roto.</p></li>
-            <li><h3>Tasación transparente</h3><p>La evaluación se hace en persona, en el momento.</p></li>
-            <li><h3>Elegís tu próximo equipo</h3><p>El valor se descuenta del iPhone, Mac o iPad que elijas.</p></li>
-          </ol>
-          <a href="plan-canje.html" class="btn btn-primary">Conocé el Plan Canje</a>
-          <a href="plan-canje.html#calculadora" class="link-arrow canje-calc-link" data-calc-link hidden>Calculá tu valor →</a>
+          <p class="lede">Dejá tu iPhone usado como parte de pago del próximo.</p>
         </div>
-        <figure class="canje-visual">
-          <div class="canje-visual-pair">
-            <img class="canje-visual-old" src="assets/img/iphone-air-digitalmat-gallery-3-202509-t.webp" alt="" width="800" height="732" loading="lazy" decoding="async">
-            <svg class="canje-visual-arrow" viewBox="0 0 48 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h42M36 4l8 8-8 8"></path></svg>
-            <img class="canje-visual-new" src="assets/img/iphone18promax-negro-front-back-t.webp" alt="" width="800" height="732" loading="lazy" decoding="async">
-          </div>
-          <figcaption>Tu iPhone usado, como parte de pago del próximo.</figcaption>
-        </figure>
+        <ol class="canje-grid">
+          <li class="canje-card">
+            <span class="canje-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="7" y="2.5" width="10" height="19" rx="2.4"></rect><path d="M11 18.5h2"></path></svg></span>
+            <span class="canje-card-num" aria-hidden="true">01</span>
+            <h3>Traé tu equipo</h3>
+            <p>En cualquier estado: funcionando o roto.</p>
+          </li>
+          <li class="canje-card">
+            <span class="canje-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 4.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-13a2 2 0 0 0-2-2h-2"></path><rect x="9" y="2.5" width="6" height="4" rx="1.2"></rect><path d="m9 14 2.2 2.2L15.5 12"></path></svg></span>
+            <span class="canje-card-num" aria-hidden="true">02</span>
+            <h3>Tasación transparente</h3>
+            <p>La evaluación se hace en persona, en el momento.</p>
+          </li>
+          <li class="canje-card">
+            <span class="canje-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"></path></svg></span>
+            <span class="canje-card-num" aria-hidden="true">03</span>
+            <h3>Elegís tu próximo equipo</h3>
+            <p>El valor se descuenta del iPhone, Mac o iPad que elijas.</p>
+          </li>
+        </ol>
+        <div class="canje-actions">
+          <a href="plan-canje.html#calculadora" class="btn btn-primary" data-calc-link hidden>Calculá tu valor</a>
+          <a class="btn btn-outline" data-wa="Hola, quiero consultar por el Plan Canje de mi iPhone" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Escribinos por WhatsApp</a>
+        </div>
+        <p class="canje-legal">Los valores son orientativos y se confirman en el local, en persona. No cuenta como presupuesto oficial.</p>
       </div>
     </section>
   </div>
@@ -259,8 +270,30 @@
     </div>
   </section>
 
+  <!-- OPINIONES — prueba social: reseñas de Google Maps (js/reviews-data.js) + ventanas con fotos de clientes -->
+  <section class="section surface-light opiniones" id="opiniones" data-header-theme="light" hidden>
+    <div class="opiniones-fx" aria-hidden="true"></div>
+    <div class="container opiniones-head section-head center">
+      <span class="eyebrow">Opiniones</span>
+      <h2 class="title-sentence">Más de 200 clientes ya nos eligieron</h2>
+      <div class="opiniones-score"><!-- promedio y cantidad por sucursal: lo arma js/main.js desde SUCURSALES_RESENAS --></div>
+      <p class="opiniones-legend"></p>
+    </div>
+    <div class="container">
+      <ul class="opiniones-strip">
+        <li><img src="assets/img/clientes/cliente-1.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
+        <li><img src="assets/img/clientes/cliente-2.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
+        <li><img src="assets/img/clientes/cliente-3.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
+        <li><img src="assets/img/clientes/cliente-4.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
+        <li><img src="assets/img/clientes/cliente-5.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
+        <li><img src="assets/img/clientes/cliente-6.webp" alt="Cliente de Tecnolab retirando su equipo" width="900" height="900" loading="lazy" decoding="async"></li>
+      </ul>
+    </div>
+    <div class="opiniones-row" role="region" aria-label="Opiniones de clientes, desplazá horizontalmente" tabindex="0"></div>
+  </section>
+
   <!-- SUCURSALES -->
-  <section class="section surface-light" id="sucursales" data-header-theme="light">
+  <section class="section surface-light" id="sucursales" data-header-theme="light" data-header-density="heavy">
     <div class="container">
       <div class="section-head">
         <span class="eyebrow">Sucursales</span>
@@ -342,10 +375,11 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
   </a>
 
-  <script src="js/config.js?v=28" defer></script>
-  <script src="js/products-data.js?v=28" defer></script>
-  <script src="js/canje-tabla.js?v=28" defer></script>
-  <script src="js/calculadora-data.js?v=28" defer></script>
-  <script src="js/main.js?v=28" defer></script>
+  <script src="js/config.js?v=29" defer></script>
+  <script src="js/products-data.js?v=29" defer></script>
+  <script src="js/canje-tabla.js?v=29" defer></script>
+  <script src="js/calculadora-data.js?v=29" defer></script>
+  <script src="js/reviews-data.js?v=29" defer></script>
+  <script src="js/main.js?v=29" defer></script>
 </body>
 </html>

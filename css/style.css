@@ -76,7 +76,7 @@
   --radius-media: 14px;
   --radius-btn: 999px;
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px -8px rgba(0, 0, 0, 0.14);
-  --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.08), 0 16px 36px -10px rgba(0, 0, 0, 0.28);
+  --shadow-card-hover: 0 2px 6px rgba(0, 0, 0, 0.06), 0 18px 40px -12px rgba(0, 0, 0, 0.22), 0 30px 60px -30px rgba(0, 0, 0, 0.18);
 
   /* ---- Superficie por defecto (oscura); .surface-* la reemplazan ---- */
   --fg: var(--text-inv);
@@ -231,7 +231,7 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   --hdr-fg: var(--text-inv);
   --hdr-fg-2: var(--text-inv-2);
   --hdr-tint: rgba(255, 255, 255, 0.08);
-  --hdr-line: rgba(255, 255, 255, 0.18);
+  --hdr-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.10);
   position: fixed;
   top: var(--header-top);
   left: 0; right: 0;
@@ -247,14 +247,14 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   --hdr-fg: #1D1D1F;
   --hdr-fg-2: #4A4A4F;
   --hdr-tint: rgba(255, 255, 255, 0.45);
-  --hdr-line: rgba(0, 0, 0, 0.1);
+  --hdr-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 /* Con el menú mobile abierto el panel es oscuro: el header vuelve al tema oscuro */
 html.nav-open .site-header {
   --hdr-fg: var(--text-inv);
   --hdr-fg-2: var(--text-inv-2);
   --hdr-tint: rgba(255, 255, 255, 0.08);
-  --hdr-line: rgba(255, 255, 255, 0.18);
+  --hdr-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.10);
 }
 /* El vidrio va en un pseudo-elemento: un backdrop-filter en el propio header
    haría que el menú mobile (position: fixed) se midiera contra el header. */
@@ -265,31 +265,56 @@ html.nav-open .site-header {
   z-index: -1;
   border-radius: var(--header-radius);
   background: var(--hdr-tint);
-  /* Respaldo (cualquier navegador, y mobile): vidrio simple */
-  backdrop-filter: blur(6px) saturate(1.6);
-  -webkit-backdrop-filter: blur(6px) saturate(1.6);
-  border: 1px solid var(--hdr-line);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  transition: background-color 150ms;
+  /* Respaldo (cualquier navegador, y mobile): vidrio simple, sin borde, separado por sombra */
+  backdrop-filter: blur(4px) saturate(1.5);
+  -webkit-backdrop-filter: blur(4px) saturate(1.5);
+  border: 0;
+  box-shadow: var(--hdr-shadow);
+  transition: background-color 200ms;
 }
 
 /* ---- Liquid Glass: solo cuando js/main.js pone html[data-glass="liquid"] (Chromium de escritorio,
    puntero fino, sin reduced-motion/transparency, sin ?glass=off). #lg-refract es el filtro SVG
    que inyecta el JS: refracta lo que pasa por debajo y separa los canales R/G/B en el borde. ---- */
-html[data-glass="liquid"] .site-header { --hdr-tint: rgba(255, 255, 255, 0.06); --hdr-line: rgba(255, 255, 255, 0.35); }
-html[data-glass="liquid"] .site-header[data-theme="light"] { --hdr-tint: rgba(255, 255, 255, 0.30); }
-/* El contenido que pasa por debajo se ve casi nítido (blur 1px): un halo suave del color opuesto
-   mantiene legibles los links sin tocar el vidrio. */
-html[data-glass="liquid"] .site-header .nav-link { text-shadow: 0 0 8px rgba(0, 0, 0, 0.45); }
-html[data-glass="liquid"] .site-header[data-theme="light"] .nav-link { text-shadow: 0 0 8px rgba(255, 255, 255, 0.85); }
+html[data-glass="liquid"] .site-header { --hdr-tint: rgba(255, 255, 255, 0.04); }
+html[data-glass="liquid"] .site-header[data-theme="light"] { --hdr-tint: rgba(255, 255, 255, 0.10); }
+/* Sin blur el contenido de abajo se ve nítido y deformado: un halo del color opuesto sostiene el contraste. */
+html[data-glass="liquid"] .site-header .nav-link { text-shadow: 0 0 3px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.8), 0 0 22px rgba(0, 0, 0, 0.6); }
+html[data-glass="liquid"] .site-header[data-theme="light"] .nav-link { text-shadow: 0 0 3px #fff, 0 0 6px #fff, 0 0 12px rgba(255, 255, 255, 0.95), 0 0 22px rgba(255, 255, 255, 0.8); }
+/* Densidad por bloque (data-header-density en la sección que está bajo el header, la pone js/main.js):
+   "tint" = velo de color (oscuro 0.22 / claro 0.28) para fondos con texto o fotos debajo. */
+html[data-glass="liquid"] .site-header[data-density="tint"] { --hdr-tint: rgba(6, 6, 20, 0.35); }
+html[data-glass="liquid"] .site-header[data-density="tint"][data-theme="light"] { --hdr-tint: rgba(255, 255, 255, 0.35); }
+/* "busy" = velo + blur(2px): solo donde el velo no alcanza (texto grande o fotos pasando bajo el header). */
+html[data-glass="liquid"] .site-header[data-density="busy"] { --hdr-tint: rgba(6, 6, 20, 0.35); }
+html[data-glass="liquid"] .site-header[data-density="busy"][data-theme="light"] { --hdr-tint: rgba(255, 255, 255, 0.35); }
+/* .is-busy (nivel "heavy", solo Home: Hero, Categorías, Sucursales): velo 0,45 + blur(6px). El blur vive en ::after
+   y entra por opacidad (200ms) porque un filtro con url() no se puede interpolar. */
+html[data-glass="liquid"] .site-header.is-busy { --hdr-tint: rgba(6, 6, 20, 0.45); }
+html[data-glass="liquid"] .site-header.is-busy[data-theme="light"] { --hdr-tint: rgba(255, 255, 255, 0.45); }
+html[data-glass="liquid"] .site-header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--header-radius);
+  pointer-events: none;
+  opacity: 0;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity 200ms;
+}
+html[data-glass="liquid"] .site-header.is-busy::after { opacity: 1; }
+html[data-glass="liquid"] .site-header[data-density="busy"]::before {
+  backdrop-filter: url(#lg-refract) blur(2px) saturate(1.3) brightness(1.04);
+  -webkit-backdrop-filter: url(#lg-refract) blur(2px) saturate(1.3) brightness(1.04);
+}
+/* Vidrio de iPhone: sin borde ni brillo interior, sin blur; solo refracción + sombra externa que lo eleva */
 html[data-glass="liquid"] .site-header::before {
-  backdrop-filter: url(#lg-refract) blur(1px) saturate(1.5) brightness(1.06);
-  -webkit-backdrop-filter: url(#lg-refract) blur(1px) saturate(1.5) brightness(1.06);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.55),
-    inset -1px -1px 0 rgba(255, 255, 255, 0.2),
-    0 8px 32px rgba(0, 0, 0, 0.18);
+  backdrop-filter: url(#lg-refract) saturate(1.3) brightness(1.04);
+  -webkit-backdrop-filter: url(#lg-refract) saturate(1.3) brightness(1.04);
+  border: 0;
+  box-shadow: var(--hdr-shadow);
 }
 
 .site-header .header-inner {
@@ -522,23 +547,24 @@ html.nav-open .site-header .logo img { filter: none; }
   display: flex;
   flex-direction: column;
   min-width: 0;
-  min-height: 375px;               /* ~4:5 sobre 300px de ancho; crece si el nombre ocupa 2 líneas */
+  width: 100%;
+  height: 440px;                   /* alto fijo: todas las cards miden igual (Home y Catálogo) */
   padding: 24px;
   border-radius: var(--radius-product);
   background: var(--white);
   color: var(--fg);
   box-shadow: var(--shadow-card);
   cursor: pointer;
-  transition: box-shadow 150ms;
+  transition: box-shadow 200ms, transform 200ms;
   transform-style: preserve-3d;
 }
-/* Hover y foco: aro azul de 2px por box-shadow (no cambia el layout) */
-.product-card:hover,
-.product-card:focus-within {
-  box-shadow: 0 0 0 2px var(--blue), var(--shadow-card-hover);
+/* Hover (mouse): sombra más intensa, difusa y completa; sin aro. Teclado: outline de 2px solo con :focus-visible */
+.product-card:hover { box-shadow: var(--shadow-card-hover); }
+.product-card:has(:focus-visible) { outline: 2px solid var(--blue); outline-offset: 3px; }
+.product-card:hover .btn-primary { background: var(--blue-hover); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  body:not([data-page="home"]) .product-card:hover { transform: translateY(-2px); }
 }
-.product-card:hover .btn-primary,
-.product-card:focus-within .btn-primary { background: var(--blue-hover); }
 .product-card a:focus-visible { outline: none; }
 
 .product-card-head { display: flex; flex-direction: column; gap: 2px; }
@@ -574,7 +600,7 @@ html.nav-open .site-header .logo img { filter: none; }
 .product-card-media {
   position: relative;
   flex: 1 1 auto;
-  min-height: 170px;
+  min-height: 0;
   margin: 4px 0;
 }
 .product-card-media::after {
@@ -671,15 +697,15 @@ html.nav-open .site-header .logo img { filter: none; }
 .tilt-glare {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: -1;                 /* sobre el fondo de la card, bajo foto, texto y botón */
   border-radius: inherit;
   pointer-events: none;
   opacity: 0;
-  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, 0.55) 0%, transparent 60%);
+  background: radial-gradient(circle closest-side at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, 0.9) 0%, transparent 45%);
   mix-blend-mode: soft-light;
   transition: opacity 150ms;
 }
-.is-tilt-hover > .tilt-glare { opacity: 1; }
+.is-tilt-hover > .tilt-glare { opacity: 0.35; }
 
 /* ==========================================================================
    CATÁLOGO DESTACADO (Home) — carrusel horizontal nativo
@@ -690,8 +716,8 @@ html.nav-open .site-header .logo img { filter: none; }
   --row-pad: max(var(--space-gutter), calc((100vw - var(--container-max)) / 2 + var(--space-gutter)));
   display: flex;
   gap: 24px;
-  padding: 8px var(--row-pad) 32px;
-  margin-bottom: -16px;
+  padding: 24px var(--row-pad) 56px;   /* aire arriba y abajo para que overflow no recorte la sombra */
+  margin-block: -16px -40px;           /* compensa el padding: el layout no cambia */
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-padding-inline: var(--row-pad);
@@ -699,7 +725,7 @@ html.nav-open .site-header .logo img { filter: none; }
   -webkit-overflow-scrolling: touch;
   cursor: grab;
   /* altura reservada: las cards se inyectan por JS y no deben empujar lo de abajo (CLS) */
-  min-height: 440px;
+  min-height: 520px;
 }
 .catalog-cards-row::-webkit-scrollbar { display: none; }
 .catalog-cards-row.is-dragging { scroll-snap-type: none; cursor: grabbing; user-select: none; }
@@ -712,7 +738,7 @@ html.nav-open .site-header .logo img { filter: none; }
   /* card al 82%: se ve el borde de la siguiente */
   .catalog-cards-row { gap: 16px; }
   .catalog-cards-row .product-card,
-  .catalog-cards-row .catalog-end-card { flex-basis: 82vw; }
+  .catalog-cards-row .catalog-end-card { flex-basis: min(300px, 82vw); }
   .catalog-arrows { display: none; }
 }
 
@@ -799,8 +825,9 @@ html.nav-open .site-header .logo img { filter: none; }
 .catalog-error a { color: var(--fg); text-decoration: underline; }
 
 /* ---- Accesos rápidos por categoría: tiles asimétricos con foto.
-   Sin sombra ni borde (la card con sombra queda solo para producto). ---- */
+   Sombra suave en reposo y más intensa en hover (mismo criterio que las cards). ---- */
 .category-grid {
+  padding-bottom: 8px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: 168px;
@@ -841,8 +868,8 @@ html.nav-open .site-header .logo img { filter: none; }
 }
 .category-tile:hover { background: #ECECEF; }
 .category-tile { box-shadow: var(--shadow-card); transform-style: preserve-3d; }
-.category-tile:hover,
-.category-tile:focus-visible { box-shadow: var(--shadow-card-hover); }
+.category-tile:hover { box-shadow: var(--shadow-card-hover); }
+.category-tile:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
 .category-tile:hover h3 { color: var(--accent); }
 .category-tile--iphone,
 .category-tile--mac { grid-column: span 2; }
@@ -940,17 +967,17 @@ html.nav-open .site-header .logo img { filter: none; }
 
 .catalog-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
-  padding-top: var(--space-block);
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 300px));
+  grid-auto-rows: auto;
+  justify-content: start;
+  align-content: start;
+  gap: 32px 24px;
+  padding: var(--space-block) 0 24px;   /* aire para que la sombra no quede pegada al borde */
 }
-@media (min-width: 560px)  { .catalog-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 900px)  { .catalog-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 1200px) { .catalog-grid { grid-template-columns: repeat(4, 1fr); } }
-/* Pocas cards (Mac / iPad a pedido): ancho de card normal, sin estirarse */
-.catalog-grid-full { min-height: 80vh; }
-.catalog-grid--few { display: flex; flex-wrap: wrap; padding-top: 0; }
-.catalog-grid--few .product-card { flex: 0 1 320px; }
+/* Alto mínimo en el contenedor padre (no en la grilla): una card sola no se estira y el footer no sube */
+.catalog-main { min-height: 80vh; }
+/* Pocas cards (Mac / iPad a pedido): mismo tamaño de card, sin estirarse */
+.catalog-grid--few { padding-top: 0; }
 
 .catalog-empty { padding: var(--space-block) 0; text-align: center; }
 .catalog-empty p { margin-bottom: 24px; color: var(--fg); }
@@ -1031,31 +1058,29 @@ html.nav-open .site-header .logo img { filter: none; }
 /* ==========================================================================
    PLAN CANJE
    ========================================================================== */
-.canje-steps { margin: 28px 0 32px; display: flex; flex-direction: column; gap: 12px; counter-reset: paso; }
-.canje-steps li {
+/* Home: encabezado centrado, 3 tarjetas parejas y franja de acción */
+.canje-grid { display: grid; grid-template-columns: 1fr; grid-auto-rows: 1fr; gap: 16px; }
+.canje-card {
   position: relative;
-  padding-left: 56px;
-  counter-increment: paso;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 28px;
+  border-radius: var(--radius-product);
+  background: var(--white);
+  box-shadow: var(--shadow-card);
 }
-.canje-steps li::before {
-  content: counter(paso, decimal-leading-zero);
-  position: absolute;
-  left: 0; top: 0;
-  font-size: var(--fs-h3);
-  font-weight: var(--fw-title);
-  line-height: 1.25;
-  color: var(--accent);
+.canje-card-icon { display: inline-flex; width: 48px; height: 48px; margin-bottom: 24px; color: var(--blue-on-light); }
+.canje-card-icon svg { width: 100%; height: 100%; }
+.canje-card-num { position: absolute; top: 28px; right: 28px; font-size: var(--fs-h3); font-weight: var(--fw-title); line-height: 1; color: var(--blue-on-light); }
+.canje-card h3 { font-size: var(--fs-body); letter-spacing: 0; line-height: 1.4; margin-bottom: 8px; }
+.canje-card p { font-size: var(--fs-small); line-height: 1.5; color: var(--text-2); }
+.canje-actions { display: flex; flex-direction: column; gap: 12px; align-items: stretch; margin-top: var(--space-block); }
+.canje-legal { margin: 20px auto 0; max-width: 56ch; text-align: center; font-size: 13px; line-height: 1.5; color: var(--text-2); }
+@media (min-width: 768px) {
+  .canje-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .canje-actions { flex-direction: row; justify-content: center; }
 }
-.canje-steps h3 { font-size: var(--fs-body); letter-spacing: 0; line-height: 1.6; }
-
-.canje-steps li p { margin-top: 2px; font-size: var(--fs-small); line-height: 1.5; }
-.canje-visual { margin: 0; text-align: center; }
-.canje-visual-pair { display: flex; align-items: center; justify-content: center; gap: 4%; }
-.canje-visual-pair img { width: 40%; height: auto; }
-.canje-visual-old { opacity: 0.8; transform: scale(0.9); }
-.canje-visual-new { width: 50%; }
-.canje-visual-arrow { flex: 0 0 auto; width: 40px; height: 20px; color: var(--accent); }
-.canje-visual figcaption { margin-top: 16px; font-size: var(--fs-small); color: var(--fg-2); }
+#plan-canje .section-head .lede { margin: 16px auto 0; max-width: 48ch; }
 
 /* Plan Canje (página): 3 pasos en columnas */
 .steps-grid { display: grid; grid-template-columns: 1fr; gap: 32px; }
@@ -1465,12 +1490,9 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .calc-acciones { margin-top: 24px; }
 .calc-acciones .btn { width: 100%; }
 
-.canje-calc-link { margin-left: 16px; }
-
 @media (max-width: 599px) {
   .calc-card { padding: 20px; }
   .calc-escalon .btn { align-self: stretch; }
-  .canje-calc-link { display: flex; margin: 8px 0 0; }
 }
 
 /* ==========================================================================
@@ -1682,4 +1704,115 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
 }
 @media (max-width: 759px) {
   .product-dialog { width: calc(100% - 16px); }
+}
+
+/* ==========================================================================
+   OPINIONES (Home) — encabezado con promedios, ventanas con fotos que siguen al mouse
+   (js/main.js → initOpiniones) y carrusel de reseñas. Capas: ventanas (0) < contenido (1).
+   ========================================================================== */
+.opiniones { overflow: hidden; }
+.opiniones-head, .opiniones-strip, .opiniones-row { position: relative; z-index: 1; }
+.opiniones-score { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 24px; }
+.opiniones-score a {
+  display: inline-block;
+  min-height: 44px;
+  padding: 10px 20px;
+  text-align: center;
+  line-height: 1.4;
+  border-radius: 999px;
+  background: var(--white);
+  box-shadow: var(--shadow-card);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--fg);
+  transition: box-shadow 200ms;
+}
+.opiniones-score a:hover { box-shadow: var(--shadow-card-hover); }
+.opiniones-score .estrella { color: #F5A524; }
+.opiniones-legend { margin-top: 12px; font-size: 13px; color: var(--fg-2); }
+
+/* Reseñas: carrusel nativo con snap; mismo ancho que las cards del catálogo */
+.opiniones-row {
+  --row-pad: max(var(--space-gutter), calc((100vw - var(--container-max)) / 2 + var(--space-gutter)));
+  display: flex;
+  gap: 24px;
+  padding: 24px var(--row-pad) 56px;   /* aire para que overflow no recorte la sombra */
+  margin-bottom: -40px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--row-pad);
+  scrollbar-width: none;
+}
+.opiniones-row::-webkit-scrollbar { display: none; }
+.opinion-card {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 28px;
+  border-radius: var(--radius-product);
+  background: var(--white);
+  box-shadow: var(--shadow-card);
+  scroll-snap-align: start;
+}
+.opinion-card blockquote { flex: 1 1 auto; margin: 0; font-size: var(--fs-body); line-height: 1.5; color: var(--fg); white-space: pre-line; }
+.opinion-card-autor { display: flex; align-items: center; gap: 12px; }
+.opinion-card-inicial {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-weight: 600;
+  color: var(--accent);
+}
+.opinion-card-datos { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.opinion-card-datos strong { font-size: var(--fs-small); }
+.opinion-card-datos span { font-size: 13px; color: var(--fg-2); }
+.opinion-card-datos .opinion-card-badge {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-2);
+}
+@media (max-width: 699px) {
+  .opiniones-row { gap: 16px; }
+  .opinion-card { flex-basis: min(300px, 82vw); }
+}
+
+/* Tira estática de 6 ventanas (táctil / sin mouse fino / reduced-motion): 3x2 en móvil, 1x6 desde 700px */
+.opiniones-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 520px;
+  margin: 0 auto 8px;
+}
+.opiniones-strip li { aspect-ratio: 1; overflow: hidden; border-radius: 6px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+.opiniones-strip img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (min-width: 700px) { .opiniones-strip { grid-template-columns: repeat(6, 1fr); max-width: 760px; } }
+
+/* Efecto de ventanas: solo con mouse fino y sin reduced-motion (la tira desaparece y lo reemplaza la capa) */
+.opiniones-fx { display: none; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .opiniones-strip { display: none; }
+  .opiniones-fx { display: block; position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .opiniones-fx .fx-cell {
+    position: absolute;
+    left: 0; top: 0;
+    overflow: hidden;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    opacity: 0;
+    scale: 0.9;
+    transition: opacity var(--fx-out, 700ms) ease, scale var(--fx-out, 700ms) ease;
+  }
+  .opiniones-fx .fx-cell.is-on { will-change: opacity, scale; }
+  .opiniones-fx .fx-cell.is-in { opacity: 1; scale: 1; transition: opacity var(--fx-in, 200ms) ease-out, scale var(--fx-in, 200ms) ease-out; }
+  .opiniones-fx .fx-cell img { display: block; width: 100%; height: 100%; object-fit: cover; }
 }

@@ -4,11 +4,14 @@ const GLASS_LIQUID_ENABLED = true;
 /* Parámetros de la refracción (un solo lugar para ajustarlos). Escala = cuánto desplaza cada canal
    el filtro SVG (desplazamiento máx. ≈ escala / 2 px); la diferencia entre canales da las franjas
    rojo/azul. Bisel = ancho en px de la franja del borde donde se curva la "lente". */
-const LG = { escalaR: 48, escalaG: 42, escalaB: 36, bisel: 28, desenfoque: 0.6 };
+const LG = { escalaR: 70, escalaG: 66, escalaB: 62, bisel: 30 };
 
 /* Efecto 3D de las cards: inclinación máxima (grados) y paralaje de la imagen (px). */
 const TILT_MAX = 6;
 const TILT_PARALLAX = 8;
+
+/* Opiniones: ventanas con fotos que siguen al mouse. Tiempos en ms; celdas en px. */
+const OPINIONES_FX = { celda: 140, celdaTablet: 90, anchoTablet: 1100, maxVisibles: 10, entradaMs: 200, retencionMs: 900, salidaMs: 700, fotos: 6 };
 
 document.addEventListener("DOMContentLoaded", () => {
   /* ============================================================
@@ -122,7 +125,13 @@ document.addEventListener("DOMContentLoaded", () => {
       cruzan.forEach((s) => {
         if (!elegida || (elegida.compareDocumentPosition(s) & Node.DOCUMENT_POSITION_FOLLOWING)) elegida = s;
       });
-      if (elegida) header.dataset.theme = elegida.dataset.headerTheme;
+      if (elegida) {
+        header.dataset.theme = elegida.dataset.headerTheme;
+        // densidad del vidrio del bloque que está debajo: "" (limpio) | "tint" (velo) | "busy" (velo + blur 2px) | "heavy" (.is-busy: velo 0,45 + blur 6px)
+        const dens = elegida.dataset.headerDensity || "";
+        header.dataset.density = dens === "heavy" ? "busy" : dens;
+        header.classList.toggle("is-busy", dens === "heavy");
+      }
     };
     const observar = () => {
       if (observer) observer.disconnect();
@@ -244,8 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       filtro.append(
         nodo("feBlend", { in: "cR", in2: "cG", mode: "screen", result: "rg" }),
-        nodo("feBlend", { in: "rg", in2: "cB", mode: "screen", result: "rgb" }),
-        nodo("feGaussianBlur", { in: "rgb", stdDeviation: String(LG.desenfoque) })
+        nodo("feBlend", { in: "rg", in2: "cB", mode: "screen", result: "rgb" })
       );
       svg.append(filtro);
       document.body.prepend(svg);
@@ -293,7 +301,8 @@ document.addEventListener("DOMContentLoaded", () => {
      por teclado (el aro de foco no se inclina).
      ============================================================ */
   function initCardTilt() {
-    const contenedores = document.querySelectorAll(".catalog-cards-row, .catalog-grid-full, .catalog-grid--few, .category-grid");
+    if (document.body.dataset.page !== "home") return; // el 3D es solo del Home
+    const contenedores = document.querySelectorAll(".catalog-cards-row, .category-grid");
     if (!contenedores.length) return;
     const SEL = ".product-card, .category-tile";
     const TAU = 55; // ms: constante de suavizado (≈ 250 ms hasta asentarse)
@@ -309,10 +318,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const estadoDe = (card) => {
       let s = estados.get(card);
       if (!s) {
-        const glare = document.createElement("span");
-        glare.className = "tilt-glare";
-        glare.setAttribute("aria-hidden", "true");
-        card.append(glare);
+        // un solo brillo por card, reutilizado: limpiar() nunca lo borra ni se vuelve a crear
+        if (!card.querySelector(":scope > .tilt-glare")) {
+          const glare = document.createElement("span");
+          glare.className = "tilt-glare";
+          glare.setAttribute("aria-hidden", "true");
+          card.append(glare);
+        }
         s = { rx: 0, ry: 0, sc: 1, px: 0, py: 0, gx: 50, gy: 50, trx: 0, try_: 0, tsc: 1, tpx: 0, tpy: 0, tgx: 50, tgy: 50 };
         estados.set(card, s);
       }
@@ -1249,4 +1261,154 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   initCalculadora();
+  /* ============================================================
+     OPINIONES — reseñas de Google Maps (js/reviews-data.js) en tarjetas propias, sin estrellas por
+     reseña (solo el promedio de cada sucursal). Con mouse fino y sin reduced-motion, una capa de
+     ventanas cuadradas detrás del contenido revela fotos de clientes bajo el cursor: un solo
+     pointermove en la sección (throttle con rAF), pool fijo de OPINIONES_FX.maxVisibles nodos
+     reutilizados, activo solo mientras la sección está en pantalla (IntersectionObserver). Sin
+     scroll listeners. Sin ese entorno queda la tira estática del HTML.
+     ============================================================ */
+  function initOpiniones() {
+    const sec = document.getElementById("opiniones");
+    if (!sec || typeof SUCURSALES_RESENAS === "undefined") return;
+    const mk = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+    const coma = (n) => String(n).replace(".", ",");
+
+    // --- encabezado: promedio y cantidad por sucursal ---
+    const corto = { dorrego: "Dorrego", lomas: "Complejo Lomas" };
+    const score = sec.querySelector(".opiniones-score");
+    SUCURSALES_RESENAS.forEach((suc, i) => {
+      const a = mk("a");
+      a.href = suc.mapsUrl; a.target = "_blank"; a.rel = "noopener";
+      a.append(mk("span", "", coma(suc.promedio) + " "), mk("span", "estrella", "★ "),
+        mk("span", "", "· " + suc.cantidad + " reseñas" + (i === 0 ? " en Google Maps" : "") + " — " + (corto[suc.id] || suc.nombre)));
+      score.append(a);
+    });
+    sec.querySelector(".opiniones-legend").textContent = "Datos de Google Maps, " + (typeof RESENAS_ACTUALIZADO !== "undefined" ? RESENAS_ACTUALIZADO : "");
+
+    // --- tarjetas (intercaladas entre sucursales) ---
+    const row = sec.querySelector(".opiniones-row");
+    const listas = SUCURSALES_RESENAS.map((s) => s.resenas.map((r) => ({ r, s })));
+    const n = Math.max(...listas.map((l) => l.length));
+    for (let k = 0; k < n; k++) {
+      listas.forEach((l) => {
+        if (!l[k]) return;
+        const { r, s } = l[k];
+        const card = mk("article", "opinion-card");
+        const datos = mk("div", "opinion-card-datos");
+        datos.append(mk("strong", "", r.autor), mk("span", "", s.nombre));
+        if (r.localGuide) datos.append(mk("span", "opinion-card-badge", "Local Guide"));
+        const autor = mk("div", "opinion-card-autor");
+        autor.append(mk("span", "opinion-card-inicial", r.autor.charAt(0)), datos);
+        card.append(mk("blockquote", "", r.texto), autor);
+        row.append(card);
+      });
+    }
+    sec.hidden = false;
+
+    // --- ventanas con fotos (solo mouse fino, sin reduced-motion) ---
+    const fxOk = window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const capa = sec.querySelector(".opiniones-fx");
+    if (!fxOk || !capa || !("IntersectionObserver" in window)) return;
+
+    const FX = OPINIONES_FX;
+    capa.style.setProperty("--fx-in", FX.entradaMs + "ms");
+    capa.style.setProperty("--fx-out", FX.salidaMs + "ms");
+    let pool = null;            // [{ el, img, key, t, fase: 0 libre | 1 visible | 2 apagándose }]
+    const ocupadas = new Map(); // "col,fila" → celda
+    let foto = Math.floor(Math.random() * FX.fotos);
+    let activa = false, raf = 0, ptr = null, ultimaKey = "";
+    let rect = null, lado = FX.celda;
+
+    const montarPool = () => {
+      pool = [];
+      for (let i = 0; i < FX.maxVisibles; i++) {
+        const el = mk("div", "fx-cell");
+        const img = new Image();
+        img.alt = ""; img.loading = "lazy"; img.decoding = "async";
+        el.append(img);
+        capa.append(el);
+        pool.push({ el, img, key: "", t: 0, fase: 0 });
+      }
+      for (let i = 1; i <= FX.fotos; i++) { const p = new Image(); p.src = "assets/img/clientes/cliente-" + i + ".webp"; } // calienta la caché
+    };
+    const liberar = (c) => {
+      c.el.classList.remove("is-in", "is-on");
+      ocupadas.delete(c.key);
+      c.key = ""; c.fase = 0;
+    };
+    const celdaLibre = () => {
+      let peor = null;
+      for (const c of pool) { if (c.fase === 0) return c; if (!peor || c.t < peor.t) peor = c; }
+      liberar(peor); // todas en uso: se recicla la más vieja
+      return peor;
+    };
+    const tocar = (col, fila, ahora) => {
+      const key = col + "," + fila;
+      let c = ocupadas.get(key);
+      if (c) { // la celda ya existe (visible o apagándose): se refresca con la misma foto
+        c.t = ahora; c.fase = 1; c.el.classList.add("is-in");
+        return;
+      }
+      c = celdaLibre();
+      foto = (foto + 1) % FX.fotos; // rotativo: nunca la misma foto seguida
+      const w = lado - 8;
+      c.el.style.width = c.el.style.height = w + "px";
+      c.el.style.translate = (col * lado + 4) + "px " + (fila * lado + 4) + "px";
+      c.img.src = "assets/img/clientes/cliente-" + (foto + 1) + ".webp";
+      c.img.width = c.img.height = w;
+      c.key = key; c.t = ahora; c.fase = 1;
+      ocupadas.set(key, c);
+      c.el.classList.add("is-on");
+      void c.el.offsetWidth; // fija el estado inicial (opacity 0 / scale .9) antes de entrar
+      c.el.classList.add("is-in");
+    };
+    const tick = (ahora) => {
+      raf = 0;
+      if (!activa) return;
+      if (ptr) {
+        rect = sec.getBoundingClientRect();
+        lado = window.innerWidth < FX.anchoTablet ? FX.celdaTablet : FX.celda;
+        const col = Math.floor((ptr.x - rect.left) / lado);
+        const fila = Math.floor((ptr.y - rect.top) / lado);
+        ptr = null;
+        const key = col + "," + fila;
+        if (col >= 0 && fila >= 0 && key !== ultimaKey) { ultimaKey = key; tocar(col, fila, ahora); }
+      }
+      let vivas = false;
+      for (const c of pool) {
+        if (c.fase === 0) continue;
+        vivas = true;
+        const edad = ahora - c.t;
+        if (c.fase === 1 && edad > FX.retencionMs) { c.fase = 2; c.el.classList.remove("is-in"); }
+        else if (c.fase === 2 && edad > FX.retencionMs + FX.salidaMs) liberar(c);
+      }
+      if (vivas) raf = requestAnimationFrame(tick);
+    };
+    const pedir = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    const mover = (e) => {
+      if (e.pointerType !== "mouse") return;
+      ptr = { x: e.clientX, y: e.clientY };
+      pedir();
+    };
+    const apagarTodo = () => { if (pool) pool.forEach((c) => { if (c.fase) liberar(c); }); ultimaKey = ""; ptr = null; };
+
+    new IntersectionObserver((entradas) => {
+      const dentro = entradas[entradas.length - 1].isIntersecting;
+      if (dentro && !activa) {
+        if (!pool) montarPool();
+        activa = true;
+        sec.addEventListener("pointermove", mover, { passive: true });
+      } else if (!dentro && activa) {
+        activa = false;
+        sec.removeEventListener("pointermove", mover);
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
+        apagarTodo();
+      }
+    }, { threshold: 0 }).observe(sec);
+  }
+  initOpiniones();
+
 });
