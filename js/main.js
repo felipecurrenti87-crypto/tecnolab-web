@@ -20,13 +20,13 @@ const OPINIONES_FX = {
   permanenciaMs: 1200,
   salidaMs: 1600,
   escalaInicial: 0.96,
-  opacidadMax: 0.5,     // opacidad máxima de las fotos
+  opacidadMax: 1,       // opacidad de las fotos (las celdas que tocan texto usan opacidadTexto)
   opacidadTexto: 0.15,  // opacidad máxima de las celdas que tocan texto ([data-foto-evitar])
   margenTexto: 6,       // px de aire alrededor de cada bloque de texto
   resizeDebounceMs: 150,
   recientesSinRepetir: 2
 };
-const FRANJA_SEG_POR_TARJETA = 8; // duración del loop de reseñas = cantidad de tarjetas × este valor (s)
+const FRANJA_SEG_POR_TARJETA = 16; // duración del loop de reseñas = cantidad de tarjetas × este valor (s)
 
 document.addEventListener("DOMContentLoaded", () => {
   /* ============================================================
