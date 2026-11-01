@@ -26,7 +26,17 @@
   --white: #FFFFFF;
 
   /* ---- Escala de superficies (sin saltos de blanco a negro) ---- */
-  --surface-0: #0B0720;   /* oscuro (marino casi negro): hero, "Por qué Tecnolab", cierre y footer */
+  --surface-0: #0B0720;   /* marino casi negro: solo paneles chicos (menú móvil, tarjeta "ver todo"); las secciones oscuras usan .bg-post */
+
+  /* ---- Fondo "posteo": degradé circular azul acero con una luz clara en un borde (clase .bg-post) ---- */
+  --post-pale: #D6E1F0;
+  --post-light: #A9BDDB;
+  --post-mid: #7A96C8;
+  --post-blue: #3F6399;
+  --post-steel: #34558C;
+  --post-deep: #274475;
+  --post-base: #2A4A7E;
+  --post-base-grad: radial-gradient(ellipse 70% 80% at 62% 40%, var(--post-blue) 0%, var(--post-steel) 45%, var(--post-deep) 100%);
   --surface-2: #F5F5F7;   /* gris claro */
   /* blanco (--white) para las secciones .surface-white y dentro de las cards */
   /* blanco puro solo dentro de las cards */
@@ -93,9 +103,43 @@
 /* Superficies: cada una trae su propio set de colores de texto/borde/acento.
    Solo tres fondos, como en Apple: gris claro (la mayor parte del recorrido), blanco y,
    como contraste, el oscuro. Los cambios entre secciones son cortes rectos: sin degradés. */
-.surface-dark  { --bg: var(--surface-0); --fg: var(--text-inv); --fg-2: var(--text-inv-2); --line: rgba(255,255,255,.16); --line-strong: rgba(255,255,255,.5); --accent: var(--blue); background: var(--bg); }
+.surface-dark  { --bg: var(--post-base); --fg: var(--text-inv); --fg-2: var(--text-inv-2); --line: rgba(255,255,255,.16); --line-strong: rgba(255,255,255,.5); --accent: var(--blue); }
 .surface-light { --bg: var(--surface-2); --fg: var(--text); --fg-2: var(--text-2); --line: rgba(0,0,0,.12); --line-strong: rgba(0,0,0,.45); --accent: var(--blue-on-light); background: var(--bg); }
 .surface-white { --bg: var(--white); --fg: var(--text); --fg-2: var(--text-2); --line: rgba(0,0,0,.12); --line-strong: rgba(0,0,0,.45); --accent: var(--blue-on-light); background: var(--bg); }
+
+/* ==========================================================================
+   FONDO "POSTEO" — degradé circular azul acero con una luz clara en un borde o esquina (nunca bajo el contenido).
+   Lo llevan todas las secciones oscuras: base .bg-post + una variante que antepone la luz.
+     a = luz a la izquierda · b = arriba a la derecha · c = abajo al centro (pico blanco: se funde con el footer blanco)
+   Asignación fija por sección: hero del Home = a, #why-tecnolab = b, franja final = c (el footer es blanco, sin degradé); encabezados de página:
+   catálogo = b, nosotros = a, servicio = b, plan canje = a, 404 = a. Solo CSS: sin imágenes, sin fixed, sin animación.
+   Textos sobre este fondo: blanco, secundarios .88, apagados .78; acentos #CDEBFF.
+   ========================================================================== */
+.bg-post {
+  --luz: linear-gradient(transparent, transparent);
+  --fg: #FFFFFF;
+  --fg-2: rgba(255, 255, 255, 0.88);
+  --fg-3: rgba(255, 255, 255, 0.78);
+  --accent: #CDEBFF;
+  --line: rgba(255, 255, 255, 0.22);
+  --line-strong: rgba(255, 255, 255, 0.55);
+  background: var(--luz), var(--post-base-grad), var(--post-base);
+  color: var(--fg);
+}
+.bg-post--a { --luz: radial-gradient(ellipse 24% 100% at 0% 60%, var(--post-pale) 0%, var(--post-light) 24%, rgba(122, 150, 200, 0.45) 55%, rgba(63, 99, 153, 0) 100%); }
+/* b: 28% de ancho (antes 36%) para que la luz no llegue por debajo del último link del menú */
+.bg-post--b { --luz: radial-gradient(ellipse 28% 78% at 100% 0%, var(--post-pale) 0%, var(--post-light) 24%, rgba(122, 150, 200, 0.45) 55%, rgba(63, 99, 153, 0) 100%); }
+.bg-post--c { --luz: linear-gradient(to bottom, rgba(255, 255, 255, 0) calc(100% - var(--space-section) * 1.1), #FFFFFF calc(100% - 6px)), radial-gradient(ellipse 70% 30% at 50% 114%, #FFFFFF 0%, #E4ECF7 14%, #A9BDDB 34%, rgba(122, 150, 200, 0.45) 60%, rgba(63, 99, 153, 0) 100%); }
+/* Móvil: la luz de la variante a pasa al borde inferior (el contenido ocupa todo el ancho); las demás, en su borde con la mitad de radio */
+@media (max-width: 699px) {
+  .bg-post--a { --luz: radial-gradient(ellipse 120% 36% at 50% 112%, var(--post-pale) 0%, var(--post-light) 24%, rgba(122, 150, 200, 0.45) 55%, rgba(63, 99, 153, 0) 100%); }
+  .bg-post--b { --luz: radial-gradient(ellipse 18% 39% at 100% 0%, var(--post-pale) 0%, var(--post-light) 24%, rgba(122, 150, 200, 0.45) 55%, rgba(63, 99, 153, 0) 100%); }
+  .bg-post--c { --luz: linear-gradient(to bottom, rgba(255, 255, 255, 0) calc(100% - var(--space-section) * 1.1), #FFFFFF calc(100% - 6px)), radial-gradient(ellipse 35% 15% at 50% 114%, #FFFFFF 0%, #E4ECF7 14%, #A9BDDB 34%, rgba(122, 150, 200, 0.45) 60%, rgba(63, 99, 153, 0) 100%); }
+}
+/* Botones y números sobre el degradé */
+.bg-post .btn-primary { background: #FFFFFF; color: #0B0720; }
+.bg-post .btn-primary:hover { background: #E8E8ED; }
+.bg-post .stat-number { color: #FFFFFF; }
 
 /* ---- Base ---- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -105,7 +149,7 @@ html {
 }
 body {
   margin: 0;
-  background: var(--surface-0);
+  background: var(--post-base);
   color: var(--fg);
   font-family: var(--font-family);
   font-size: var(--fs-body);
@@ -274,8 +318,7 @@ html.nav-open .site-header {
    que inyecta el JS: refracta lo que pasa por debajo y separa los canales R/G/B en el borde. ---- */
 html[data-glass="liquid"] .site-header { --hdr-tint: rgba(255, 255, 255, 0.04); }
 html[data-glass="liquid"] .site-header[data-theme="light"] { --hdr-tint: rgba(255, 255, 255, 0.10); }
-/* Sin blur el contenido de abajo se ve nítido y deformado: un halo del color opuesto sostiene el contraste. */
-html[data-glass="liquid"] .site-header .nav-link { text-shadow: 0 0 3px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.8), 0 0 22px rgba(0, 0, 0, 0.6); }
+/* Tema claro: un halo blanco sostiene el contraste de las letras oscuras sobre lo que pasa por debajo (en tema oscuro no hay sombra). */
 html[data-glass="liquid"] .site-header[data-theme="light"] .nav-link { text-shadow: 0 0 3px #fff, 0 0 6px #fff, 0 0 12px rgba(255, 255, 255, 0.95), 0 0 22px rgba(255, 255, 255, 0.8); }
 /* Densidad por bloque (data-header-density en la sección que está bajo el header, la pone js/main.js):
    "tint" = velo de color (oscuro 0.22 / claro 0.28) para fondos con texto o fotos debajo. */
@@ -476,7 +519,7 @@ html.nav-open .site-header .logo img { filter: none; }
 .hero-actions,
 .page-hero .btn { margin-top: 32px; }
 
-/* ---- Hero del Home: una columna centrada que ocupa el primer pantallazo, fondo plano. ---- */
+/* ---- Hero del Home: una columna centrada que ocupa el primer pantallazo (fondo: .bg-post). ---- */
 .hero {
   position: relative;
   min-height: 100vh;
@@ -487,7 +530,6 @@ html.nav-open .site-header .logo img { filter: none; }
   justify-content: center;
   text-align: center;
   padding: calc(var(--header-space) + 48px) var(--space-gutter) 96px;
-  background: var(--surface-0);
 }
 .hero-copy { display: flex; flex-direction: column; align-items: center; }
 .hero h1 { max-width: 18ch; }
@@ -499,69 +541,104 @@ html.nav-open .site-header .logo img { filter: none; }
 }
 
 /* ---- Hero del Home (.hero--cristal): logo blanco (con lente de cristal al acercar el mouse, js/hero-glass.js)
-   → etiqueta → titular → texto → botones, centrado en el alto disponible. Solo el cuerpo del hero: el header no se
+   → titular → texto → botones, centrado en el alto disponible. Solo el cuerpo del hero: el header no se
    toca. La 404 sigue usando .hero plano. ---- */
 .hero--cristal {
   justify-content: center;
   gap: 0;
   /* abajo se reserva el espacio del chevron para que el bloque quede centrado en lo que realmente se ve */
   padding: var(--header-space) var(--space-gutter) 72px;
-  /* luz de estudio muy tenue y difusa detrás del logo (máx. 8%) */
-  background:
-    radial-gradient(ellipse 48% 38% at 50% 36%, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 100%),
-    var(--surface-0);
 }
 /* Logo: blanco liso, sin sombras ni brillo. El canvas de la lente se superpone exactamente a la imagen. */
-.hero-logo { position: relative; flex: 0 0 auto; width: min(460px, 62vw); aspect-ratio: 1600 / 796; margin: 0 auto 32px; }
+.hero-logo { position: relative; flex: 0 0 auto; width: min(460px, 62vw); aspect-ratio: 1600 / 796; margin: 0 auto 36px; }
 .hero-logo-img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 /* El canvas se extiende alrededor del logo (lo dimensiona el JS) para que la lente no se corte; el logo queda alineado con la <img> */
 .hero-logo-canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; visibility: hidden; pointer-events: none; } /* sin JS (táctil, reduced-motion) queda dentro del logo; el JS lo agranda al activar la lente */
 .hero-logo.is-lens .hero-logo-canvas { visibility: visible; }
 .hero-logo.is-lens .hero-logo-img { visibility: hidden; }
 
-.hero--cristal .eyebrow,
 .hero--cristal h1,
 .hero--cristal .lede { text-shadow: none; filter: none; }
-.hero--cristal .eyebrow {
-  margin-bottom: 12px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: var(--blue);
-}
+/* Titular en UNA línea desde 760px; debajo, dos líneas balanceadas */
 .hero--cristal h1 {
-  max-width: min(100%, 1240px);
-  font-size: clamp(28px, 3.9vw, 54px);
-  font-weight: 800;
-  line-height: 1.06;
-  text-transform: uppercase;
+  max-width: 340px;
+  margin: 0 auto;
+  font-size: clamp(26px, 7vw, 34px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-align: center;
+  text-transform: none;
+  text-wrap: balance;
   color: #fff;
 }
-.hero--cristal .lede { margin-top: 14px; max-width: 58ch; font-size: 17px; font-weight: 400; color: #86868B; }
-@media (min-width: 1100px) { .hero--cristal .lede { font-size: 18px; } }
-.hero--cristal .lede strong { font-weight: 600; color: #fff; }
-.hero--cristal .hero-actions { margin-top: 26px; gap: 12px; }
+@media (min-width: 760px) {
+  .hero--cristal h1 { max-width: none; font-size: clamp(26px, 3.3vw, 46px); white-space: nowrap; }
+}
+.hero--cristal .hero-copy { padding-inline: max(24px, 5vw); }
+.hero--cristal .lede {
+  max-width: 520px;
+  margin: 16px auto 0;
+  font-size: clamp(16px, 1.3vw, 18px);
+  font-weight: 400;
+  line-height: 1.55;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--fg-2);
+}
+.hero--cristal .hero-actions { margin-top: 32px; flex-direction: row; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; width: auto; }
+.hero--cristal .hero-actions .btn { width: auto; }
 .hero-btn {
-  gap: 10px;
-  min-height: 46px;
-  height: 46px;
-  padding: 0 24px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  height: 48px;
+  min-height: 48px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  color: #fff;
-  font-weight: 600;
-  transition: background 150ms;
+  transition: background 150ms, border-color 150ms, transform 100ms;
 }
-.hero-btn svg { flex: 0 0 auto; width: 20px; height: 20px; }
-.hero-btn:hover { background: rgba(255, 255, 255, 0.12); }
-.hero-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.hero-btn:active { transform: scale(0.98); }
+.hero-btn--primary { padding: 0 28px; border: 0; background: #FFFFFF; color: #0B0720; font-size: 16px; font-weight: 600; }
+.hero-btn--primary:hover { background: #E8E8ED; }
+/* «Ver catálogo»: vidrio líquido como el header, sin borde ni reflejos blancos. Base (Safari, Firefox, móvil, reduced-motion):
+   fondo translúcido + blur simple. En Chromium de escritorio (html[data-glass="liquid"]) js/glass-button.js crea el filtro
+   #lg-refract-btn y se usa refracción en vez de blur. La luz que sigue al mouse (--mx/--my) solo existe con mouse fino. */
+.hero-btn--ghost {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  gap: 8px;
+  padding: 0 24px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 8px 24px rgba(10, 25, 60, 0.30);
+  -webkit-backdrop-filter: blur(8px) saturate(1.4);
+  backdrop-filter: blur(8px) saturate(1.4);
+  color: #fff;
+  font-weight: 500;
+}
+html[data-glass="liquid"] .hero-btn--ghost {
+  -webkit-backdrop-filter: url(#lg-refract-btn) saturate(1.3) brightness(1.04);
+  backdrop-filter: url(#lg-refract-btn) saturate(1.3) brightness(1.04);
+}
+.hero-btn--ghost svg { flex: 0 0 auto; width: 16px; height: 16px; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .hero-btn--ghost::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(circle 60px at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transition: opacity 200ms;
+  }
+  .hero-btn--ghost:hover::before { opacity: 1; }
+}
 @media (max-width: 599px) {
   .hero--cristal { padding-bottom: 60px; }
-  .hero--cristal .hero-actions { width: 100%; gap: 10px; }
   .hero--cristal .hero-scroll { bottom: 8px; }
+}
+@media (max-width: 359px) {
+  .hero--cristal .hero-actions { flex-direction: column; align-items: stretch; width: 100%; }
+  .hero--cristal .hero-actions .btn { width: 100%; }
 }
 
 /* Chevron estático al pie: indica que hay más contenido abajo */
@@ -575,17 +652,16 @@ html.nav-open .site-header .logo img { filter: none; }
   justify-content: center;
   width: 44px;
   height: 44px;
-  color: var(--text-inv-2);
+  color: var(--fg-3);
   transition: color 150ms;
 }
-.hero-scroll:hover { color: var(--blue); }
+.hero-scroll:hover { color: var(--accent); }
 .hero-scroll svg { width: 28px; height: 28px; }
 
 /* ---- Encabezado de página interna ---- */
 .page-hero {
   padding: calc(var(--header-space) + 64px) 0 72px;
   text-align: center;
-  background: var(--surface-0);
 }
 .page-hero h1 { max-width: 20ch; margin: 0 auto; font-size: var(--fs-h2-caps); }
 /* Catálogo: encabezado compacto para que filtros y grilla entren en el primer pantallazo */
@@ -952,6 +1028,8 @@ html.nav-open .site-header .logo img { filter: none; }
    CATÁLOGO (catalogo.html) — barra de filtros + grilla
    ========================================================================== */
 .catalog-page { padding: 0 0 var(--space-section); }
+/* La barra de filtros y la grilla del catálogo son un poco más anchas que el resto: 4 columnas de 280px + 3 huecos de 24px = 1192px */
+.catalog-page .container { max-width: calc(1192px + 2 * var(--space-gutter)); }
 
 /* Barra de filtros en el flujo normal (se desplaza con la página): sin sticky, fondo propio ni línea inferior. */
 .catalog-toolbar { position: static; }
@@ -1017,11 +1095,13 @@ html.nav-open .site-header .logo img { filter: none; }
 
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 300px));
-  grid-auto-rows: auto;
-  justify-content: start;
+  /* auto-fill (no auto-fit): con pocas cards cada una mantiene el ancho de UNA columna y queda a la izquierda.
+     Mínimo de 280px (o un tercio del ancho si es menor, así desde 900px hay al menos 3 columnas); con ≥ 1192px, 4 columnas. */
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, calc((100% - 48px) / 3)), 1fr));
+  grid-auto-rows: 1fr;
+  justify-content: stretch;
   align-content: start;
-  gap: 32px 24px;
+  gap: 24px;
   padding: var(--space-block) 0 24px;   /* aire para que la sombra no quede pegada al borde */
 }
 /* Alto mínimo en el contenedor padre (no en la grilla): una card sola no se estira y el footer no sube */
@@ -1320,20 +1400,24 @@ html.nav-open .site-header .logo img { filter: none; }
    FOOTER
    ========================================================================== */
 .site-footer {
-  background: var(--surface-0);
+  /* Fin de página liso: fondo blanco sólido (la franja final se funde con él, ver .bg-post--c) */
+  --fg: #1D1D1F;
+  --fg-2: #6E6E73;
+  --accent: var(--blue-on-light);
   padding: 64px 0 32px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #FFFFFF;
+  color: var(--fg);
 }
 .footer-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 48px; margin-bottom: 48px; }
 .footer-logo img { height: 46px; width: auto; margin-bottom: 16px; }
-.footer-logo p { max-width: 280px; font-size: var(--fs-small); }
+.footer-logo p { max-width: 280px; font-size: var(--fs-small); color: #6E6E73; }
 .footer-col h3 {
   margin-bottom: 12px;
   font-size: var(--fs-small);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-inv-2);
+  color: #6E6E73;
 }
 .footer-col ul { display: flex; flex-direction: column; }
 .footer-col a {
@@ -1341,19 +1425,21 @@ html.nav-open .site-header .logo img { filter: none; }
   align-items: center;
   min-height: 44px;
   font-size: var(--fs-small);
-  color: var(--text-inv);
+  color: #1D1D1F;
   transition: color 150ms;
 }
-.footer-col a:hover { color: var(--blue); }
+.footer-col a:hover { color: var(--blue-on-light); text-decoration: underline; text-underline-offset: 4px; }
+.footer-col--contacto a { color: var(--blue-on-light); }
+.site-footer a:focus-visible { outline: 2px solid var(--blue-on-light); outline-offset: 3px; }
 .footer-bottom {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 8px 16px;
   padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   font-size: var(--fs-small);
-  color: var(--text-inv-2);
+  color: #6E6E73;
 }
 
 /* ==========================================================================
@@ -1997,3 +2083,6 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
 .branch-map-label .branch-estado[data-abierto="1"]::before { background: #30D158; }
 .branch-map-label .branch-horario { margin: 8px 0 4px; }
 .branch-map-label .branch-tel { color: var(--text-inv); }
+
+/* Foco de teclado sobre el degradé: outline blanco de 2px con offset 3px */
+.bg-post a:focus-visible, .bg-post button:focus-visible, .bg-post .btn:focus-visible, .bg-post [tabindex]:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 3px; }

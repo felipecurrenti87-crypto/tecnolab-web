@@ -9,6 +9,7 @@ index.html  catalogo.html  service.html  plan-canje.html  nosotros.html  404.htm
 css/style.css            Todo el CSS (variables de marca al principio).
 js/main.js               Toda la interacción (menú, catálogo, carrusel, calculadora, opiniones, horarios…).
 js/hero-glass.js         Lente de cristal del logo del hero (WebGL). Solo se descarga con mouse fino (ver index.html).
+js/glass-button.js       Vidrio líquido del botón «Ver catálogo» del hero (solo index.html; filtro propio #lg-refract-btn).
 js/config.js             WhatsApp, URL del sitio y SUCURSALES (dirección, teléfono, horarios).
 js/products-data.js      Catálogo destacado (iPhone, AirPods, Mac).
 js/accesorios-data.js    Accesorios (se suman a la grilla de catalogo.html).
@@ -26,6 +27,23 @@ vercel.json  robots.txt  sitemap.xml
 2. **Dominio**: `siteUrl` en `js/config.js` y el mismo dominio en `canonical` / `og:url` de cada HTML, en `sitemap.xml` y en `robots.txt`.
 3. **Subir `?v=`** (ver abajo) si cambió algún CSS o JS.
 4. Correr las pruebas (ver abajo).
+
+## Fondo de las secciones oscuras (`.bg-post`)
+
+Todas las secciones oscuras usan el degradé circular azul acero de `css/style.css` (tokens `--post-*` en `:root`): clase base `bg-post` +
+una variante que pone la luz clara en un borde: `bg-post--a` (izquierda), `--b` (arriba a la derecha) y `--c` (abajo al centro: su luz llega a
+blanco y se funde con el footer, que es blanco sólido y no lleva degradé). La asignación es fija:
+
+| Sección | Variante |
+| --- | --- |
+| hero de index · hero de nosotros · hero de plan-canje · hero de 404 | a |
+| `#why-tecnolab` · hero de catalogo · hero de service | b |
+| franja final (`.final-cta`) de todas las páginas | c |
+| footer de todas las páginas | sin degradé: fondo blanco, `data-header-theme="light"` |
+
+Dos secciones con degradé nunca van seguidas (y una luz clara nunca toca el borde de otra sección con degradé). Para una sección oscura nueva: `class="... bg-post bg-post--x"` (elegir una variante distinta
+de las vecinas). Sobre este fondo el texto es blanco (secundarios al 88 %, apagados al 78 %) y los acentos `#CDEBFF`; si se mueve o agranda la luz,
+volver a medir el contraste (mínimo 4,5:1 en texto normal, 3:1 en texto grande).
 
 ## Tareas frecuentes
 
@@ -45,6 +63,8 @@ Los textos se copian **tal cual** (sin corregir ni resumir); no se muestran estr
 **Actualizar horarios o teléfono** — `SUCURSALES` en `js/config.js`: `horarios` por día (`lun`…`dom`) con tramos `"HH:MM–HH:MM"`
 (lista vacía = cerrado) y `telefono` (`null` = no se muestra). El «Abierto ahora» se calcula con la hora de Mendoza.
 Los horarios vienen de Google Maps: actualizar a mano si cambian.
+
+**Logo oscuro del footer** — `assets/img/logo-vertical-oscuro.webp` es `_originales/logo-vertical-blanco.png` recoloreado a `#0B0720` (mismo alpha, 400×199). Si cambia el logo, regenerarlo con `sharp` (ver `scripts/optimize-images.js`).
 
 **Imágenes** — `assets/*` se sirve con `Cache-Control: immutable` por un año (`vercel.json`): si se reemplaza una imagen,
 **cambiarle el nombre** (y la referencia). Para convertir fotos nuevas: `cd scripts && npm install && node optimize-images.js`.
