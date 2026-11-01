@@ -1,7 +1,7 @@
 /* ==========================================================================
    TECNOLAB — Sistema de diseño
-   Minimalista, sin animaciones: solo se mantienen la cortina (#why-tecnolab)
-   y el conteo de números (js/main.js). Transiciones: máx. 150ms, sin movimiento.
+   Minimalista. Movimiento solo donde aporta (cortina de #why-tecnolab, conteo de números, loop de reseñas,
+   ventanas de fotos, lente del hero y cards 3D del Home); todo respeta prefers-reduced-motion.
    ========================================================================== */
 
 /* Respaldo con métricas parecidas a Montserrat: evita que el h1 cambie de alto
@@ -21,11 +21,9 @@
   --blue: #04A5FF;
   --blue-hover: #3DBAFF;
   --blue-rgb: 4, 165, 255;
-  --navy: #170D3E;        /* azul marino corporativo (manual de marca) */
   /* #04A5FF sobre #F5F5F7 da 2.46:1: sobre claro el azul de texto/íconos es este (5.24:1) */
   --blue-on-light: #0069B4;
   --white: #FFFFFF;
-  --offwhite: #F5F5F7;
 
   /* ---- Escala de superficies (sin saltos de blanco a negro) ---- */
   --surface-0: #0B0720;   /* oscuro (marino casi negro): hero, "Por qué Tecnolab", cierre y footer */
@@ -41,7 +39,6 @@
 
   /* ---- Tipografía ---- */
   --font-family: 'Montserrat', 'Montserrat Fallback', sans-serif;
-  --fs-h1: clamp(40px, 6vw, 72px);       /* h1 en sentence case (no se usa hoy) */
   --fs-h2: clamp(30px, 4vw, 48px);       /* h2 largos (.title-sentence) y números/títulos de card */
   --fs-h1-caps: clamp(34px, 4.8vw, 60px); /* titulares en mayúsculas: más anchos, un paso menos */
   --fs-h2-caps: clamp(26px, 3.4vw, 40px);
@@ -210,7 +207,6 @@ strong { font-weight: var(--fw-eyebrow); color: var(--fg); }
   color: var(--fg);
 }
 .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-.btn-block { width: 100%; }
 
 .link-arrow {
   display: inline-flex;
@@ -519,7 +515,7 @@ html.nav-open .site-header .logo img { filter: none; }
 .hero-logo { position: relative; flex: 0 0 auto; width: min(460px, 62vw); aspect-ratio: 1600 / 796; margin: 0 auto 32px; }
 .hero-logo-img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 /* El canvas se extiende alrededor del logo (lo dimensiona el JS) para que la lente no se corte; el logo queda alineado con la <img> */
-.hero-logo-canvas { position: absolute; visibility: hidden; pointer-events: none; }
+.hero-logo-canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; visibility: hidden; pointer-events: none; } /* sin JS (táctil, reduced-motion) queda dentro del logo; el JS lo agranda al activar la lente */
 .hero-logo.is-lens .hero-logo-canvas { visibility: visible; }
 .hero-logo.is-lens .hero-logo-img { visibility: hidden; }
 
@@ -801,10 +797,10 @@ html.nav-open .site-header .logo img { filter: none; }
 }
 .catalog-cards-row img { -webkit-user-drag: none; }
 @media (max-width: 699px) {
-  /* card al 82%: se ve el borde de la siguiente */
-  .catalog-cards-row { gap: 16px; }
+  /* card de min(64vw, 260px): se ve el borde de la siguiente */
+  .catalog-cards-row { gap: 12px; }
   .catalog-cards-row .product-card,
-  .catalog-cards-row .catalog-end-card { flex-basis: min(300px, 82vw); }
+  .catalog-cards-row .catalog-end-card { flex-basis: min(64vw, 260px); }
   .catalog-arrows { display: none; }
 }
 
@@ -995,14 +991,9 @@ html.nav-open .site-header .logo img { filter: none; }
 /* Segunda fila de chips (subcategorías de Accesorios) */
 .catalog-subfilters { padding-top: 0; padding-bottom: 10px; }
 .catalog-subtab { min-height: 40px; padding: 0 16px; }
-.catalog-count {
-  margin-right: auto;
-  font-size: var(--fs-small);
-  font-weight: 600;
-  color: var(--fg-2);
-  white-space: nowrap;
-}
+.catalog-subtabs { flex-wrap: wrap; overflow: visible; } /* los chips de Accesorios hacen wrap en todos los anchos: ninguno queda cortado */
 .catalog-filter-search {
+  margin-left: auto;
   flex: 0 1 260px;
   min-height: 44px;
   padding: 0 20px;
@@ -1017,11 +1008,11 @@ html.nav-open .site-header .logo img { filter: none; }
 .catalog-filter-search:focus { border-color: var(--accent); }
 
 @media (max-width: 699px) {
-  /* buscador arriba; pestañas con scroll horizontal debajo */
-  .catalog-toolbar-inner { flex-wrap: wrap; gap: 8px 12px; }
-  .catalog-filter-search { order: -1; flex: 1 1 100%; }
-  .catalog-filter-tabs { flex: 1 1 0; }
-  .catalog-count { margin-right: 0; }
+  /* buscador en su propia fila (ancho completo, 44px); chips con wrap: ninguno queda cortado */
+  .catalog-toolbar-inner { flex-wrap: wrap; gap: 10px 12px; }
+  .catalog-filter-search { order: -1; flex: 1 1 100%; margin-left: 0; height: 44px; min-height: 44px; }
+  .catalog-filter-tabs { flex: 1 1 100%; flex-wrap: wrap; overflow: visible; gap: 8px; }
+  .catalog-filter-tab { min-height: 40px; height: 40px; padding: 0 14px; }
 }
 
 .catalog-grid {
@@ -1041,6 +1032,54 @@ html.nav-open .site-header .logo img { filter: none; }
 .catalog-empty { padding: var(--space-block) 0; text-align: center; }
 .catalog-empty p { margin-bottom: 24px; color: var(--fg); }
 .catalog-note { max-width: 70ch; margin-top: var(--space-block); }
+/* Hasta que el JS rinde las cards la nota queda invisible: así no salta cuando llegan (CLS). */
+.catalog-grid-full:empty ~ .catalog-note { visibility: hidden; }
+
+/* ==========================================================================
+   MÓVIL — grilla del catálogo en 2 columnas (hasta 559px) / 3 columnas (560–899px) y card compacta.
+   La card compacta también la usa el carrusel del Home hasta 699px. Solo CSS: el HTML de la card es el mismo.
+   ========================================================================== */
+@media (max-width: 899px) {
+  .catalog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; justify-content: stretch; align-content: start; gap: 16px; padding-top: 24px; }
+
+  .catalog-grid .product-card { height: auto; min-height: 0; padding: 12px; }
+  .catalog-grid .product-card .product-card-eyebrow,
+  .catalog-grid .product-card .product-card-spec { display: none; }
+  .catalog-grid .product-card .product-card-name { font-size: 15px; font-weight: 600; line-height: 1.25; letter-spacing: 0; }
+  .catalog-grid .product-card .product-card-variant { font-size: 12px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .catalog-grid .product-card .product-card-media { flex: 0 0 auto; aspect-ratio: 1 / 1; min-height: 0; margin: 6px 0; }
+  .catalog-grid .product-card .product-card-media img { object-fit: contain; }
+  .catalog-grid .product-card .color-swatches { margin: 0 0 2px; }
+  .catalog-grid .product-card .product-card-foot { flex-direction: column; align-items: stretch; gap: 8px; margin-top: auto; padding-top: 6px; }
+  .catalog-grid .product-card .product-card-price { flex: 0 0 auto; }
+  .catalog-grid .product-card .product-card-price small { font-size: 11px; }
+  .catalog-grid .product-card .product-card-price strong { font-size: 16px; font-weight: 600; }
+  .catalog-grid .product-card .product-card-price:has(.es-consulta) { display: none; }
+  .catalog-grid .product-card .btn { width: 100%; height: 40px; min-height: 40px; margin-left: 0; padding: 0 12px; font-size: 14px; }
+  .catalog-grid .product-card:active { transform: scale(0.98); }
+}
+@media (max-width: 559px) {
+  .catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .catalog-page .container, #catalogo-mac-ipad .container { padding-left: 16px; padding-right: 16px; }
+}
+@media (max-width: 699px) {
+
+  .catalog-cards-row .product-card { height: auto; min-height: 0; padding: 12px; }
+  .catalog-cards-row .product-card .product-card-eyebrow,
+  .catalog-cards-row .product-card .product-card-spec { display: none; }
+  .catalog-cards-row .product-card .product-card-name { font-size: 15px; font-weight: 600; line-height: 1.25; letter-spacing: 0; }
+  .catalog-cards-row .product-card .product-card-variant { font-size: 12px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .catalog-cards-row .product-card .product-card-media { flex: 0 0 auto; aspect-ratio: 1 / 1; min-height: 0; margin: 6px 0; }
+  .catalog-cards-row .product-card .product-card-media img { object-fit: contain; }
+  .catalog-cards-row .product-card .color-swatches { margin: 0 0 2px; }
+  .catalog-cards-row .product-card .product-card-foot { flex-direction: column; align-items: stretch; gap: 8px; margin-top: auto; padding-top: 6px; }
+  .catalog-cards-row .product-card .product-card-price { flex: 0 0 auto; }
+  .catalog-cards-row .product-card .product-card-price small { font-size: 11px; }
+  .catalog-cards-row .product-card .product-card-price strong { font-size: 16px; font-weight: 600; }
+  .catalog-cards-row .product-card .product-card-price:has(.es-consulta) { display: none; }
+  .catalog-cards-row .product-card .btn { width: 100%; height: 40px; min-height: 40px; margin-left: 0; padding: 0 12px; font-size: 14px; }
+  .catalog-cards-row .product-card:active { transform: scale(0.98); }
+}
 
 /* ==========================================================================
    POR QUÉ TECNOLAB — estadísticas (+ cortina)
@@ -1880,14 +1919,26 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
 }
 
 /* ---- b) Clientes que retiraron su equipo ---- */
-.opiniones { overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+.opiniones { overflow: hidden; display: flex; flex-direction: column; }
 .opiniones-head, .opiniones-strip { position: relative; z-index: 1; }
-.opiniones-head { text-align: center; }
+.opiniones-head { text-align: center; margin-top: auto; margin-bottom: auto; }
 .opiniones-head h2 { max-width: 22ch; margin: 0 auto; }
 .opiniones-head .lede { margin: 16px auto 0; max-width: 52ch; color: var(--fg-2); }
-.opiniones-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 28px; margin-top: 24px; }
-.opiniones-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--fs-btn); font-weight: 600; color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
-.opiniones-links a span { font-weight: 400; color: var(--fg-2); white-space: pre; }
+/* Una sola línea de enlaces, centrada, al pie de toda el área de fotos (y debajo de la tira estática en móvil) */
+.opiniones-resenas {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  margin: 0 auto;
+  padding: 24px 0 28px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+.opiniones-resenas a { display: inline; padding: 8px 0; color: var(--text-2); text-decoration: none; } /* inline: el texto fluye sin huecos; el padding vertical agranda el área táctil */
+.opiniones-resenas a:hover, .opiniones-resenas a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Tira estática de ventanas (táctil / sin mouse fino / reduced-motion): 3 columnas en móvil, 6 desde 700px */
 .opiniones-strip {

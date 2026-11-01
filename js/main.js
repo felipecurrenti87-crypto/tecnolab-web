@@ -733,7 +733,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const ICONO_TELEFONO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.2"></rect><line x1="11" y1="18" x2="13" y2="18"></line></svg>`;
   const ICONO_CAJA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"></path><path d="M3 7.5 12 12l9-4.5M12 12v9"></path></svg>`;
 
-  function renderProductCard(p, eager = false) {
+  // eager: carga inmediata (primera pantalla); alta: además prioridad alta (solo la candidata a LCP)
+  function renderProductCard(p, eager = false, alta = false) {
     const colores = p.colores || [];
     // Un solo color no se ofrece como elección: los puntos de color aparecen desde 2.
     const swatches = colores.length > 1
@@ -761,7 +762,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="product-card-media${colores.length ? "" : " product-card-media--vacio"}">
           ${colores.length
-            ? `<img src="${colores[0].imagen}" alt="${escAttr(esAccesorio ? p.nombre : p.nombre + " color " + colores[0].nombre.toLowerCase())}" width="728" height="666" loading="${eager ? "eager" : "lazy"}"${eager ? " fetchpriority=\"high\"" : ""} decoding="async">`
+            ? `<img src="${colores[0].imagen}" alt="${escAttr(esAccesorio ? p.nombre : p.nombre + " color " + colores[0].nombre.toLowerCase())}" width="728" height="666" loading="${eager ? "eager" : "lazy"}"${alta ? " fetchpriority=\"high\"" : ""} decoding="async">`
             : `<div class="product-card-media-placeholder">${p.categoria === "iPhone" ? ICONO_TELEFONO : ICONO_CAJA}<span>Foto próximamente</span></div>`
           }
         </div>
@@ -803,7 +804,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const endCard = `<a class="catalog-end-card" href="catalogo.html">Ver todo el catálogo
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>`;
     catalogRow.innerHTML = typeof CATALOGO_DESTACADO !== "undefined"
-      ? CATALOGO_DESTACADO.map((p, i) => renderProductCard(p, i < 2)).join("") + endCard
+      ? CATALOGO_DESTACADO.map((p) => renderProductCard(p)).join("") + endCard
       : catalogError;
   }
 
@@ -925,7 +926,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (catalogGrid && typeof CATALOGO_DESTACADO !== "undefined") {
     // El carrusel del Home usa SOLO CATALOGO_DESTACADO; la grilla del catálogo suma los accesorios.
     const productos = [...CATALOGO_DESTACADO, ...expandirAccesorios()];
-    catalogGrid.innerHTML = productos.map((p, i) => renderProductCard(p, i < 4)).join("");
+    catalogGrid.innerHTML = productos.map((p, i) => renderProductCard(p, i < 4, i === 0)).join("");
 
     /* Filtros 100% client-side (solo esconden/muestran las .product-card ya renderizadas):
        - pestañas de categoría generadas desde los datos (nunca hardcodeadas);
@@ -1576,7 +1577,7 @@ document.addEventListener("DOMContentLoaded", () => {
           estado.textContent = ab ? "Abierto ahora" : "Cerrado";
           estado.dataset.abierto = ab ? "1" : "0";
           estado.hidden = false;
-        } catch (err) {
+        } catch {
           estado.hidden = true; // si falla el cálculo, queda solo el horario
         }
       });

@@ -1,5 +1,9 @@
-﻿.DS_Store
+.DS_Store
 .vercel/
 .vercel
 
+# Fotos originales y material pendiente: se quedan en el disco, no se versionan ni se publican (ver .vercelignore)
+_originales/
+
+# Herramientas de desarrollo: scripts/ SÍ se versiona; solo sus dependencias no
 scripts/node_modules/

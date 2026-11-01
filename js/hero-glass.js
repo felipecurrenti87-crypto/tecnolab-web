@@ -211,13 +211,13 @@
       gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, powerPreference: "low-power" });
       if (!gl) { inicializando = false; fallo = true; return; }
       montarGL();
-    } catch (err) { gl = null; inicializando = false; fallo = true; return; }
+    } catch { gl = null; inicializando = false; fallo = true; return; }
     canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); ready = false; if (raf) { cancelAnimationFrame(raf); raf = 0; } wrap.classList.remove("is-lens"); enLente = false; });
-    canvas.addEventListener("webglcontextrestored", () => { try { montarGL(); ajustar(); ready = true; if (dentro) pedir(); } catch (err) { /* queda la imagen */ } });
+    canvas.addEventListener("webglcontextrestored", () => { try { montarGL(); ajustar(); ready = true; if (dentro) pedir(); } catch { /* queda la imagen */ } });
     // la compilación del shader y la subida de la textura van en tareas separadas (sin long tasks)
     const siguiente = (fn) => { if ("requestIdleCallback" in window) requestIdleCallback(fn, { timeout: 300 }); else setTimeout(fn, 30); };
     siguiente(() => {
-      try { ajustar(); } catch (err) { gl = null; inicializando = false; fallo = true; return; }
+      try { ajustar(); } catch { gl = null; inicializando = false; fallo = true; return; }
       document.addEventListener("visibilitychange", () => { if (document.hidden) detener(); });
       new IntersectionObserver((en) => { visible = en[en.length - 1].isIntersecting; if (!visible) detener(); }, { threshold: 0 }).observe(hero);
       let primero = true; // el primer aviso del observer es el estado inicial: ya está ajustado
