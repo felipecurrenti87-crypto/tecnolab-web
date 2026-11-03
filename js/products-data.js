@@ -9,6 +9,47 @@
  *   descripcion: "…"       → un párrafo en el detalle
  *   detalles: ["…", "…"]   → una lista de características reales en el detalle
  * Hoy ningún producto los tiene cargados: se suman cuando haya contenido confirmado.
+ *
+ * Campos OPCIONALES de la ficha completa (REGLA: cada campo y cada sección del detalle se muestran
+ * SOLO si tienen datos reales; nunca se completan con valores de ejemplo):
+ *   condicion: "nuevo" | "usado"     → por defecto "nuevo". Los usados llevan etiqueta «Usado» y «Unidad única»,
+ *                                      y si hay al menos uno aparece el filtro Nuevos / Usados en el catálogo.
+ *   moneda: "USD" | "ARS"            → con precioNum numérico el precio se muestra como «USD 1.250» o «$ 19.800».
+ *                                      Sin moneda o con precioNum null se muestra el texto de "precio" tal cual.
+ *   ficha: [{ rotulo, valor }]         → características (Pantalla, Chip, Cámara, Conectividad…) en «Características»
+ *   garantia: { duracion, cobertura }  → sección «Garantía»
+ *   incluye: ["…"]                     → sección «Qué incluye»
+ *   SOLO USADOS:
+ *   bateria: 91                        → salud de batería, entero 0–100 (se muestra «91%» con barra)
+ *   estado: "Excelente"                → "Excelente" | "Muy bueno" | "Bueno"
+ *   estadoDetalle: "…"                 → texto corto (ej. qué marcas tiene)
+ * Cada unidad usada es UN producto distinto: id único, UNA sola entrada en colores y fotos propias.
+ * Validar después de cargar: node scripts/validar-productos.js
+ *
+ * EJEMPLO (comentado) de un equipo NUEVO con ficha completa:
+ *   {
+ *     id: "iphone-17-pro-natural-256",
+ *     categoria: "iPhone", nombre: "iPhone 17 Pro", variante: "Titanio Natural · 256GB",
+ *     especificacion: "Cámara Pro · Chip A19 Pro",
+ *     precio: "USD 1.250", precioNum: 1250, moneda: "USD",
+ *     ficha: [{ rotulo: "Pantalla", valor: "…" }, { rotulo: "Chip", valor: "…" }],
+ *     garantia: { duracion: "12 meses", cobertura: "…" },
+ *     incluye: ["Cable USB-C", "…"],
+ *     colores: [{ nombre: "Titanio Natural", hex: "#b9b1a6", imagen: "assets/img/…-t.webp" }],
+ *     disponible: true,
+ *   }
+ * EJEMPLO (comentado) de un equipo USADO (una unidad, un producto):
+ *   {
+ *     id: "iphone-15-pro-negro-128-u1",
+ *     condicion: "usado",
+ *     categoria: "iPhone", nombre: "iPhone 15 Pro", variante: "Titanio Negro · 128GB",
+ *     precio: "USD 780", precioNum: 780, moneda: "USD",
+ *     bateria: 91, estado: "Muy bueno", estadoDetalle: "…",
+ *     garantia: { duracion: "3 meses", cobertura: "…" },
+ *     incluye: ["Cable de carga"],
+ *     colores: [{ nombre: "Titanio Negro", hex: "#3a3a3c", imagen: "assets/img/…-t.webp" }],
+ *     disponible: true,
+ *   }
  */
 
 // CONVENCIÓN DE FOTOS: mismo ángulo de cámara para todos los colores de un

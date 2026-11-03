@@ -124,3 +124,44 @@ const ACCESORIOS_CONFIG = { mostrarPrecio: true };
 ```
 
 Con el interruptor en `true`, los accesorios con precio numérico se muestran como `$ 12.700` (los que tienen `null` siguen en "Consultar"). Después, subir el `?v=` de CSS y JS en los seis HTML y publicar.
+
+---
+
+# Fichas completas y equipos usados (catálogo)
+
+Todo se carga en `js/products-data.js`. El detalle del producto solo muestra los campos y las secciones que tienen datos reales: **no se inventa nada ni se cargan productos de ejemplo**. Los campos nuevos son opcionales: un producto sin ellos se ve como siempre. El encabezado del archivo documenta cada campo con un ejemplo comentado de un equipo nuevo y de uno usado.
+
+Después de cargar, siempre:
+
+```bash
+node scripts/validar-productos.js   # errores (cortan) y advertencias (ej. usado sin batería)
+```
+
+## Cargar un equipo NUEVO
+
+1. Foto: WebP con fondo transparente en `assets/img/` con **nombre nuevo** (se cachean un año).
+2. Sumar un bloque en `CATALOGO_DESTACADO` con `id` único (minúsculas y guiones), `categoria`, `nombre`, `variante`, `precio` (texto), `colores` y `disponible: true`.
+3. Precio en dólares: `precioNum: 1250` y `moneda: "USD"` → se muestra **USD 1.250**. Con `moneda: "ARS"` se muestra `$ 1.250.000`. Sin `moneda`, o con `precioNum: null`, se muestra el texto de `precio` tal cual.
+4. Opcionales (cada uno crea su parte del detalle solo si existe):
+   - `ficha: [{ rotulo: "Pantalla", valor: "…" }]` y `especificacion`, `descripcion`, `detalles` → sección **Características**.
+   - `garantia: { duracion, cobertura }` → sección **Garantía**.
+   - `incluye: ["…"]` → sección **Qué incluye**.
+5. La sección **Formas de pago y Plan Canje** aparece siempre. Si se agrega `formasPago: "texto"` en `SITE_CONFIG` (`js/config.js`), se suma ese texto.
+
+## Cargar un equipo USADO
+
+Cada unidad usada es **un producto distinto**: no se agrupan unidades ni colores.
+
+1. Fotos **propias de esa unidad** (no las de catálogo), en `assets/img/` con nombre nuevo.
+2. Bloque nuevo con `id` **único por unidad** (ej. `iphone-15-pro-negro-128-u1`) y `condicion: "usado"`.
+3. `colores` con **una sola** entrada.
+4. Datos del equipo usado:
+   - `bateria`: entero de 0 a 100 (salud de batería en %). Se ve en la card («Usado · Batería 91%») y como barra en «Estado y batería».
+   - `estado`: `"Excelente"`, `"Muy bueno"` o `"Bueno"`.
+   - `estadoDetalle`: texto corto y real (marcas, detalles).
+   - Mismo precio (`precioNum` + `moneda`), `garantia` e `incluye` que un nuevo.
+5. El validador **avisa** si falta `bateria` o `estado`. `bateria`, `estado` y `estadoDetalle` en un equipo nuevo son un error.
+6. Cuando hay al menos un usado, el catálogo muestra solos los chips **Nuevos / Usados** (se combinan con categoría y buscador). Sin usados, los chips no existen.
+7. Al vender la unidad: borrar su bloque (hoy el sitio no oculta los productos por `disponible: false`).
+
+Al terminar: validar, revisar `catalogo.html` y el detalle (también en celular), subir el `?v=` de CSS y JS en los seis HTML y publicar.

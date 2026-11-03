@@ -558,7 +558,8 @@ document.addEventListener("DOMContentLoaded", () => {
      DETALLE DE PRODUCTO — <dialog> modal que se abre al tocar una card (Home y catálogo).
      Todo sale de los datos (products-data.js y, si está cargado, accesorios-data.js): solo se
      muestra lo que existe. showModal da el foco atrapado y el Escape; el fondo cierra con click.
-     URL compartible: #producto={id}. Sin animaciones.
+     URL compartible: #producto={id}. Escritorio sin animaciones; móvil (≤699px): hoja inferior animada.
+     Secciones desplegables (acordeón) solo con datos reales; Plan Canje siempre.
      ============================================================ */
   function initDetalleProducto() {
     const productos = [...(typeof CATALOGO_DESTACADO !== "undefined" ? CATALOGO_DESTACADO : []), ...expandirAccesorios()];
@@ -570,6 +571,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let dialogo = null;
     let producto = null;
     let color = 0;
+    let abiertas = null; // ids de las secciones desplegadas (null = todavía sin decidir para este producto)
 
     const el = (tag, attrs = {}, ...hijos) => {
       const n = document.createElement(tag);
@@ -580,11 +582,86 @@ document.addEventListener("DOMContentLoaded", () => {
     const SVG_CERRAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>';
 
     // Variante con el color activo: «Negro · 256GB» pasa a «Plateado · 256GB» al elegir Plateado
-    const varianteActiva = () => {
-      const cs = producto.colores || [];
-      if (cs.length < 2 || !producto.variante) return producto.variante || "";
-      return producto.variante.includes(cs[0].nombre) ? producto.variante.replace(cs[0].nombre, cs[color].nombre) : producto.variante + " · " + cs[color].nombre;
-    };
+    const varianteActiva = () => varianteDe(producto, color);
+
+    const SVG_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>';
+    const texto = (v) => typeof v === "string" && v.trim() !== "";
+
+    // Secciones con datos reales de un producto (la de Plan Canje se arma aparte: es fija)
+    function seccionesDe(p) {
+      const out = [];
+      const ficha = Array.isArray(p.ficha) ? p.ficha.filter((f) => f && texto(f.rotulo) && texto(f.valor)) : [];
+      const detalles = Array.isArray(p.detalles) ? p.detalles.filter(texto) : [];
+      if (ficha.length || texto(p.especificacion) || texto(p.descripcion) || detalles.length) {
+        out.push({ id: "caracteristicas", titulo: "Características", nodos: [
+          ficha.length ? el("dl", { class: "pd-ficha" }, ficha.map((f) => [el("dt", { text: f.rotulo }), el("dd", { text: f.valor })]).flat()) : null,
+          texto(p.especificacion) ? el("p", { class: "pd-texto", text: p.especificacion }) : null,
+          texto(p.descripcion) ? el("p", { class: "pd-texto", text: p.descripcion }) : null,
+          detalles.length ? el("ul", { class: "pd-lista" }, detalles.map((t) => el("li", { text: t }))) : null
+        ] });
+      }
+      if (esUsado(p)) {
+        const bat = bateriaDe(p);
+        if (bat !== null || texto(p.estado) || texto(p.estadoDetalle)) {
+          out.push({ id: "estado", titulo: "Estado y batería", nodos: [
+            bat !== null ? el("div", { class: "pd-bateria" },
+              el("div", { class: "pd-bateria-fila" }, el("span", { text: "Salud de batería" }), el("strong", { text: bat + "%" })),
+              el("div", { class: "pd-barra", role: "img", "aria-label": "Salud de batería " + bat + "%" }, el("span", { class: "pd-barra-relleno", style: "width:" + bat + "%" }))) : null,
+            texto(p.estado) ? el("p", { class: "pd-texto" }, "Estado: ", el("strong", { text: p.estado })) : null,
+            texto(p.estadoDetalle) ? el("p", { class: "pd-texto", text: p.estadoDetalle }) : null
+          ] });
+        }
+      }
+      const g = p.garantia || {};
+      if (texto(g.duracion) || texto(g.cobertura)) {
+        out.push({ id: "garantia", titulo: "Garantía", nodos: [
+          el("dl", { class: "pd-ficha" }, [
+            texto(g.duracion) ? [el("dt", { text: "Duración" }), el("dd", { text: g.duracion })] : null,
+            texto(g.cobertura) ? [el("dt", { text: "Cobertura" }), el("dd", { text: g.cobertura })] : null
+          ].filter(Boolean).flat())
+        ] });
+      }
+      const incluye = Array.isArray(p.incluye) ? p.incluye.filter(texto) : [];
+      if (incluye.length) out.push({ id: "incluye", titulo: "Qué incluye", nodos: [el("ul", { class: "pd-lista" }, incluye.map((t) => el("li", { text: t })))] });
+      return out;
+    }
+
+    // Contenido fijo de Plan Canje (+ formas de pago solo si SITE_CONFIG.formasPago existe)
+    function nodosPlanCanje() {
+      const pago = typeof SITE_CONFIG !== "undefined" && texto(SITE_CONFIG.formasPago) ? SITE_CONFIG.formasPago : "";
+      return [
+        el("p", { class: "pd-texto" }, "Aceptamos tu equipo como parte de pago. ", el("a", { class: "pd-enlace", href: "plan-canje.html#calculadora", text: "Calculá su valor →" })),
+        pago ? el("p", { class: "pd-texto", text: pago }) : null
+      ];
+    }
+
+    // Bloque «Promo vigente» (solo si alguna promo vigente alcanza al producto)
+    function bloquePromo(p) {
+      const pr = typeof promosDe === "function" ? promosDe(p)[0] : null;
+      if (!pr) return null;
+      const regalos = (pr.regalos || []).filter(Boolean);
+      return el("div", { class: "pd-promo" },
+        el("p", { class: "pd-promo-rotulo", text: "Promo vigente" }),
+        texto(pr.titulo) ? el("p", { class: "pd-promo-titulo", text: pr.titulo }) : null,
+        regalos.length ? el("ul", { class: "pd-lista" }, regalos.map((t) => el("li", { text: t }))) : null,
+        texto(pr.condiciones) ? el("p", { class: "pd-texto", text: pr.condiciones }) : null,
+        pr.fin ? el("p", { class: "pd-texto", text: "Válido hasta " + fechaLegible(pr.fin) }) : null);
+    }
+
+    function acordeon(p) {
+      const secs = seccionesDe(p);
+      if (!secs.length) return el("div", { class: "pd-fila-canje" }, nodosPlanCanje()); // solo la fila fija, sin acordeón
+      secs.push({ id: "canje", titulo: "Formas de pago y Plan Canje", nodos: nodosPlanCanje() });
+      if (abiertas === null) abiertas = new Set([secs[0].id]); // la primera con datos, abierta
+      return el("div", { class: "pd-acordeon" }, secs.map((sec) => {
+        const abierta = abiertas.has(sec.id);
+        const btn = el("button", { type: "button", class: "pd-seccion-btn", id: "pd-btn-" + sec.id, "aria-expanded": String(abierta), "aria-controls": "pd-panel-" + sec.id, "data-sec": sec.id }, el("span", { text: sec.titulo }));
+        btn.insertAdjacentHTML("beforeend", SVG_CHEVRON);
+        const panel = el("div", { class: "pd-panel", id: "pd-panel-" + sec.id, role: "region", "aria-labelledby": "pd-btn-" + sec.id, inert: abierta ? false : "" },
+          el("div", { class: "pd-panel-recorte" }, el("div", { class: "pd-panel-contenido" }, sec.nodos)));
+        return el("div", { class: "pd-seccion" + (abierta ? " is-open" : "") }, el("h3", { class: "pd-seccion-titulo" }, btn), panel);
+      }));
+    }
 
     function pintar() {
       const p = producto;
@@ -602,7 +679,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const info = dialogo.querySelector(".product-dialog-info");
       info.replaceChildren(...[
-        el("span", { class: "product-card-eyebrow" + (p.nuevo === true ? " is-new" : ""), text: p.nuevo === true ? "Nuevo" : p.subcategoria || p.categoria }),
+        esUsado(p)
+          ? el("div", { class: "product-dialog-etiquetas" }, el("span", { class: "pd-etiqueta pd-etiqueta--usado", text: "Usado" }), el("span", { class: "pd-etiqueta", text: "Unidad única" }))
+          : el("span", { class: "product-card-eyebrow" + (p.nuevo === true ? " is-new" : ""), text: p.nuevo === true ? "Nuevo" : p.subcategoria || p.categoria }),
         el("h2", { id: "product-dialog-titulo", class: "title-sentence", text: p.nombre }),
         variante ? el("p", { class: "product-dialog-variante", text: variante }) : null,
         cs.length > 1 ? el("div", { class: "product-dialog-colores" },
@@ -610,13 +689,14 @@ document.addEventListener("DOMContentLoaded", () => {
           el("div", { class: "color-swatches", role: "group", "aria-label": "Colores disponibles" }, cs.map((c, i) =>
             el("button", { type: "button", class: "color-swatch" + (i === color ? " is-active" : ""), style: "--swatch: " + c.hex, "aria-label": c.nombre, "aria-pressed": String(i === color), title: c.nombre, "data-i": String(i) })))) : null,
         el("p", { class: "product-card-price product-dialog-precio" }, pr.desde ? el("small", { text: pr.desde }) : null, el("strong", { text: pr.texto })),
-        p.especificacion ? el("p", { class: "product-dialog-spec", text: p.especificacion }) : null,
-        p.descripcion ? el("p", { class: "product-dialog-descripcion", text: p.descripcion }) : null,
-        Array.isArray(p.detalles) && p.detalles.length ? el("ul", { class: "product-dialog-detalles" }, p.detalles.map((t) => el("li", { text: t }))) : null,
+        bloquePromo(p),
+        acordeon(p),
         el("div", { class: "product-dialog-acciones" },
-          el("a", { class: "btn btn-primary", href: "https://wa.me/" + SITE_CONFIG.whatsappNumber + "?text=" + encodeURIComponent(mensajeProducto(p, variante)), target: "_blank", rel: "noopener", text: "Consultar por WhatsApp" }),
+          el("button", Object.assign({ type: "button", class: "btn btn-primary", "data-add": p.id, "data-c": String(color) }, esUsado(p) ? { "data-usado": "" } : {}), el("span", { class: "add-txt", text: "Agregar a mi pedido" })),
+          el("a", { class: "btn btn-outline", href: "https://wa.me/" + SITE_CONFIG.whatsappNumber + "?text=" + encodeURIComponent(mensajeProducto(p, variante)), target: "_blank", rel: "noopener", text: "Consultar por WhatsApp" }),
           p.categoria === "iPhone" ? el("a", { class: "product-dialog-apple", href: APPLE_COMPARAR, target: "_blank", rel: "noopener noreferrer", text: "Comparar modelos en el sitio de Apple ↗" }) : null)
       ].filter(Boolean)); // replaceChildren convierte null en el texto "null"
+      if (window.Pedido) window.Pedido.marcar(); // el usado que ya está en el pedido muestra «En tu pedido»
     }
 
     function crear() {
@@ -634,6 +714,16 @@ document.addEventListener("DOMContentLoaded", () => {
         color = Number(sw.dataset.i);
         pintar();
         dialogo.querySelector('.color-swatch[aria-pressed="true"]').focus(); // el foco no se pierde al redibujar
+      });
+      dialogo.addEventListener("click", (e) => { // acordeón: varias secciones pueden quedar abiertas
+        const btn = e.target.closest(".pd-seccion-btn");
+        if (!btn) return;
+        const abierta = btn.getAttribute("aria-expanded") !== "true";
+        btn.setAttribute("aria-expanded", String(abierta));
+        const sec = btn.closest(".pd-seccion");
+        sec.classList.toggle("is-open", abierta);
+        sec.querySelector(".pd-panel").inert = !abierta;
+        if (abierta) abiertas.add(btn.dataset.sec); else abiertas.delete(btn.dataset.sec);
       });
       dialogo.addEventListener("close", () => {
         root.classList.remove("dialog-open");
@@ -654,6 +744,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!dialogo) crear();
       producto = p;
       color = 0;
+      abiertas = null;
       pintar();
       if (!dialogo.open) {
         root.style.setProperty("--sbw", (window.innerWidth - root.clientWidth) + "px");
@@ -718,7 +809,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Precio visible de un producto: { desde, texto }. Accesorios: el precio guardado (precioNum) solo se
   // imprime con ACCESORIOS_CONFIG.mostrarPrecio === true; en cualquier otro caso, «Consultar».
+  const fmtNum = (n) => new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(n);
+  // «USD 1.250» / «$ 19.800» si hay moneda y precioNum numérico; si no, el texto de p.precio sin tocarlo.
+  function formatearPrecio(p) {
+    const ok = Number.isFinite(p.precioNum);
+    if (ok && p.moneda === "USD") return "USD " + fmtNum(p.precioNum);
+    if (ok && p.moneda === "ARS") return "$ " + fmtNum(p.precioNum);
+    return p.precio == null ? "Consultar" : String(p.precio);
+  }
+  const esUsado = (p) => p.condicion === "usado";
+  const bateriaDe = (p) => (esUsado(p) && Number.isInteger(p.bateria) && p.bateria >= 0 && p.bateria <= 100 ? p.bateria : null);
+  const ICONO_BATERIA = `<svg class="icono-bateria" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="17" height="10" rx="2.5"></rect><path d="M22 10.5v3"></path></svg>`;
+  // Variante con el color elegido: «Negro · 256GB» pasa a «Plateado · 256GB» al elegir Plateado
+  function varianteDe(p, color) {
+    const cs = p.colores || [];
+    if (cs.length < 2 || !p.variante) return p.variante || "";
+    const c = cs[color] || cs[0];
+    return p.variante.includes(cs[0].nombre) ? p.variante.replace(cs[0].nombre, c.nombre) : p.variante + " · " + c.nombre;
+  }
   function precioDe(p) {
+    if (p.categoria !== "Accesorios" && p.moneda && Number.isFinite(p.precioNum)) return { desde: null, texto: formatearPrecio(p) };
     if (p.categoria === "Accesorios") {
       const visible = typeof ACCESORIOS_CONFIG !== "undefined" && ACCESORIOS_CONFIG.mostrarPrecio === true && Number.isFinite(p.precioNum);
       return { desde: null, texto: visible ? "$ " + new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(p.precioNum) : "Consultar" };
@@ -727,10 +837,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return m ? { desde: m[1], texto: m[2] } : { desde: null, texto: String(p.precio) };
   }
   function mensajeProducto(p, variante) {
-    return p.categoria === "Accesorios" ? "Hola, quiero consultar por " + p.nombre : "Hola, me interesa el " + p.nombre + " · " + variante;
+    if (p.categoria === "Accesorios") return "Hola, quiero consultar por " + p.nombre;
+    const b = bateriaDe(p);
+    return "Hola, me interesa el " + p.nombre + " · " + variante + (esUsado(p) ? " (usado" + (b !== null ? ", batería " + b + "%" : "") + ")" : "");
   }
 
   const ICONO_TELEFONO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.2"></rect><line x1="11" y1="18" x2="13" y2="18"></line></svg>`;
+  const ICONO_REGALO = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1.5"></rect><path d="M12 9v11M2.5 9h19M12 9C9.5 9 8 8 8 6.5S9.5 4 12 9zM12 9c2.5 0 4-1 4-2.5S14.5 4 12 9z"></path></svg>`;
+  const ICONO_MAS = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>`;
   const ICONO_CAJA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"></path><path d="M3 7.5 12 12l9-4.5M12 12v9"></path></svg>`;
 
   // eager: carga inmediata (primera pantalla); alta: además prioridad alta (solo la candidata a LCP)
@@ -743,24 +857,31 @@ document.addEventListener("DOMContentLoaded", () => {
             style="--swatch: ${color.hex}" data-img="${color.imagen}" data-alt="${escAttr(p.nombre + " color " + color.nombre.toLowerCase())}"
             aria-label="${escAttr(color.nombre)}" aria-pressed="${i === 0}" title="${escAttr(color.nombre)}"></button>`).join("")}
         </div>`
-      : "";
+      : `<div class="color-swatches-slot" aria-hidden="true"></div>`; // reserva el alto de los puntos: las fotos de todas las cards miden igual
     const esAccesorio = p.categoria === "Accesorios";
     const pr = precioDe(p);
     // «Consultar» como precio comparte la fila con el botón: va un poco más chico para que quepan en cards angostas
     const price = (pr.desde ? `<small>${pr.desde}</small>` : "") + `<strong${pr.texto === "Consultar" ? ' class="es-consulta"' : ""}>${pr.texto}</strong>`;
+    const usado = esUsado(p);
+    const bat = bateriaDe(p);
+    const promo = typeof promosDe === "function" ? promosDe(p)[0] : null; // promo vigente que alcanza al producto
+    const promoLargo = promo ? (promo.etiqueta || ((promo.regalos || []).length ? "Con regalos" : "")) : "";
+    const promoCorto = promo ? (promo.etiquetaCorta || ((promo.regalos || []).length ? "Con regalos" : promoLargo)) : "";
+    const promoPill = promoLargo
+      ? `<span class="product-card-promo">${ICONO_REGALO}<span class="pp-largo">${promoLargo}</span><span class="pp-corto">${promoCorto}</span></span>` : "";
     const etiquetaTexto = p.subcategoria || p.categoria;
-    const etiqueta = p.nuevo === true ? `<span class="product-card-eyebrow is-new">Nuevo</span>` : `<span class="product-card-eyebrow">${etiquetaTexto}</span>`;
-    const mensajeWa = mensajeProducto(p, p.variante);
+    const etiqueta = usado ? `<span class="product-card-eyebrow is-used">Usado</span>` : p.nuevo === true ? `<span class="product-card-eyebrow is-new">Nuevo</span>` : `<span class="product-card-eyebrow">${etiquetaTexto}</span>`;
     return `
-      <article class="product-card" data-id="${escAttr(p.id)}" data-categoria="${p.categoria}"${p.subcategoria ? ` data-subcategoria="${escAttr(p.subcategoria)}"` : ""} data-busqueda="${escAttr(normalizar([p.nombre, p.subcategoria || "", p.variante || ""].join(" ")))}">
+      <article class="product-card" data-id="${escAttr(p.id)}" data-categoria="${p.categoria}" data-condicion="${usado ? "usado" : "nuevo"}"${p.subcategoria ? ` data-subcategoria="${escAttr(p.subcategoria)}"` : ""} data-busqueda="${escAttr(normalizar([p.nombre, p.subcategoria || "", p.variante || "", usado ? "usado" : ""].join(" ")))}">
         <button type="button" class="product-card-open" aria-haspopup="dialog" aria-label="${escAttr("Ver detalle de " + p.nombre + (p.variante ? ", " + p.variante : ""))}"></button>
         <div class="product-card-head">
           ${etiqueta}
           <h3 class="product-card-name">${p.nombre}</h3>
-          ${p.variante ? `<p class="product-card-variant">${p.variante}</p>` : ""}
-          ${p.especificacion ? `<p class="product-card-spec">${p.especificacion}</p>` : ""}
+          ${p.variante ? `<p class="product-card-variant">${p.variante}</p>` : `<p class="product-card-variant product-card-variant--vacio" aria-hidden="true">&nbsp;</p>`}
         </div>
+        <div class="product-card-promo-slot">${promoPill}</div>
         <div class="product-card-media${colores.length ? "" : " product-card-media--vacio"}">
+          ${usado ? `<span class="product-card-tag">Usado${bat !== null ? " · " + bat + "%" : ""}</span>` : ""}
           ${colores.length
             ? `<img src="${colores[0].imagen}" alt="${escAttr(esAccesorio ? p.nombre : p.nombre + " color " + colores[0].nombre.toLowerCase())}" width="728" height="666" loading="${eager ? "eager" : "lazy"}"${alta ? " fetchpriority=\"high\"" : ""} decoding="async">`
             : `<div class="product-card-media-placeholder">${p.categoria === "iPhone" ? ICONO_TELEFONO : ICONO_CAJA}<span>Foto próximamente</span></div>`
@@ -769,9 +890,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${swatches}
         <div class="product-card-foot">
           <p class="product-card-price"><span class="sr-only">Precio: </span>${price}</p>
-          <a class="btn btn-primary" data-wa="${escAttr(mensajeWa)}"
-             href="https://wa.me/5492614699026"
-             target="_blank" rel="noopener">Consultar</a>
+          <button type="button" class="btn btn-primary product-card-add" data-add="${escAttr(p.id)}"${usado ? " data-usado" : ""}>${ICONO_MAS}<span class="add-txt">Agregar</span></button>
         </div>
       </article>`;
   }
@@ -798,6 +917,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const catalogError = `<p class="catalog-error">No pudimos cargar el catálogo en este momento.
     <a data-wa="Hola, quiero consultar por el catálogo" href="https://wa.me/5492614699026" target="_blank" rel="noopener">Consultanos por WhatsApp</a>.</p>`;
 
+  /* Listados de cards: si alguna lleva cartel de promo TODAS reservan la franja (fotos alineadas); si el texto
+     largo del cartel no cabe se usa la versión corta; el tamaño del precio depende del ancho de la card. */
+  function ajustarListado(cont) {
+    if (!cont) return;
+    const aplicar = () => {
+      const cards = cont.querySelectorAll(".product-card");
+      cont.classList.toggle("has-promos", !!cont.querySelector(".product-card-promo"));
+      cards.forEach((c) => {
+        const w = c.offsetWidth;
+        c.classList.toggle("is-w-md", w >= 220 && w < 280);
+        const pill = c.querySelector(".product-card-promo");
+        if (pill) { pill.classList.remove("is-corto"); if (pill.scrollWidth > pill.clientWidth) pill.classList.add("is-corto"); }
+      });
+    };
+    aplicar();
+    if ("ResizeObserver" in window) { const ro = new ResizeObserver(aplicar); ro.observe(cont); cont.querySelectorAll(".product-card").forEach((c) => ro.observe(c)); } else window.addEventListener("resize", aplicar);
+  }
+
   const catalogRow = document.querySelector(".catalog-cards-row");
   if (catalogRow) {
     // Última "card": lleva al catálogo completo
@@ -806,6 +943,7 @@ document.addEventListener("DOMContentLoaded", () => {
     catalogRow.innerHTML = typeof CATALOGO_DESTACADO !== "undefined"
       ? CATALOGO_DESTACADO.map((p) => renderProductCard(p)).join("") + endCard
       : catalogError;
+    ajustarListado(catalogRow);
   }
 
   /* ============================================================
@@ -871,6 +1009,41 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("resize", updateUI);
     updateUI();
 
+    // Difuminado de bordes (≥700px): --fade-l / --fade-r = F solo si hay contenido a ese lado
+    const wide = window.matchMedia("(min-width: 700px)");
+    let fadeTicking = false;
+    function updateFade() {
+      fadeTicking = false;
+      const f = wide.matches ? (parseFloat(getComputedStyle(row).paddingLeft) || 0) : 0;
+      const hayIzq = f > 0 && row.scrollLeft > 1;
+      const hayDer = f > 0 && row.scrollLeft + row.clientWidth < row.scrollWidth - 1;
+      row.style.setProperty("--fade-l", hayIzq ? f + "px" : "0px");
+      row.style.setProperty("--fade-r", hayDer ? f + "px" : "0px");
+    }
+    function queueFade() {
+      if (fadeTicking) return;
+      fadeTicking = true;
+      requestAnimationFrame(updateFade);
+    }
+    row.addEventListener("scroll", queueFade, { passive: true });
+    if ("ResizeObserver" in window) new ResizeObserver(queueFade).observe(row);
+    else window.addEventListener("resize", queueFade);
+    updateFade();
+
+    // Entrada escalonada, una sola vez (sin movimiento si el usuario lo pidió)
+    if (!reducedMotion && "IntersectionObserver" in window) {
+      [...row.children].forEach((el, i) => el.style.setProperty("--i", Math.min(i, 6)));
+      row.classList.add("is-reveal-pending");
+      const io = new IntersectionObserver((entries) => {
+        if (!entries.some((en) => en.isIntersecting)) return;
+        io.disconnect();
+        row.classList.remove("is-reveal-pending");
+        row.classList.add("is-revealed");
+        setTimeout(() => row.classList.remove("is-revealed"), 1200);
+      }, { threshold: 0.15 });
+      io.observe(row);
+    }
+
     // Flechas: una card por click
     arrows.forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -918,6 +1091,8 @@ document.addEventListener("DOMContentLoaded", () => {
     row.addEventListener("dragstart", (e) => e.preventDefault());
   }
   initCatalogCarousel();
+  // Compartido con js/pedido.js (Mi pedido)
+  window.TL = { expandirAccesorios, variante: varianteDe, bateriaDe };
 
   const catalogGrid = document.querySelector(".catalog-grid-full");
   if (catalogGrid && typeof CATALOGO_DESTACADO === "undefined") {
@@ -927,6 +1102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // El carrusel del Home usa SOLO CATALOGO_DESTACADO; la grilla del catálogo suma los accesorios.
     const productos = [...CATALOGO_DESTACADO, ...expandirAccesorios()];
     catalogGrid.innerHTML = productos.map((p, i) => renderProductCard(p, i < 4, i === 0)).join("");
+    ajustarListado(catalogGrid);
 
     /* Filtros 100% client-side (solo esconden/muestran las .product-card ya renderizadas):
        - pestañas de categoría generadas desde los datos (nunca hardcodeadas);
@@ -959,6 +1135,36 @@ document.addEventListener("DOMContentLoaded", () => {
       subTabs.innerHTML = [btnFiltro("catalog-subtab", "all", "Todas", activeSub === "all"), ...subcategorias.map((s) => btnFiltro("catalog-subtab", s, s, activeSub === s))].join("");
     }
 
+    // Filtro de condición: solo existe si hay al menos un usado cargado (chips Nuevos / Usados, combinables)
+    let activeCond = "all";
+    let condTabs = null;
+    if (filterTabs && productos.some(esUsado)) {
+      condTabs = document.createElement("div");
+      condTabs.className = "catalog-filter-tabs catalog-condtabs";
+      condTabs.setAttribute("role", "group");
+      condTabs.setAttribute("aria-label", "Filtrar por condición");
+      condTabs.innerHTML = btnFiltro("catalog-condtab", "nuevo", "Nuevos", false) + btnFiltro("catalog-condtab", "usado", "Usados", false);
+      filterTabs.after(condTabs);
+      if (/^usados?$/i.test(params.get("cond") || "")) activeCond = "usado";
+      else if (/^nuevos?$/i.test(params.get("cond") || "")) activeCond = "nuevo";
+      condTabs.querySelectorAll(".catalog-filter-tab").forEach((t) => {
+        const on = t.dataset.value === activeCond;
+        t.classList.toggle("is-active", on);
+        t.setAttribute("aria-pressed", String(on));
+      });
+      condTabs.addEventListener("click", (e) => {
+        const btn = e.target.closest(".catalog-filter-tab");
+        if (!btn) return;
+        activeCond = activeCond === btn.dataset.value ? "all" : btn.dataset.value; // volver a tocarlo lo desactiva
+        condTabs.querySelectorAll(".catalog-filter-tab").forEach((t) => {
+          const on = t.dataset.value === activeCond;
+          t.classList.toggle("is-active", on);
+          t.setAttribute("aria-pressed", String(on));
+        });
+        applyCatalogFilter();
+      });
+    }
+
     const applyCatalogFilter = () => {
       const esAccesorios = activeCat === "Accesorios";
       if (subRow) subRow.hidden = !esAccesorios;
@@ -968,7 +1174,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const okCat = activeCat === "all" || card.dataset.categoria === activeCat;
         const okSub = !esAccesorios || activeSub === "all" || card.dataset.subcategoria === activeSub;
         const okQuery = terminos.every((t) => card.dataset.busqueda.includes(t));
-        const show = okCat && okSub && okQuery;
+        const okCond = activeCond === "all" || card.dataset.condicion === activeCond;
+        const show = okCat && okSub && okQuery && okCond;
         card.style.display = show ? "" : "none";
         if (show) visible++;
       });
