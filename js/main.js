@@ -8,7 +8,7 @@ const LG = { escalaR: 70, escalaG: 66, escalaB: 62, bisel: 30 };
 
 /* Efecto 3D de las cards: inclinación máxima (grados) y paralaje de la imagen (px). */
 const TILT_MAX = 6;
-const TILT_PARALLAX = 8;
+const TILT_PARALLAX = 5;
 
 /* Opiniones — franja de reseñas en loop y ventanas con fotos. Tiempos en ms, tamaños en px.
    CLIENTES_FOTOS: para sumar fotos nuevas alcanza con agregar el nombre del archivo (en assets/img/clientes/). */
@@ -942,14 +942,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const aplicar = () => {
       const cards = cont.querySelectorAll(".product-card");
       cont.classList.toggle("has-promos", !!cont.querySelector(".product-card-promo"));
+      cont.classList.toggle("has-swatches", !!cont.querySelector(".color-swatches"));
+      cont.classList.toggle("is-compact", window.matchMedia(cont.classList.contains("catalog-cards-row") ? "(max-width: 699px)" : "(max-width: 899px)").matches);
       cards.forEach((c) => {
         const w = c.offsetWidth;
         c.classList.toggle("is-w-md", w >= 220 && w < 280);
+        const nom = c.querySelector(".product-card-name"); // nombre largo: baja de tamaño de a 1px (mínimo 15px) antes de cortarse
+        if (nom && !cont.classList.contains("is-compact")) {
+          nom.style.fontSize = "";
+          for (let fs = parseFloat(getComputedStyle(nom).fontSize); nom.scrollWidth > nom.clientWidth && fs > 15; fs--) nom.style.fontSize = (fs - 1) + "px";
+        } else if (nom) nom.style.fontSize = "";
         const pill = c.querySelector(".product-card-promo");
         if (pill) { pill.classList.remove("is-corto"); if (pill.scrollWidth > pill.clientWidth) pill.classList.add("is-corto"); }
       });
     };
     aplicar();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(aplicar); // con la tipografía final el nombre puede medir distinto
     if ("ResizeObserver" in window) { const ro = new ResizeObserver(aplicar); ro.observe(cont); cont.querySelectorAll(".product-card").forEach((c) => ro.observe(c)); } else window.addEventListener("resize", aplicar);
   }
 
