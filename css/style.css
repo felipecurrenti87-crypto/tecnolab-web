@@ -508,8 +508,8 @@ html.nav-open .site-header .logo img { filter: none; }
 .wa-fab svg { width: 28px; height: 28px; fill: currentColor; }
 @media (max-width: 899px) {
   .wa-fab { display: inline-flex; }
-  /* aire al final de la página para que el botón no tape el footer */
-  body { padding-bottom: 88px; }
+  /* el aire para que el botón no tape el footer va DENTRO del footer (ver .site-footer): fuera quedaría
+     visible el fondo oscuro del body como una franja azul bajo el footer blanco */
 }
 
 /* ==========================================================================
@@ -1278,26 +1278,19 @@ html[data-glass="liquid"] .hero-btn--ghost {
    ========================================================================== */
 #why-tecnolab .section-head h2 { max-width: 24ch; }
 
-.stat-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 40px 0;
-}
-@media (min-width: 900px) {
-  .stat-row { grid-template-columns: repeat(4, 1fr); }
-  .stat-row--3 { grid-template-columns: repeat(3, 1fr); }
-}
-.stat-block {
-  padding: 0 12px;
-  text-align: center;
-  border-right: 1px solid var(--line);
-}
-.stat-block:nth-child(2n) { border-right: 0; }
-@media (min-width: 900px) {
-  .stat-block:nth-child(2n) { border-right: 1px solid var(--line); }
-  .stat-block:nth-child(4n) { border-right: 0; }
-  .stat-row--3 .stat-block:nth-child(3n) { border-right: 0; }
-}
+/* Fila de 3 estadísticas: una columna apilada y centrada en móvil (línea fina entre bloques), 3 columnas iguales desde 900px */
+.stat-row { display: grid; grid-template-columns: 1fr; gap: 0; }
+@media (min-width: 900px) { .stat-row { grid-template-columns: repeat(3, 1fr); } }
+.stat-block { padding: 0 12px; text-align: center; }
+.stat-row .stat-block { padding: 28px 12px; border-top: 1px solid rgba(11, 7, 32, 0.12); }
+.stat-row .stat-block:first-child { border-top: 0; padding-top: 0; }
+.stat-row .stat-block:last-child { padding-bottom: 0; }
+@media (min-width: 900px) { .stat-row .stat-block { border-top: 0; padding: 0 12px; } }
+/* etiqueta de una sola línea; número y estrella con el mismo celeste y el mismo tamaño en los tres bloques */
+.stat-row .stat-label { white-space: nowrap; font-size: 13px; letter-spacing: 0.12em; line-height: 1.3; }
+@media (max-width: 340px) { .stat-row .stat-label { font-size: 11px; } }
+.stat-row .stat-number { font-size: clamp(40px, 7vw, 56px); line-height: 1; color: var(--blue-on-light); }
+.stat-row .stat-caption { max-width: 30ch; }
 .stat-label {
   display: block;
   margin-bottom: 12px;
@@ -1519,6 +1512,9 @@ html[data-glass="liquid"] .hero-btn--ghost {
   padding: 64px 0 32px;
   background: #FFFFFF;
   color: var(--fg);
+}
+@media (max-width: 899px) {
+  .site-footer { padding-bottom: max(88px, calc(72px + env(safe-area-inset-bottom))); }
 }
 .footer-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 48px; margin-bottom: 48px; }
 .footer-logo img { height: 46px; width: auto; margin-bottom: 16px; }
@@ -2140,49 +2136,46 @@ html.nav-panel-open .site-header, html.dialog-open .site-header { right: var(--s
    b) .opiniones: después del catálogo destacado. Ventanas con fotos que siguen al mouse
       (js/main.js → initOpiniones). Capas: ventanas (0) < contenido (1).
    ========================================================================== */
-.opiniones-score { display: flex; flex-wrap: wrap; gap: 8px; }
+.opiniones-score { display: flex; flex-wrap: nowrap; justify-content: center; gap: 10px; }
 .opiniones-score a {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 40px;
-  padding: 0 16px;
+  padding: 10px 16px;
   border-radius: 999px;
   background: var(--white);
   box-shadow: var(--shadow-card);
   white-space: nowrap;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.2;
   color: var(--fg);
+  text-decoration: none;
   transition: box-shadow 200ms;
 }
 .opiniones-score a:hover { box-shadow: var(--shadow-card-hover); }
+.opiniones-score a:focus-visible { outline: 2px solid var(--blue-on-light); outline-offset: 3px; }
 .opiniones-score .estrella { color: #F5A524; }
+/* 13px desde 379px hacia abajo (la spec pedía ≤359): a 360px las dos pills no entran en una fila con 14px */
+@media (max-width: 379px) { .opiniones-score a { font-size: 13px; padding: 10px 14px; } }
+@media (max-width: 329px) { .opiniones-score { flex-wrap: wrap; } }
 .opiniones-legend { font-size: 12px; color: var(--fg-2); }
 
 /* ---- a) Franja: mismo gris que el catálogo vecino (.surface-light), sin bordes ni costuras; solo las tarjetas son blancas ---- */
 .opiniones-franja { position: relative; padding: 64px 0 72px; overflow: hidden; border: 0; }
-/* Fila 1: título (izquierda) y los dos promedios (derecha), centrados verticalmente entre sí. Fila 2: leyenda bajo el título. */
+/* Todo centrado: título, una fila con las dos notas y la leyenda debajo. */
 .franja-head {
   display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas: "titulo score" "leyenda .";
-  align-items: center;
-  column-gap: 32px;
-  row-gap: 6px;
+  grid-template-columns: 1fr;
+  grid-template-areas: "titulo" "score" "leyenda";
+  justify-items: center;
+  text-align: center;
+  row-gap: 16px;
   margin-bottom: 40px;
 }
-.franja-head h2 { grid-area: titulo; max-width: none; margin: 0; font-size: clamp(22px, 1.7vw, 24px); }
-@media (min-width: 1280px) { .franja-head h2 { white-space: nowrap; } }
-.franja-head .opiniones-score { grid-area: score; justify-content: flex-end; flex-wrap: nowrap; }
-.franja-head .opiniones-legend { grid-area: leyenda; margin: 0; }
-@media (max-width: 899px) {
-  .franja-head { grid-template-columns: 1fr; grid-template-areas: "titulo" "score" "leyenda"; row-gap: 14px; }
-  .franja-head .opiniones-score { justify-content: flex-start; flex-wrap: wrap; }
-}
-@media (max-width: 420px) { .franja-head .opiniones-score a { padding: 0 12px; font-size: 12px; } }
-@media (max-width: 360px) { .franja-head .opiniones-score a { padding: 0 10px; font-size: 11px; } }
+.franja-head h2 { grid-area: titulo; max-width: none; margin: 0; text-align: center; font-size: clamp(22px, 1.7vw, 24px); }
+.franja-head .opiniones-score { grid-area: score; }
+.franja-head .opiniones-legend { grid-area: leyenda; margin: 0; text-align: center; }
 /* Marquee: padding-block 24/48 + margin negativo → la sombra completa de las cards no se corta y el layout no cambia */
 .franja-marquee {
   position: relative;

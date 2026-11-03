@@ -46,7 +46,7 @@ const CFG_BASE = { moneda: "USD", redondeo: 1 };
 const base = (extra) => Object.assign({ modeloId: "m1", gb: 128, bateria: 98, detalles: false, detallesTexto: "" }, extra);
 const calc = (extra, cfg, prods) => calcularCanje(cfg || CFG_BASE, TABLA, base(extra), prods || []);
 
-console.log("Regla de batería (98+ / 90–97 / menos de 90 = nivel 75)");
+console.log("Regla de batería (98+ / 90–97 / 75–89 / menos de 75 = tope del nivel 75)");
 prueba("niveles exactos: 98 → 1000, 90 → 900, 75 → 800", () => {
   assert.strictEqual(calc({ bateria: 98 }).valor, 1000);
   assert.strictEqual(calc({ bateria: 90 }).valor, 900);
@@ -60,11 +60,18 @@ prueba("bordes: 100, 98, 97, 90, 89, 75, 74, 60, 1", () => {
     assert.strictEqual(r.valor, esperado[b], "batería " + b);
   });
 });
-prueba("89 y 60 usan el nivel 75 (no solo el valor: también el nivel y el texto)", () => {
-  [89, 60].forEach((b) => {
+prueba("89 y 75 usan el nivel 75 con su texto; 74 y 60 también, pero como TOPE (\"Hasta\") a confirmar en el local", () => {
+  [89, 75].forEach((b) => {
     const r = calc({ bateria: b });
     assert.strictEqual(r.nivel, 75, "batería " + b);
-    assert.strictEqual(r.tramoTexto, "Calculado para batería de menos de 90%");
+    assert.strictEqual(r.tope, false, "batería " + b);
+    assert.strictEqual(r.tramoTexto, "Calculado para batería de 75% a 89%. Con menos de 90% el valor puede ajustarse al revisar el equipo.");
+  });
+  [74, 60, 1].forEach((b) => {
+    const r = calc({ bateria: b });
+    assert.strictEqual(r.nivel, 75, "batería " + b);
+    assert.strictEqual(r.tope, true, "batería " + b);
+    assert.strictEqual(r.tramoTexto, "Con batería menor a 75% el valor final se confirma en el local, según el estado real del equipo.");
   });
   assert.strictEqual(calc({ bateria: 97 }).nivel, 90);
   assert.strictEqual(calc({ bateria: 98 }).nivel, 98);
@@ -91,12 +98,24 @@ prueba("sin restos de la regla vieja en el código (interpolación, batería mí
   assert.ok(!/Con esa batería/.test(codigo), "quedó el texto de batería baja");
 });
 prueba("texto del tramo aplicado", () => {
-  assert.strictEqual(calc({ bateria: 100 }).tramoTexto, "Calculado para batería de 98% o más");
-  assert.strictEqual(calc({ bateria: 98 }).tramoTexto, "Calculado para batería de 98% o más");
-  assert.strictEqual(calc({ bateria: 92 }).tramoTexto, "Calculado para batería de 90% a 97%");
-  assert.strictEqual(calc({ bateria: 90 }).tramoTexto, "Calculado para batería de 90% a 97%");
-  assert.strictEqual(calc({ bateria: 80 }).tramoTexto, "Calculado para batería de menos de 90%");
-  assert.strictEqual(describirTramo(TABLA, 75), "menos de 90%");
+  assert.strictEqual(calc({ bateria: 100 }).tramoTexto, "Calculado para batería de 98% o más.");
+  assert.strictEqual(calc({ bateria: 98 }).tramoTexto, "Calculado para batería de 98% o más.");
+  assert.strictEqual(calc({ bateria: 92 }).tramoTexto, "Calculado para batería de 90% a 97%.");
+  assert.strictEqual(calc({ bateria: 90 }).tramoTexto, "Calculado para batería de 90% a 97%.");
+  assert.ok(calc({ bateria: 80 }).tramoTexto.startsWith("Calculado para batería de 75% a 89%."));
+  assert.strictEqual(describirTramo(TABLA, 75), "75% a 89%");
+});
+prueba("niveles adicionales (80 y 70) sin tocar código: los tramos y textos salen de la tabla", () => {
+  const T5 = { moneda: "USD", bateriaNiveles: [98, 90, 80, 75, 70], modelos: [{ id: "x", nombre: "iPhone 13", capacidades: [{ gb: 128, valores: { 98: 1000, 90: 900, 80: 850, 75: 800, 70: 700 } }] }] };
+  const c5 = (b) => calcularCanje(CFG_BASE, T5, { modeloId: "x", gb: 128, bateria: b, detalles: false }, []);
+  const esp = [[99, 1000, false, "Calculado para batería de 98% o más."], [95, 900, false, "Calculado para batería de 90% a 97%."],
+    [85, 850, false, "Calculado para batería de 80% a 89%. Con menos de 90% el valor puede ajustarse al revisar el equipo."],
+    [77, 800, false, "Calculado para batería de 75% a 79%. Con menos de 90% el valor puede ajustarse al revisar el equipo."],
+    [72, 700, false, "Calculado para batería de 70% a 74%. Con menos de 90% el valor puede ajustarse al revisar el equipo."],
+    [69, 700, true, "Con batería menor a 70% el valor final se confirma en el local, según el estado real del equipo."]];
+  esp.forEach(([b, v, tope, t]) => { const r = c5(b); assert.strictEqual(r.valor, v, "batería " + b); assert.strictEqual(r.tope, tope, "batería " + b); assert.strictEqual(r.tramoTexto, t, "batería " + b); });
+  assert.strictEqual(describirTramo(T5, 80), "80% a 89%");
+  assert.strictEqual(describirTramo(T5, 70), "70% a 74%");
 });
 
 console.log("Valores faltantes, redondeo y detalles");
@@ -198,12 +217,12 @@ prueba("con valor y equipo elegido", () => {
     "Hola, quiero cotizar mi iPhone 13 128GB, batería 92%, sin detalles. Valor estimado: USD 900. Me interesa: iPhone 17 (Azul · 256GB)."
   );
 });
-prueba("sin equipo elegido → 'ver opciones'; batería baja ahora también lleva valor", () => {
+prueba("sin equipo elegido → 'ver opciones'; batería menor a 75% lleva «hasta» en el valor", () => {
   const e1 = base({ bateria: 95 });
   assert.ok(mensajeWhatsApp(CFG_BASE, TABLA, e1, calcularCanje(CFG_BASE, TABLA, e1, [])).endsWith("Me interesa: ver opciones."));
   const e2 = base({ bateria: 60 });
   assert.strictEqual(mensajeWhatsApp(CFG_BASE, TABLA, e2, calcularCanje(CFG_BASE, TABLA, e2, [])),
-    "Hola, quiero cotizar mi iPhone 13 128GB, batería 60%, sin detalles. Valor estimado: USD 800. Me interesa: ver opciones.");
+    "Hola, quiero cotizar mi iPhone 13 128GB, batería 60%, sin detalles. Valor estimado: hasta USD 800. Me interesa: ver opciones.");
 });
 prueba("con detalles: sin «Valor estimado», texto normalizado, 'sin especificar', batería sin informar y recorte", () => {
   const e = base({ detalles: true, detallesTexto: "  pantalla   rota \n y golpe ", bateria: "" });
@@ -255,15 +274,16 @@ prueba("valores de control de la tabla real", () => {
   assert.strictEqual(valorReal("iphone-15-pro", 256, 90).valor, 570);
   assert.strictEqual(valorReal("iphone-16", 256, 98).valor, 620);
   assert.strictEqual(valorReal("iphone-17-pro-max", 256, 98).valor, 1050);
-  assert.strictEqual(valorReal("iphone-13-mini", 128, 50).valor, 140);    // batería muy baja: nivel 75, sin mínimo
+  assert.strictEqual(valorReal("iphone-13-mini", 128, 50).valor, 140);    // batería menor a 75%: tope del nivel 75
 });
 prueba("iPhone 14 Pro 256GB: niveles 480 / 440 / 400 y textos del tramo", () => {
-  const casos = [[100, 480, "98% o más"], [98, 480, "98% o más"], [97, 440, "90% a 97%"], [92, 440, "90% a 97%"], [90, 440, "90% a 97%"], [89, 400, "menos de 90%"], [75, 400, "menos de 90%"], [60, 400, "menos de 90%"], [1, 400, "menos de 90%"]];
+  const casos = [[100, 480, "98% o más"], [98, 480, "98% o más"], [97, 440, "90% a 97%"], [92, 440, "90% a 97%"], [90, 440, "90% a 97%"], [89, 400, "75% a 89%"], [75, 400, "75% a 89%"]];
   casos.forEach(([b, v, t]) => {
     const r = valorReal("iphone-14-pro", 256, b);
     assert.strictEqual(r.valor, v, "batería " + b);
-    assert.strictEqual(r.tramoTexto, "Calculado para batería de " + t, "batería " + b);
+    assert.ok(r.tramoTexto.startsWith("Calculado para batería de " + t + "."), "batería " + b);
   });
+  [60, 1].forEach((b) => { const r = valorReal("iphone-14-pro", 256, b); assert.strictEqual(r.valor, 400); assert.strictEqual(r.tope, true); });
   assert.strictEqual(formatearMonto(CFG, 440), "USD 440");
 });
 prueba("iPhone 13 128GB: 99 → 270, 95 → 240, 89 → 220, 40 → 220", () => {

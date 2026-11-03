@@ -4,23 +4,24 @@ La calculadora (`plan-canje.html#calculadora`) toma **iPhone 13 en adelante**. L
 
 | Archivo | Qué tiene |
 | --- | --- |
-| `js/canje-tabla.js` | La planilla de toma de Gonzalo: un valor **absoluto** (en USD) por modelo, memoria y nivel de batería |
+| `js/canje-tabla.js` | La planilla de toma del negocio: un valor **absoluto** (en USD) por modelo, memoria y nivel de batería |
 | `js/calculadora-data.js` | Configuración: `datosReales`, `redondeo`, `avisoLegal` (la moneda viene de la tabla) |
 | `js/products-data.js` | `precioNum` de cada producto del catálogo (solo para el "salto de gama") |
 
 > Mientras `datosReales` sea `false`, la calculadora **no se muestra al público**. Para verla: `plan-canje.html?preview=1` (aparece una franja de vista previa).
 
-## 1. Regla de batería (fija)
+## 1. Regla de batería
 
-La batería que ingresa el cliente (entero de 1 a 100) define qué columna de la tabla se usa:
+La batería que ingresa el cliente (entero de 1 a 100; otra cosa muestra «Ingresá un porcentaje entre 1 y 100») define qué columna de la tabla se usa: el **mayor nivel** de `bateriaNiveles` que la batería alcanza. Con los niveles de hoy (98, 90, 75):
 
-| Batería | Nivel que se aplica | Texto que ve el cliente |
+| Batería | Nivel | Texto que ve el cliente |
 | --- | --- | --- |
-| 98% o más (hasta 100) | 98 | "Calculado para batería de 98% o más" |
-| 90% a 97% | 90 | "Calculado para batería de 90% a 97%" |
-| **Menos de 90%** | **75, siempre** | "Calculado para batería de menos de 90%" |
+| 98% o más | 98 | "Calculado para batería de 98% o más." |
+| 90% a 97% | 90 | "Calculado para batería de 90% a 97%." |
+| 75% a 89% | 75 | "Calculado para batería de 75% a 89%. Con menos de 90% el valor puede ajustarse al revisar el equipo." |
+| **Menos de 75%** | 75, como **tope** | Valor como **"Hasta USD X"** + "Con batería menor a 75% el valor final se confirma en el local, según el estado real del equipo." |
 
-No hay batería mínima: con 60% o con 20% se toma igual el valor del nivel 75. La regla vive en `js/calculadora-logic.js` y no se configura desde los datos.
+Los tramos y los textos salen de `bateriaNiveles`: **para sumar un nivel** (por ejemplo 80 y 70) se agrega a `bateriaNiveles` en `js/canje-tabla.js` (de mayor a menor) y se carga su valor en cada capacidad; no hay que tocar código.
 
 El resultado se redondea **hacia abajo** al múltiplo de `redondeo` (1 en USD). No se calcula, y se consulta por WhatsApp con un mensaje armado, en estos casos:
 
@@ -76,7 +77,7 @@ Los productos con `precioNum: null` se ignoran. Si ninguno tiene precio, la calc
 
 ## 5. Activarla
 
-1. Verificar `js/canje-tabla.js` contra la planilla original (Gonzalo todavía no confirmó la tabla completa).
+1. Verificar `js/canje-tabla.js` contra la planilla original (el negocio todavía no confirmó la tabla completa).
 2. `node scripts/validar-tabla.js` y `node scripts/test-calculadora.js` deben terminar sin errores.
 3. Revisarla en `plan-canje.html?preview=1`.
 4. Poner `datosReales: true` en `js/calculadora-data.js`.
@@ -117,7 +118,7 @@ Sumar una fila en `ACCESORIOS_BASE`: `["Subcategoría", "Nombre", precioEnPesos]
 
 ## Cómo activar los precios
 
-Hoy el sitio muestra **"Consultar"** en todos los accesorios, aunque el precio esté guardado. Cuando Gonzalo confirme que son **precios de venta vigentes**, cambiar en `js/accesorios-data.js`:
+Hoy el sitio muestra **"Consultar"** en todos los accesorios, aunque el precio esté guardado. Cuando el negocio confirme que son **precios de venta vigentes**, cambiar en `js/accesorios-data.js`:
 
 ```js
 const ACCESORIOS_CONFIG = { mostrarPrecio: true };

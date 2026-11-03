@@ -1,5 +1,5 @@
 /**
- * Valida js/canje-tabla.js (la planilla de toma de Gonzalo). Sin dependencias.
+ * Valida js/canje-tabla.js (la planilla de toma del negocio). Sin dependencias.
  *
  *   node scripts/validar-tabla.js
  *
@@ -80,6 +80,10 @@ let valores = 0;
 });
 
 console.log("Tabla: js/canje-tabla.js — moneda " + T.moneda + ", niveles de batería " + niveles.join("/") + "%");
+// Tramos que la calculadora arma a partir de bateriaNiveles (js/calculadora-logic.js)
+const Calc = require("../js/calculadora-logic.js");
+const ordenados = niveles.slice().sort((a, b) => b - a);
+console.log("  tramos: " + ordenados.map((n) => Calc.describirTramo(T, n)).join(" | ") + " | menor a " + ordenados[ordenados.length - 1] + "% (\"Hasta\", se confirma en el local)");
 console.log("  " + (T.modelos || []).length + " modelos, " + capacidades + " capacidades, " + valores + " valores revisados");
 if (avisos.length) {
   const mods = new Set(avisos.map((a) => a.split(",")[0]));

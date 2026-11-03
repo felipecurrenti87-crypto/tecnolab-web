@@ -1,10 +1,12 @@
 /**
- * Tabla de toma de iPhone usado — cargada de la planilla de Gonzalo (30/10/2026).
+ * Tabla de toma de iPhone usado — cargada de la planilla del negocio (30/10/2026).
  * Alcance: del iPhone 13 en adelante (el iPhone 12 y anteriores ya no se toman).
  * Valores en dólares (USD), confirmado por el dueño.
  * Cada capacidad trae el valor para tres niveles de batería: 98, 90 y 75.
- * Regla de batería: 98% o más usa el nivel 98; de 90% a 97%, el nivel 90;
- * menos de 90% usa SIEMPRE el nivel 75, por baja que sea la batería.
+ * Regla de batería: se usa el mayor nivel que la batería alcanza (98, 90 o 75). Con menos del nivel más
+ * bajo (75%) el valor del nivel 75 se muestra como "Hasta …" y se confirma en el local.
+ * Para sumar un nivel (ej. 80 y 70): agregarlo a bateriaNiveles (de mayor a menor) y cargar su valor en
+ * cada capacidad. Los tramos y los textos de la calculadora se arman solos.
  * Si un modelo no tiene una capacidad (casilla negra en la planilla), no figura acá.
  * Es el valor del equipo SIN detalles (sin golpes, pantalla rota, etc.): con detalles se consulta.
  * Verificar contra la planilla original antes de poner datosReales en true.

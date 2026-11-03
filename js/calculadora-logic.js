@@ -1,10 +1,16 @@
 /**
  * Lógica PURA de la calculadora de Plan Canje (sin DOM, sin estado global).
  * Se usa en el navegador (window.CalculadoraCanje) y en Node (scripts/test-calculadora.js).
- * Regla de batería (única): 98% o más → nivel 98; 90% a 97% → nivel 90; menos de 90% → SIEMPRE
- * el nivel 75, por baja que sea. No hay batería mínima ni consulta por batería baja.
- * La interfaz vive en js/main.js (initCalculadora). Los datos: js/canje-tabla.js (planilla de
- * Gonzalo) y js/calculadora-data.js (CANJE_CONFIG).
+ * Regla de batería: se aplica el mayor nivel de CANJE_TABLA.bateriaNiveles que la batería alcanza
+ * (hoy 98 / 90 / 75). Los tramos y los textos salen SOLOS de esa lista:
+ *   - el nivel más alto es "N% o más"; cada nivel intermedio, "N% a (nivel superior − 1)%";
+ *   - debajo del nivel más bajo (hoy, menos de 75%) el valor del nivel más bajo es solo un TOPE:
+ *     se muestra "Hasta …" y se aclara que el valor final se confirma en el local.
+ * Para sumar un nivel (por ejemplo 80 y 70): en js/canje-tabla.js agregarlo a bateriaNiveles (de mayor a
+ * menor) y cargar su valor en CADA capacidad: valores: { 98: …, 90: …, 80: …, 75: …, 70: … }. No hay que
+ * tocar este archivo. Correr node scripts/validar-tabla.js.
+ * La interfaz vive en js/main.js (initCalculadora). Los datos: js/canje-tabla.js (planilla del
+ * negocio) y js/calculadora-data.js (CANJE_CONFIG).
  *
  * tabla   = CANJE_TABLA  { moneda, bateriaNiveles: [98, 90, 75], modelos: [ { id, nombre, capacidades: [ { gb, valores: { 98, 90, 75 } } ] } ] }
  * config  = CANJE_CONFIG { moneda, redondeo, avisoLegal }
@@ -13,7 +19,8 @@
  * calcularCanje(config, tabla, entrada, productos) devuelve un objeto con `estado`:
  *   "error"    → { errores: { modelo?, capacidad?, bateria? } }
  *   "consulta" → { motivo, mensaje }   (no se calcula: se consulta por WhatsApp)
- *   "valor"    → { valor, nivel, tramoTexto, modelo, capacidad, escalones }
+ *   "valor"    → { valor, nivel, tramoTexto, tope, modelo, capacidad, escalones }
+ *                (tope = true cuando la batería está por debajo del nivel más bajo: el valor es "Hasta …")
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
@@ -57,24 +64,32 @@
     return typeof v === "number" && isFinite(v) && v > 0;
   }
 
-  // Texto del rango que cubre un nivel: "98% o más", "90% a 97%", "menos de 90%"
+  // Rango que cubre un nivel: "98% o más", "90% a 97%", "75% a 89%" (cada nivel llega hasta el anterior − 1)
   function describirTramo(tabla, nivel) {
     var ns = niveles(tabla);
     var i = ns.indexOf(nivel);
     if (i <= 0) return nivel + "% o más";
-    if (i === ns.length - 1) return "menos de " + ns[i - 1] + "%";
     return nivel + "% a " + (ns[i - 1] - 1) + "%";
   }
 
-  // Regla "piso": se aplica el mayor nivel que la batería alcanza (98, 90 o 75). Si no alcanza
-  // ninguno (menos de 75) se usa igual el nivel más bajo: no hay mínimo. La batería ya viene validada (1–100).
+  // Se aplica el mayor nivel que la batería alcanza. Por debajo del nivel más bajo se usa igual su valor,
+  // pero como TOPE (tope: true). La batería ya viene validada (1–100).
   function valorPorBateria(tabla, capacidad, bateria) {
     var ns = niveles(tabla);
     var nivel = ns.find(function (n) { return bateria >= n; });
-    if (nivel === undefined) nivel = ns[ns.length - 1];
+    var tope = nivel === undefined;
+    if (tope) nivel = ns[ns.length - 1];
     var v = capacidad.valores[nivel];
     if (!valorValido(v)) return null;
-    return { valor: v, nivel: nivel, tramoTexto: "Calculado para batería de " + describirTramo(tabla, nivel) };
+    var texto;
+    if (tope) {
+      texto = "Con batería menor a " + nivel + "% el valor final se confirma en el local, según el estado real del equipo.";
+    } else {
+      texto = "Calculado para batería de " + describirTramo(tabla, nivel) + ".";
+      // por debajo del segundo nivel (hoy 90%) el valor puede ajustarse al revisar el equipo
+      if (ns.indexOf(nivel) > 1) texto += " Con menos de " + ns[1] + "% el valor puede ajustarse al revisar el equipo.";
+    }
+    return { valor: v, nivel: nivel, tramoTexto: texto, tope: tope };
   }
 
   function validar(tabla, entrada) {
@@ -83,8 +98,7 @@
     if (!modelo) errores.modelo = "Elegí un modelo.";
     else if (!buscarCapacidad(modelo, entrada.gb)) errores.capacidad = "Elegí una capacidad.";
     var bateria = parsearBateria(entrada.bateria);
-    if (Number.isNaN(bateria)) errores.bateria = "Ingresá un número entero entre 1 y 100.";
-    else if (bateria === null && !entrada.detalles) errores.bateria = "Ingresá la salud de batería (un número entre 1 y 100).";
+    if (Number.isNaN(bateria) || (bateria === null && !entrada.detalles)) errores.bateria = "Ingresá un porcentaje entre 1 y 100";
     return errores;
   }
 
@@ -137,6 +151,7 @@
       valor: valor,
       nivel: calculo.nivel,
       tramoTexto: calculo.tramoTexto,
+      tope: calculo.tope,
       modelo: modelo,
       capacidad: capacidad,
       escalones: escalonesSaltoDeGama(productos, valor)
@@ -160,7 +175,7 @@
       (bateria ? "batería " + bateria + "%" : "batería sin informar") + ", " +
       (entrada.detalles ? "con detalles: " + (detalle || "sin especificar") : "sin detalles") + "."
     ];
-    if (resultado && resultado.estado === "valor") partes.push("Valor estimado: " + formatearMonto(config, resultado.valor) + ".");
+    if (resultado && resultado.estado === "valor") partes.push("Valor estimado: " + (resultado.tope ? "hasta " : "") + formatearMonto(config, resultado.valor) + ".");
     partes.push("Me interesa: " + (equipo || "ver opciones") + ".");
     return partes.join(" ");
   }

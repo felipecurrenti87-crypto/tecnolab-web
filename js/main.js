@@ -1325,7 +1325,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ============================================================
      CALCULADORA DE PLAN CANJE — la interfaz arma el DOM acá. La lógica pura está en
-     js/calculadora-logic.js; los valores, en js/canje-tabla.js (planilla de Gonzalo) y la
+     js/calculadora-logic.js; los valores, en js/canje-tabla.js (planilla del negocio) y la
      configuración en js/calculadora-data.js.
      Mientras CANJE_CONFIG.datosReales sea false NO se renderiza (el contenedor queda
      vacío y hidden), salvo con ?preview=1, que agrega una franja de aviso.
@@ -1474,7 +1474,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (r.estado === "valor") {
         partes.push(el("p", { class: "calc-valor-wrap" },
           el("span", { class: "calc-valor-label", text: "Valor estimado:" }),
-          el("strong", { class: "calc-valor", text: money(r.valor) })),
+          el("strong", { class: "calc-valor", text: (r.tope ? "Hasta " : "") + money(r.valor) })),
           el("p", { class: "calc-tramo", text: r.tramoTexto }));
       } else {
         partes.push(el("p", { class: "calc-consulta", text: r.mensaje }));
@@ -1522,11 +1522,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const fr = document.getElementById("opiniones-franja");
     if (fr) {
       const score = fr.querySelector(".opiniones-score");
-      SUCURSALES_RESENAS.forEach((suc, i) => {
+      SUCURSALES_RESENAS.forEach((suc) => {
         const a = mk("a");
         a.href = suc.mapsUrl; a.target = "_blank"; a.rel = "noopener";
-        a.append(mk("span", "", coma(suc.promedio) + " "), mk("span", "estrella", "★ "),
-          mk("span", "", "· " + suc.cantidad + " reseñas" + (i === 0 ? " en Google Maps" : "") + " — " + (corto[suc.id] || suc.nombre)));
+        a.setAttribute("aria-label", (corto[suc.id] || suc.nombre) + ": " + coma(suc.promedio) + " estrellas en Google Maps");
+        a.append(mk("span", "", coma(suc.promedio)), mk("span", "estrella", "★"), mk("span", "", corto[suc.id] || suc.nombre));
         score.append(a);
       });
       fr.querySelector(".opiniones-legend").textContent = "Datos de Google Maps, " + (typeof RESENAS_ACTUALIZADO !== "undefined" ? RESENAS_ACTUALIZADO : "");
