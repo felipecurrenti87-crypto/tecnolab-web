@@ -569,6 +569,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const root = document.documentElement;
     const APPLE_COMPARAR = "https://www.apple.com/la/iphone/compare/";
     let dialogo = null;
+    let cerrarDetalle = () => {};
     let producto = null;
     let color = 0;
     let abiertas = null; // ids de las secciones desplegadas (null = todavía sin decidir para este producto)
@@ -690,24 +691,40 @@ document.addEventListener("DOMContentLoaded", () => {
             el("button", { type: "button", class: "color-swatch" + (i === color ? " is-active" : ""), style: "--swatch: " + c.hex, "aria-label": c.nombre, "aria-pressed": String(i === color), title: c.nombre, "data-i": String(i) })))) : null,
         el("p", { class: "product-card-price product-dialog-precio" }, pr.desde ? el("small", { text: pr.desde }) : null, el("strong", { text: pr.texto })),
         bloquePromo(p),
-        acordeon(p),
         el("div", { class: "product-dialog-acciones" },
           el("button", Object.assign({ type: "button", class: "btn btn-primary", "data-add": p.id, "data-c": String(color) }, esUsado(p) ? { "data-usado": "" } : {}), el("span", { class: "add-txt", text: "Agregar a mi pedido" })),
-          el("a", { class: "btn btn-outline", href: "https://wa.me/" + SITE_CONFIG.whatsappNumber + "?text=" + encodeURIComponent(mensajeProducto(p, variante)), target: "_blank", rel: "noopener", text: "Consultar por WhatsApp" }),
-          p.categoria === "iPhone" ? el("a", { class: "product-dialog-apple", href: APPLE_COMPARAR, target: "_blank", rel: "noopener noreferrer", text: "Comparar modelos en el sitio de Apple ↗" }) : null)
+          el("a", { class: "btn btn-outline", href: "https://wa.me/" + SITE_CONFIG.whatsappNumber + "?text=" + encodeURIComponent(mensajeProducto(p, variante)), target: "_blank", rel: "noopener", text: "Consultar por WhatsApp" })),
+        p.categoria === "iPhone" ? el("a", { class: "product-dialog-apple", href: APPLE_COMPARAR, target: "_blank", rel: "noopener noreferrer", text: "Comparar modelos en el sitio de Apple ↗" }) : null,
+        acordeon(p)
       ].filter(Boolean)); // replaceChildren convierte null en el texto "null"
       if (window.Pedido) window.Pedido.marcar(); // el usado que ya está en el pedido muestra «En tu pedido»
     }
 
     function crear() {
-      dialogo = el("dialog", { class: "product-dialog", "aria-labelledby": "product-dialog-titulo" },
+      dialogo = el("dialog", { class: "product-dialog", "aria-labelledby": "product-dialog-titulo", tabindex: "-1" },
         el("div", { class: "product-dialog-body" },
           el("button", { type: "button", class: "product-dialog-close", "aria-label": "Cerrar detalle" }),
           el("div", { class: "product-dialog-media" }),
           el("div", { class: "product-dialog-info" })));
       dialogo.querySelector(".product-dialog-close").innerHTML = SVG_CERRAR;
-      dialogo.querySelector(".product-dialog-close").addEventListener("click", () => dialogo.close());
-      dialogo.addEventListener("click", (e) => { if (e.target === dialogo) dialogo.close(); }); // click en el fondo
+      // Cierre: en celular (≤640px) la tarjeta se anima antes de cerrar; en escritorio se cierra al instante
+      let cerrando = false;
+      cerrarDetalle = () => {
+        if (!dialogo.open || cerrando) return; // evita el doble cierre
+        if (!matchMedia("(max-width: 640px)").matches) { dialogo.close(); return; }
+        cerrando = true;
+        dialogo.classList.add("is-closing");
+        let hecho = false;
+        const fin = () => { if (hecho) return; hecho = true; cerrando = false; dialogo.classList.remove("is-closing"); if (dialogo.open) dialogo.close(); };
+        dialogo.addEventListener("animationend", (e) => { if (e.target === dialogo) fin(); });
+        setTimeout(fin, 300); // respaldo
+      };
+      dialogo.querySelector(".product-dialog-close").addEventListener("click", cerrarDetalle);
+      dialogo.addEventListener("cancel", (e) => { if (matchMedia("(max-width: 640px)").matches) { e.preventDefault(); cerrarDetalle(); } }); // Esc
+      // click en el fondo (::backdrop): solo si el toque empezó y terminó ahí (arrastrar el scroll interno no cierra)
+      let bajoFondo = false;
+      dialogo.addEventListener("pointerdown", (e) => { bajoFondo = e.target === dialogo; });
+      dialogo.addEventListener("click", (e) => { if (e.target === dialogo && bajoFondo) cerrarDetalle(); });
       dialogo.addEventListener("click", (e) => {
         const sw = e.target.closest(".color-swatch");
         if (!sw) return;
@@ -750,6 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
         root.style.setProperty("--sbw", (window.innerWidth - root.clientWidth) + "px");
         root.classList.add("dialog-open");
         dialogo.showModal();
+        dialogo.focus({ preventScroll: true }); // foco inicial en el diálogo: la X no muestra aro al abrir (con Tab sí)
       }
       history.replaceState(null, "", location.pathname + location.search + "#producto=" + encodeURIComponent(id));
     }
