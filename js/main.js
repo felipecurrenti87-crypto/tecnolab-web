@@ -865,6 +865,47 @@ document.addEventListener("DOMContentLoaded", () => {
   const ICONO_MAS = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>`;
   const ICONO_CAJA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"></path><path d="M3 7.5 12 12l9-4.5M12 12v9"></path></svg>`;
 
+  /* Listón de regalo (esquina superior derecha) + panel con los regalos sobre la foto. Los regalos salen de la promo vigente
+     (js/promos-data.js → regalos): solo las cards con promo con regalos los llevan. */
+  const GIFT_SVG = {
+    cargador: '<path d="M9 3v4M15 3v4M7 7h10v3a5 5 0 0 1-10 0V7zM12 15v4a2 2 0 0 0 2 2h2"/>',
+    cable: '<path d="M8 3v3m0 0a4 4 0 0 0 4 4h0a4 4 0 0 0 4-4V3"/><rect x="6" y="3" width="4" height="2" rx="0.5"/><rect x="14" y="3" width="4" height="2" rx="0.5"/><path d="M12 10v11"/><circle cx="12" cy="21" r="1"/>',
+    funda: '<rect x="5" y="2" width="14" height="20" rx="4"/><rect x="8" y="2" width="8" height="3" rx="1.5" fill="rgba(255,255,255,0.3)" stroke="none"/><path d="M5 8h14M5 16h14" stroke-opacity="0.5"/>',
+    vidrio: '<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M9 3v18M15 3v18M4 9h16M4 15h16" stroke-opacity="0.5"/><path d="M14 6l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z" fill="white" stroke="none"/>',
+    regalo: '<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M12 9v11M3 9h18M12 9c-2.5 0-4-1-4-2.5S9.5 4 12 9zM12 9c2.5 0 4-1 4-2.5S14.5 4 12 9z"/>'
+  };
+  const giftIcono = (t) => {
+    const k = /cargador/i.test(t) ? "cargador" : /cable/i.test(t) ? "cable" : /funda/i.test(t) ? "funda" : /vidrio|templado/i.test(t) ? "vidrio" : "regalo";
+    return `<svg class="gift-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GIFT_SVG[k]}</svg>`;
+  };
+  function giftOverlayHTML(regalos) {
+    return `<div class="gift-overlay" hidden>
+        <button type="button" class="gift-overlay-close" aria-label="Cerrar regalos">✕ cerrar</button>
+        <p class="gift-overlay-title">Incluye de regalo</p>
+        <div class="gift-overlay-items">${regalos.map((r) => `<div class="gift-overlay-item">${giftIcono(r)}<span>${r}</span></div>`).join("")}</div>
+      </div>`;
+  }
+  function toggleGift(card, abrir) {
+    const ov = card.querySelector(".gift-overlay"), rb = card.querySelector(".gift-ribbon");
+    if (!ov || !rb) return;
+    ov.hidden = !abrir;
+    rb.hidden = abrir;
+    if (abrir) { const c = ov.querySelector(".gift-overlay-close"); if (c) c.focus({ preventScroll: true }); }
+    else rb.focus({ preventScroll: true });
+  }
+  document.addEventListener("click", (e) => {
+    const rb = e.target.closest(".gift-ribbon");
+    const cierre = e.target.closest(".gift-overlay-close");
+    if (!rb && !cierre) return;
+    e.stopPropagation();
+    toggleGift((rb || cierre).closest(".product-card"), !!rb);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const ov = document.querySelector(".gift-overlay:not([hidden])");
+    if (ov) toggleGift(ov.closest(".product-card"), false);
+  });
+
   // eager: carga inmediata (primera pantalla); alta: además prioridad alta (solo la candidata a LCP)
   function renderProductCard(p, eager = false, alta = false) {
     const colores = p.colores || [];
@@ -887,11 +928,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const promoCorto = promo ? (promo.etiquetaCorta || ((promo.regalos || []).length ? "Con regalos" : promoLargo)) : "";
     const promoPill = promoLargo
       ? `<span class="product-card-promo">${ICONO_REGALO}<span class="pp-largo">${promoLargo}</span><span class="pp-corto">${promoCorto}</span></span>` : "";
+    const regalosCard = promo ? (promo.regalos || []).filter(Boolean) : [];
     const etiquetaTexto = p.subcategoria || p.categoria;
     const etiqueta = usado ? `<span class="product-card-eyebrow is-used">Usado</span>` : p.nuevo === true ? `<span class="product-card-eyebrow is-new">Nuevo</span>` : `<span class="product-card-eyebrow">${etiquetaTexto}</span>`;
     return `
       <article class="product-card" data-id="${escAttr(p.id)}" data-categoria="${p.categoria}" data-condicion="${usado ? "usado" : "nuevo"}"${p.subcategoria ? ` data-subcategoria="${escAttr(p.subcategoria)}"` : ""} data-busqueda="${escAttr(normalizar([p.nombre, p.subcategoria || "", p.variante || "", usado ? "usado" : ""].join(" ")))}">
         <button type="button" class="product-card-open" aria-haspopup="dialog" aria-label="${escAttr("Ver detalle de " + p.nombre + (p.variante ? ", " + p.variante : ""))}"></button>
+        ${regalosCard.length ? `<button type="button" class="gift-ribbon" aria-label="Ver regalo incluido"><span class="gift-ribbon-band">${ICONO_REGALO}Regalo</span></button>` : ""}
         <div class="product-card-head">
           ${etiqueta}
           <h3 class="product-card-name">${p.nombre}</h3>
@@ -904,6 +947,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ? `<img src="${colores[0].imagen}" alt="${escAttr(esAccesorio ? p.nombre : p.nombre + " color " + colores[0].nombre.toLowerCase())}" width="728" height="666" loading="${eager ? "eager" : "lazy"}"${alta ? " fetchpriority=\"high\"" : ""} decoding="async">`
             : `<div class="product-card-media-placeholder">${p.categoria === "iPhone" ? ICONO_TELEFONO : ICONO_CAJA}<span>Foto próximamente</span></div>`
           }
+          ${regalosCard.length ? giftOverlayHTML(regalosCard) : ""}
         </div>
         ${swatches}
         <div class="product-card-foot">
@@ -1339,6 +1383,30 @@ document.addEventListener("DOMContentLoaded", () => {
      vacío y hidden), salvo con ?preview=1, que agrega una franja de aviso.
      Sin animaciones: el resultado aparece de inmediato. Sin guardar datos.
      ============================================================ */
+  /* Límite de cotizaciones por día: se cuenta en este navegador (localStorage), no por IP: es un freno de uso, no una
+     seguridad (borrar los datos del sitio lo reinicia). El log de cotizaciones tampoco sale del navegador. */
+  const LIMITE_KEY = "canje_limit", LOGS_KEY = "canje_logs", LIMITE_MAX = 3;
+  function puedeCotizar() {
+    try {
+      const d = JSON.parse(localStorage.getItem(LIMITE_KEY) || "{}");
+      return d.fecha !== new Date().toDateString() || (d.count || 0) < LIMITE_MAX;
+    } catch { return true; }
+  }
+  function registrarCotizacion() {
+    try {
+      const hoy = new Date().toDateString();
+      const d = JSON.parse(localStorage.getItem(LIMITE_KEY) || "{}");
+      localStorage.setItem(LIMITE_KEY, JSON.stringify({ fecha: hoy, count: d.fecha === hoy ? (d.count || 0) + 1 : 1 }));
+    } catch {}
+  }
+  function guardarLog(instagram, modelo, memoria, bateria, precio) {
+    try {
+      const logs = JSON.parse(localStorage.getItem(LOGS_KEY) || "[]");
+      logs.push({ fecha: new Date().toISOString(), instagram, modelo, memoria, bateria: bateria + "%", precio: precio || "Sin precio" });
+      localStorage.setItem(LOGS_KEY, JSON.stringify(logs));
+    } catch {}
+  }
+
   function initCalculadora() {
     if (typeof CANJE_CONFIG === "undefined") return;
     const habilitada = CANJE_CONFIG.datosReales === true;
@@ -1382,6 +1450,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const selCap = el("select", { id: "calc-capacidad", name: "capacidad", disabled: true },
       el("option", { value: "", text: "Elegí una capacidad" }));
     const inBateria = el("input", { id: "calc-bateria", name: "bateria", type: "number", inputmode: "numeric", min: "1", max: "100", step: "1", "aria-describedby": "calc-bateria-ayuda" });
+    const inInstagram = el("input", { id: "calc-instagram", name: "instagram", type: "text", maxlength: "31", autocomplete: "off", autocapitalize: "none", spellcheck: "false", placeholder: "@usuario", "aria-describedby": "calc-instagram-ayuda" });
     const chkDetalles = el("input", { id: "calc-detalles", name: "detalles", type: "checkbox" });
     const txtDetalles = el("textarea", { id: "calc-detalles-texto", name: "detallesTexto", rows: "3", maxlength: "300" });
     const inOtro = el("input", { id: "calc-modelo-texto", name: "modeloTexto", type: "text", maxlength: "60", autocomplete: "off" });
@@ -1390,6 +1459,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const fCap = field("calc-capacidad", "Capacidad", selCap);
     const fBat = field("calc-bateria", "Salud de batería (%)", inBateria, "Lo ves en Ajustes › Batería › Estado de la batería");
+    const fInsta = field("calc-instagram", "Tu usuario de Instagram", inInstagram, "Lo usamos para verificar tu identidad");
     const filaDetalles = el("div", { class: "calc-check" }, chkDetalles,
       el("label", { for: "calc-detalles", text: "Mi iPhone tiene detalles (pantalla rota, golpes, no enciende, etc.)" }));
     const boxDetalles = el("div", { class: "calc-field", hidden: true },
@@ -1402,12 +1472,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = el("form", { class: "calc-card", novalidate: true, "aria-labelledby": "calc-titulo" },
       el("h2", { class: "title-sentence", id: "calc-titulo", text: "Calculá cuánto te tomamos tu iPhone" }),
       field("calc-modelo", "Modelo", selModelo),
-      fCap, fBat, filaDetalles, boxDetalles, boxOtro, btnCalcular);
+      fCap, fBat, filaDetalles, boxDetalles, fInsta, boxOtro, btnCalcular);
+
+    const limiteBox = el("div", { class: "calc-card calc-limite", id: "calc-limite", hidden: true, "aria-live": "polite" },
+      el("p", { class: "calc-consulta", text: "Ya realizaste " + LIMITE_MAX + " cotizaciones hoy. Volvé mañana o escribinos directamente." }),
+      el("div", { class: "calc-acciones" }, el("a", { class: "btn btn-primary", href: waLink("Hola Tecnolab, quiero consultar por el Plan Canje"), target: "_blank", rel: "noopener", text: "Hablar con Tecnolab" })));
 
     root.append(el("div", { class: "container" },
       el("div", { class: "calc" },
         !habilitada ? el("p", { class: "calc-preview", text: "VISTA PREVIA — datos de ejemplo" }) : null,
-        form, resultado)));
+        form, limiteBox, resultado)));
     root.hidden = false;
 
     // --- Comportamiento
@@ -1417,6 +1491,7 @@ document.addEventListener("DOMContentLoaded", () => {
       form.querySelectorAll("[aria-invalid]").forEach((c) => {
         c.removeAttribute("aria-invalid");
         if (c === inBateria) c.setAttribute("aria-describedby", "calc-bateria-ayuda");
+        else if (c === inInstagram) c.setAttribute("aria-describedby", "calc-instagram-ayuda");
         else c.removeAttribute("aria-describedby");
       });
     };
@@ -1426,6 +1501,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modoOtro = (on) => {
       fCap.hidden = on;
       fBat.hidden = on;
+      fInsta.hidden = on;
       filaDetalles.hidden = on;
       boxDetalles.hidden = on || !chkDetalles.checked;
       boxOtro.hidden = !on;
@@ -1444,17 +1520,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (m && m.capacidades.length === 1) selCap.value = String(m.capacidades[0].gb); // una sola memoria: ya elegida
     });
     inOtro.addEventListener("input", actualizarLinkOtro);
-    [selCap, inBateria, txtDetalles].forEach((c) => c.addEventListener("input", limpiar));
+    [selCap, inBateria, txtDetalles, inInstagram].forEach((c) => c.addEventListener("input", limpiar));
     chkDetalles.addEventListener("change", () => { boxDetalles.hidden = !chkDetalles.checked; limpiar(); });
 
     const mostrarErrores = (errores) => {
-      const mapa = { modelo: selModelo, capacidad: selCap, bateria: inBateria };
+      const mapa = { modelo: selModelo, capacidad: selCap, bateria: inBateria, instagram: inInstagram };
       let primero = null;
       Object.keys(errores).forEach((k) => {
         const control = mapa[k];
         const id = "calc-error-" + k;
         control.setAttribute("aria-invalid", "true");
-        control.setAttribute("aria-describedby", (k === "bateria" ? "calc-bateria-ayuda " : "") + id);
+        control.setAttribute("aria-describedby", (k === "bateria" ? "calc-bateria-ayuda " : k === "instagram" ? "calc-instagram-ayuda " : "") + id);
         control.closest(".calc-field").append(el("p", { class: "calc-error", id, role: "alert", text: errores[k] }));
         primero = primero || control;
       });
@@ -1467,6 +1543,7 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       limpiar();
+      if (!puedeCotizar()) { form.hidden = true; limiteBox.hidden = false; return; }
       const entrada = {
         modeloId: selModelo.value,
         gb: selCap.value,
@@ -1476,20 +1553,32 @@ document.addEventListener("DOMContentLoaded", () => {
         modeloTexto: inOtro.value
       };
       const r = Calc.calcularCanje(CANJE_CONFIG, CANJE_TABLA, entrada, productos);
-      if (r.estado === "error") { mostrarErrores(r.errores); return; }
+      const errores = r.estado === "error" ? Object.assign({}, r.errores) : {};
+      const insta = inInstagram.value.trim().replace(/^@/, "");
+      if (!/^[A-Za-z0-9._]{1,30}$/.test(insta)) errores.instagram = "Escribí tu usuario de Instagram, por ejemplo @tecnolab.";
+      if (Object.keys(errores).length) { mostrarErrores(errores); return; }
+
+      // Una cotización válida: cuenta para el límite diario y queda en el log local (no se envía a ningún servidor)
+      const bateriaNum = Number(inBateria.value);
+      const bajaBateria = r.estado === "valor" && r.tope; // por debajo del nivel más bajo (75%): valoración en el local
+      registrarCotizacion();
+      guardarLog("@" + insta, r.modelo ? r.modelo.nombre : "", r.capacidad ? r.capacidad.gb + "GB" : "", bateriaNum,
+        r.estado === "valor" && !bajaBateria ? money(r.valor) : null);
 
       const partes = [];
-      if (r.estado === "valor") {
+      if (bajaBateria) {
+        partes.push(el("p", { class: "calc-consulta", text: "Tu equipo tiene una batería muy baja. Visitanos en el local para una valuación personalizada." }));
+      } else if (r.estado === "valor") {
         partes.push(el("p", { class: "calc-valor-wrap" },
           el("span", { class: "calc-valor-label", text: "Valor estimado:" }),
-          el("strong", { class: "calc-valor", text: (r.tope ? "Hasta " : "") + money(r.valor) })),
+          el("strong", { class: "calc-valor", text: money(r.valor) })),
           el("p", { class: "calc-tramo", text: r.tramoTexto }));
       } else {
         partes.push(el("p", { class: "calc-consulta", text: r.mensaje }));
       }
       partes.push(el("p", { class: "calc-aviso", text: CANJE_CONFIG.avisoLegal }));
 
-      if (r.estado === "valor" && r.escalones.length) {
+      if (r.estado === "valor" && !bajaBateria && r.escalones.length) {
         partes.push(
           el("h3", { class: "calc-escalones-titulo", text: "Si querés cambiar por otro equipo" }),
           el("p", { class: "calc-help", text: "Estos son los equipos del catálogo con la diferencia que sumarías en cada caso:" }),
@@ -1505,7 +1594,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       partes.push(el("div", { class: "calc-acciones" },
         botonWa(Calc.mensajeWhatsApp(CANJE_CONFIG, CANJE_TABLA, entrada, r, ""),
-          r.estado === "valor" ? "Confirmar por WhatsApp" : "Consultar por WhatsApp", "btn-primary")));
+          r.estado === "valor" && !bajaBateria ? "Confirmar por WhatsApp" : "Consultar por WhatsApp", "btn-primary")));
       resultado.append(el("div", { class: "calc-card calc-card--result" }, partes));
     });
   }

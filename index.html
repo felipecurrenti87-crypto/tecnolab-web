@@ -48,9 +48,9 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=38">
+  <link rel="stylesheet" href="css/style.css?v=42">
 </head>
 <body data-page="home">
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -93,6 +93,7 @@
   <main class="site-main" id="contenido" tabindex="-1">
 
   <section class="hero hero--cristal bg-post bg-post--a" id="hero" data-header-theme="dark" data-header-density="heavy">
+    <div class="hero-main">
     <div class="hero-logo">
       <img class="hero-logo-img" src="assets/img/hero-logo-960.webp" width="960" height="478" alt="Tecnolab" fetchpriority="high">
       <canvas class="hero-logo-canvas" aria-hidden="true"></canvas>
@@ -104,6 +105,17 @@
         <a class="btn hero-btn hero-btn--primary" href="plan-canje.html#calculadora">Cotizar mi equipo</a>
         <a class="btn hero-btn hero-btn--ghost" href="catalogo.html">Ver catálogo<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg></a>
       </div>
+    </div>
+    </div>
+    <div class="hero-product">
+      <img
+        src="assets/images/hero-product.png"
+        alt="iPhone 18 Pro Max"
+        class="hero-product-img"
+        draggable="false"
+        onload="this.closest('.hero').classList.add('has-product')"
+        onerror="this.remove()"
+      >
     </div>
     <a class="hero-scroll" href="#catalogo-destacado" aria-label="Ver el catálogo destacado"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></a>
   </section>
