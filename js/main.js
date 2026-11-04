@@ -931,8 +931,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const regalosCard = promo ? (promo.regalos || []).filter(Boolean) : [];
     const etiquetaTexto = p.subcategoria || p.categoria;
     const etiqueta = usado ? `<span class="product-card-eyebrow is-used">Usado</span>` : p.nuevo === true ? `<span class="product-card-eyebrow is-new">Nuevo</span>` : `<span class="product-card-eyebrow">${etiquetaTexto}</span>`;
+    // Variante G («Oportunidad del día»): mismo cuerpo de card, con cabecera celeste de precios
+    const enOferta = p.oferta === true && Number.isFinite(p.precioAnterior);
+    const ofertaHead = enOferta
+      ? `<div class="oferta-head"><span class="oferta-head-tag">⚡ Oportunidad del día</span>
+          <s class="oferta-head-old"><span class="sr-only">Precio anterior: </span>${p.moneda === "USD" ? "USD " : "$ "}${fmtNum(p.precioAnterior)}</s>
+          <strong class="oferta-head-new"><span class="sr-only">Precio ahora: </span>${pr.desde ? pr.desde + " " : ""}${pr.texto}</strong></div>` : "";
     return `
-      <article class="product-card" data-id="${escAttr(p.id)}" data-categoria="${p.categoria}" data-condicion="${usado ? "usado" : "nuevo"}"${p.subcategoria ? ` data-subcategoria="${escAttr(p.subcategoria)}"` : ""} data-busqueda="${escAttr(normalizar([p.nombre, p.subcategoria || "", p.variante || "", usado ? "usado" : ""].join(" ")))}">
+      <article class="product-card${enOferta ? " product-card--oferta" : ""}" data-id="${escAttr(p.id)}" data-categoria="${p.categoria}" data-condicion="${usado ? "usado" : "nuevo"}"${p.subcategoria ? ` data-subcategoria="${escAttr(p.subcategoria)}"` : ""} data-busqueda="${escAttr(normalizar([p.nombre, p.subcategoria || "", p.variante || "", usado ? "usado" : ""].join(" ")))}">
+        ${ofertaHead}
         <button type="button" class="product-card-open" aria-haspopup="dialog" aria-label="${escAttr("Ver detalle de " + p.nombre + (p.variante ? ", " + p.variante : ""))}"></button>
         ${regalosCard.length ? `<button type="button" class="gift-ribbon" aria-label="Ver regalo incluido"><span class="gift-ribbon-band">${ICONO_REGALO}Regalo</span></button>` : ""}
         <div class="product-card-head">
@@ -940,7 +947,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <h3 class="product-card-name">${p.nombre}</h3>
           ${p.variante ? `<p class="product-card-variant">${p.variante}</p>` : `<p class="product-card-variant product-card-variant--vacio" aria-hidden="true">&nbsp;</p>`}
         </div>
-        <div class="product-card-promo-slot">${promoPill}</div>
         <div class="product-card-media${colores.length ? "" : " product-card-media--vacio"}">
           ${usado ? `<span class="product-card-tag">Usado${bat !== null ? " · " + bat + "%" : ""}</span>` : ""}
           ${colores.length

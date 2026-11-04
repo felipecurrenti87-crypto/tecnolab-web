@@ -1272,6 +1272,24 @@ html[data-glass="liquid"] .hero-btn--ghost {
 .catalog-cards-row.is-compact .product-card { align-self: stretch; } /* carrusel móvil: todas las cards con el alto de la más alta */
 
 /* ==========================================================================
+   OPORTUNIDAD DEL DÍA — franja azul dentro de la product-card (misma card y tamaño que las demás)
+   ========================================================================== */
+.product-card--oferta { --op: 24px; }
+.oferta-head {
+  margin: calc(var(--op) * -1) calc(var(--op) * -1) 14px;
+  padding: 12px 16px 14px;
+  border-radius: var(--radius-product) var(--radius-product) 0 0;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-on-light) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.oferta-head-tag { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.75); }
+.oferta-head-old { font-size: 12px; color: rgba(255, 255, 255, 0.65); text-decoration: line-through; }
+.oferta-head-new { font-size: 22px; font-weight: 800; color: #fff; line-height: 1.15; }
+@media (max-width: 899px) { .product-card--oferta { --op: 12px; } }
+
+/* ==========================================================================
    POR QUÉ TECNOLAB — estadísticas (+ cortina)
    ========================================================================== */
 #why-tecnolab .section-head h2 { max-width: 24ch; }

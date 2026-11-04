@@ -73,6 +73,8 @@ const CATALOGO_DESTACADO = [
       { nombre: "Plateado", hex: "#e8e8ea", imagen: "assets/img/iphone18promax-plateado-back-side-t.webp" },
     ],
     disponible: true,
+    oferta: true, // true → la card muestra la franja azul «Oportunidad del día» con precioAnterior tachado
+    precioAnterior: 1950000, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
   {
     id: "iphone-18-pro-plateado",
@@ -86,6 +88,8 @@ const CATALOGO_DESTACADO = [
       { nombre: "Plateado", hex: "#e8e8ea", imagen: "assets/img/iphone18promax-plateado-back-side-t.webp" },
     ],
     disponible: true,
+    oferta: false,
+    precioAnterior: null, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
   // La variante Glacier / Azul (_originales/pendientes/iphone18promax-azul-camara-detalle.jpg)
   // queda afuera por ahora: es un macro diagonal de la cámara, no el
@@ -107,6 +111,8 @@ const CATALOGO_DESTACADO = [
       { nombre: "Sky Blue", hex: "#cfdde9", imagen: "assets/img/iphone-air-digitalmat-gallery-3-202509-t.webp" },
     ],
     disponible: true,
+    oferta: false,
+    precioAnterior: null, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
   {
     id: "iphone-duo",
@@ -123,6 +129,8 @@ const CATALOGO_DESTACADO = [
       { nombre: "Star White", hex: "#ece9e4", imagen: "assets/img/iphone-duo-digitalmat-gallery-4-202609-t.webp" },
     ],
     disponible: true,
+    oferta: false,
+    precioAnterior: null, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
   {
     id: "iphone-17-pro-max-negro",
@@ -134,6 +142,8 @@ const CATALOGO_DESTACADO = [
     precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [], // sin fotos todavía — la card usa el fallback "Foto próximamente"
     disponible: true,
+    oferta: false,
+    precioAnterior: null, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
   {
     id: "iphone-17-pro-natural",
@@ -145,6 +155,8 @@ const CATALOGO_DESTACADO = [
     precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [], // sin fotos todavía — la card usa el fallback "Foto próximamente"
     disponible: true,
+    oferta: false,
+    precioAnterior: null, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
   {
     id: "iphone-17-azul",
@@ -158,6 +170,8 @@ const CATALOGO_DESTACADO = [
       { nombre: "Azul brumoso", hex: "#96aed1", imagen: "assets/img/iphone-17-digitalmat-gallery-4-202509-t.webp" },
     ],
     disponible: true,
+    oferta: false,
+    precioAnterior: null, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
   {
     id: "iphone-16-pro-max-desierto",
@@ -169,6 +183,8 @@ const CATALOGO_DESTACADO = [
     precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [], // sin fotos todavía — la card usa el fallback "Foto próximamente"
     disponible: true,
+    oferta: false,
+    precioAnterior: null, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
   {
     id: "iphone-16-pro-blanco",
@@ -180,6 +196,8 @@ const CATALOGO_DESTACADO = [
     precioNum: null, // número en la moneda de CANJE_CONFIG; null = sin precio cargado (la calculadora lo ignora)
     colores: [], // sin fotos todavía — la card usa el fallback "Foto próximamente"
     disponible: true,
+    oferta: false,
+    precioAnterior: null, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
   {
     id: "iphone-16-verde",
@@ -193,6 +211,8 @@ const CATALOGO_DESTACADO = [
       { nombre: "Verde azulado", hex: "#7fb5b0", imagen: "assets/img/iphone16-digitalmat-gallery-5-202409-t.webp" },
     ],
     disponible: true,
+    oferta: false,
+    precioAnterior: null, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
   {
     id: "airpods-5",
@@ -206,5 +226,7 @@ const CATALOGO_DESTACADO = [
       { nombre: "Blanco", hex: "#f5f5f5", imagen: "assets/img/airpods-5-select-202609_FV1-t.webp" },
     ],
     disponible: true,
+    oferta: false,
+    precioAnterior: null, // solo con oferta: true → precio anterior (número) que se muestra tachado
   },
 ];
