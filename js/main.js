@@ -24,7 +24,14 @@ const OPINIONES_FX = {
   opacidadTexto: 0.15,  // opacidad máxima de las celdas que tocan texto ([data-foto-evitar])
   margenTexto: 6,       // px de aire alrededor de cada bloque de texto
   resizeDebounceMs: 150,
-  recientesSinRepetir: 2
+  recientesSinRepetir: 2,
+  autoIntervalo: 100,   // modo autónomo: ms entre apariciones
+  maxActivas: 14,       // tope de celdas activas a la vez (mouse + autónomo); si no hay lugar se salta la vuelta
+  poolExtra: 4,         // el pool tiene al menos maxActivas + poolExtra celdas (no se crean nodos en cada aparición)
+  intensidadMin: 0.25,  // modo autónomo: opacidad máxima por foto = intensidad aleatoria (× opacidadMax)
+  intensidadMax: 1,
+  autoPermMin: 900,     // permanencia (antes del fade-out) de las fotos más intensas
+  autoPermMax: 2200     // permanencia de las más tenues
 };
 const FRANJA_SEG_POR_TARJETA = 16; // duración del loop de reseñas = cantidad de tarjetas × este valor (s)
 
@@ -1619,7 +1626,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof SUCURSALES_RESENAS === "undefined") return;
     const mk = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
     const coma = (n) => String(n).replace(".", ",");
-    const corto = { dorrego: "Dorrego", lomas: "Complejo Lomas" };
+    const corto = { dorrego: "Sucursal Dorrego", lomas: "Sucursal Lomas" };
 
     // ---------- a) franja ----------
     const fr = document.getElementById("opiniones-franja");
@@ -1628,8 +1635,9 @@ document.addEventListener("DOMContentLoaded", () => {
       SUCURSALES_RESENAS.forEach((suc) => {
         const a = mk("a");
         a.href = suc.mapsUrl; a.target = "_blank"; a.rel = "noopener";
-        a.setAttribute("aria-label", (corto[suc.id] || suc.nombre) + ": " + coma(suc.promedio) + " estrellas en Google Maps");
-        a.append(mk("span", "", coma(suc.promedio)), mk("span", "estrella", "★"), mk("span", "", corto[suc.id] || suc.nombre));
+        a.setAttribute("aria-label", (corto[suc.id] || suc.nombre) + ": 5 estrellas en Google Maps");
+        const nota = mk("span", "opiniones-nota"); nota.append(document.createTextNode("5 "), mk("span", "estrella", "★"));
+        a.append(nota, mk("span", "opiniones-suc", corto[suc.id] || suc.nombre));
         score.append(a);
       });
       fr.querySelector(".opiniones-legend").textContent = "Datos de Google Maps, " + (typeof RESENAS_ACTUALIZADO !== "undefined" ? RESENAS_ACTUALIZADO : "");
@@ -1677,8 +1685,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }));
     sec.hidden = false;
 
-    const fxOk = window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
-      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const fxOk = !window.matchMedia("(prefers-reduced-motion: reduce)").matches; // el modo autónomo funciona también en táctil
     const capa = sec.querySelector(".opiniones-fx");
     if (!fxOk || !capa || !("IntersectionObserver" in window)) return;
 
@@ -1718,13 +1725,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const montarPool = () => {
       pool = [];
-      for (let i = 0; i < FX.maxVisibles; i++) {
+      for (let i = 0; i < Math.max(FX.maxVisibles, FX.maxActivas + FX.poolExtra); i++) {
         const el = mk("div", "fx-cell");
         const img = new Image();
         img.alt = ""; img.loading = "lazy"; img.decoding = "async";
         el.append(img);
         capa.append(el);
-        pool.push({ el, img, key: "", t: 0, fase: 0 });
+        pool.push({ el, img, key: "", t: 0, fase: 0, perm: FX.permanenciaMs });
       }
       CLIENTES_FOTOS.forEach((f) => { const p = new Image(); p.src = "assets/img/clientes/" + f; }); // calienta la caché
     };
@@ -1753,7 +1760,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (recientes.length > FX.recientesSinRepetir) recientes.shift();
       return idx;
     };
-    const tocar = (col, fila, ahora) => {
+    const tocar = (col, fila, ahora, intensidad = 1, perm = FX.permanenciaMs) => {
       const key = col + "," + fila;
       let c = ocupadas.get(key);
       if (c) { c.t = ahora; c.fase = 1; c.el.classList.add("is-in"); return; } // visible o apagándose: se refresca con la misma foto
@@ -1761,7 +1768,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const w = lado - 8;
       c.el.style.width = c.el.style.height = w + "px";
       c.el.style.translate = (col * lado + 4) + "px " + (fila * lado + 4) + "px";
-      c.el.style.setProperty("--fx-max", tocaTexto(col, fila) ? FX.opacidadTexto : FX.opacidadMax);
+      c.el.style.setProperty("--fx-max", (tocaTexto(col, fila) ? FX.opacidadTexto : FX.opacidadMax) * intensidad);
+      c.perm = perm;
       c.img.src = "assets/img/clientes/" + CLIENTES_FOTOS[siguienteFoto()];
       c.img.width = c.img.height = w;
       c.key = key; c.t = ahora; c.fase = 1;
@@ -1786,8 +1794,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (c.fase === 0) continue;
         vivas = true;
         const edad = ahora - c.t;
-        if (c.fase === 1 && edad > FX.permanenciaMs) { c.fase = 2; c.el.classList.remove("is-in"); }
-        else if (c.fase === 2 && edad > FX.permanenciaMs + FX.salidaMs) liberar(c);
+        if (c.fase === 1 && edad > c.perm) { c.fase = 2; c.el.classList.remove("is-in"); }
+        else if (c.fase === 2 && edad > c.perm + FX.salidaMs) liberar(c);
       }
       if (vivas) raf = requestAnimationFrame(tick);
     };
@@ -1796,7 +1804,26 @@ document.addEventListener("DOMContentLoaded", () => {
       ptr = { x: e.clientX, y: e.clientY };
       if (!raf) raf = requestAnimationFrame(tick);
     };
-    function apagarTodo() { if (pool) pool.forEach((c) => { if (c.fase) liberar(c); }); ultimaKey = ""; ptr = null; }
+    // Modo autónomo: una foto cada autoIntervalo ms en una celda al azar, sin repetir la anterior ni tocar una vecina de otra visible
+    let tAuto = 0, ultimaAuto = "";
+    const lanzarAuto = () => {
+      tAuto = 0;
+      if (!activa) return;
+      if (pool.filter((c) => c.fase).length < FX.maxActivas) {
+        const vivas = [...ocupadas.keys()].map((k) => k.split(",").map(Number));
+        for (let i = 0; i < cols * filas; i++) {
+          const col = Math.floor(Math.random() * cols), fila = Math.floor(Math.random() * filas), key = col + "," + fila;
+          if (key === ultimaAuto || ocupadas.has(key) || vivas.some(([c, f]) => Math.abs(c - col) <= 1 && Math.abs(f - fila) <= 1)) continue;
+          ultimaAuto = key;
+          const k = Math.random(); // 0 = tenue y larga, 1 = nítida y corta
+          tocar(col, fila, performance.now(), FX.intensidadMin + k * (FX.intensidadMax - FX.intensidadMin), FX.autoPermMax - k * (FX.autoPermMax - FX.autoPermMin));
+          if (!raf) raf = requestAnimationFrame(tick);
+          break;
+        }
+      }
+      tAuto = setTimeout(lanzarAuto, FX.autoIntervalo);
+    };
+    function apagarTodo() { if (pool) pool.forEach((c) => { if (c.fase) liberar(c); }); ultimaKey = ""; ultimaAuto = ""; ptr = null; }
 
     layout();
     let td = 0;
@@ -1810,9 +1837,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!pool) montarPool();
         activa = true;
         sec.addEventListener("pointermove", mover, { passive: true });
+        lanzarAuto(); // arranque inmediato
       } else if (!dentro && activa) {
         activa = false;
         sec.removeEventListener("pointermove", mover);
+        clearTimeout(tAuto); tAuto = 0;
         if (raf) { cancelAnimationFrame(raf); raf = 0; }
         apagarTodo();
       }

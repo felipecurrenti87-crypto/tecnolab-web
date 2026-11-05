@@ -1,4 +1,4 @@
-const ACCESORIOS_CONFIG = { mostrarPrecio: false }; // pasar a true SOLO cuando el negocio confirme que son precios de venta vigentes
+const ACCESORIOS_CONFIG = { mostrarPrecio: true };
 const ACCESORIOS_BASE = [
   ["Vidrios y protección", "Vidrio común", 5200],
   ["Vidrios y protección", "Vidrio 9D", 12700],
